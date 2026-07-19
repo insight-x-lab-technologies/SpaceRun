@@ -5,14 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#05010f">
   <meta name="description" content="SpaceRun - um endless runner espacial gerado proceduralmente.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SpaceRun">
   <title>SpaceRun</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div id="app">
     <canvas id="game-canvas"></canvas>
+
+    <!-- Overlay "pronto" (inicia com espaço/toque) -->
+    <div id="ready-overlay" class="overlay-msg hidden">
+      <div class="overlay-inner">
+        <h2 data-i18n="ready.title">Pronto?</h2>
+        <p data-i18n="ready.msg">Pressione ESPAÇO ou toque a tela para iniciar</p>
+      </div>
+    </div>
 
     <!-- HUD (visível apenas no jogo) -->
     <div id="hud" class="hidden">
@@ -33,7 +46,9 @@
           <button class="btn" data-action="hangar" data-i18n="menu.hangar">Hangar</button>
           <button class="btn" data-action="settings" data-i18n="menu.settings">Configurações</button>
           <button class="btn" data-action="donate" data-i18n="menu.donate">Doar</button>
+          <button class="btn hidden" id="install-btn" data-i18n="menu.install">Install</button>
         </div>
+        <p class="hint hidden" id="install-hint" data-i18n="home.installHint"></p>
       </div>
       <div class="best-record"><span data-i18n="home.best">Recorde:</span> <span id="home-best">0 m</span></div>
       <div class="footer" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.1</div>

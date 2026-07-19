@@ -2,8 +2,9 @@
 const Game = (() => {
   let canvas, ctx, W = 0, H = 0, dpr = 1;
   let raf = null, lastT = 0;
-  let state = 'idle';        // idle | playing | paused | over
+  let state = 'idle';        // idle | ready | playing | paused | over
   let onOverCb = null;
+  let onStateCb = null;
 
   let world = { scroll: 0, speed: 60, meters: 0, difficulty: 0 };
   let ship = null;
@@ -58,15 +59,24 @@ const Game = (() => {
     }
   }
 
-  function init(canvasEl, onOver) {
+  function init(canvasEl, onOver, onState) {
     canvas = canvasEl;
     ctx = canvas.getContext('2d');
     onOverCb = onOver;
+    onStateCb = onState;
     Input.init();
+    // primeiro input (espaço/toque) inicia o jogo a partir do estado "ready"
+    Input.on('start', () => { if (state === 'ready') setState('playing'); });
     resize();
     window.addEventListener('resize', resize);
     lastT = performance.now();
     loop(lastT);
+  }
+
+  function setState(s) {
+    if (state === s) return;
+    state = s;
+    if (onStateCb) onStateCb(s);
   }
 
   function buildWorld() {
@@ -90,20 +100,22 @@ const Game = (() => {
   function start() {
     settings.particles = Storage.getSettings().particles;
     buildWorld();
-    state = 'playing';
+    setState('ready');   // começa pausado, aguardando input do jogador
     lastT = performance.now();
   }
-  function pause() { if (state === 'playing') state = 'paused'; }
-  function resume() { if (state === 'paused') { state = 'playing'; lastT = performance.now(); } }
+  function pause() { if (state === 'playing') setState('paused'); }
+  function resume() { if (state === 'paused') { setState('playing'); lastT = performance.now(); } }
   function isPaused() { return state === 'paused'; }
-  function stop() { state = 'idle'; }
+  function stop() { setState('idle'); }
 
   function terrain(wx) {
     const diff = world.difficulty;
     const mid = H * 0.5;
-    let gap = H * 0.6 - diff * H * 0.007;
+    // começa bem aberto e estreita com a distância
+    let gap = H * 0.72 - diff * H * 0.055;
     gap = Math.max(H * 0.3, gap);
-    const amp = gap * (0.16 + Math.min(diff * 0.004, 0.16));
+    // variação pequena no início, cresce com o progresso
+    const amp = gap * (0.1 + Math.min(diff * 0.006, 0.22));
     const top = mid - gap * 0.5
       + Math.sin(wx * 0.010) * gap * 0.22
       + Math.sin(wx * 0.023 + 1.3) * gap * 0.12;
@@ -116,7 +128,7 @@ const Game = (() => {
   function spawnObstacle() {
     const x = W + 40;
     const t = terrain(x + world.scroll);
-    const r = 14 + Math.random() * 22 + world.difficulty * 0.4;
+    const r = 12 + Math.random() * 18 + world.difficulty * 0.3;
     const minY = t.top + r + 6;
     const maxY = t.bot - r - 6;
     if (maxY <= minY) return;
@@ -175,6 +187,14 @@ const Game = (() => {
     }
 
     if (state === 'playing') updateGameplay(dt, t);
+    else if (state === 'ready') {
+      // nave flutua suavemente no centro, sem cair
+      if (ship) {
+        ship.y = H * 0.5 + Math.sin(t * 0.003) * (H * 0.02);
+        ship.vy = 0;
+        ship.tilt = 0;
+      }
+    }
     if (state === 'over') {
       crashAnim += dt;
       updateParticles(dt);
@@ -183,8 +203,8 @@ const Game = (() => {
 
   function updateGameplay(dt, t) {
     world.difficulty = world.meters / 1000;
-    world.speed = 220 + world.difficulty * 26;
-    world.speed = Math.min(world.speed, 720);
+    // começa em 220 e acelera com a distância
+    world.speed = Math.min(720, 220 + world.difficulty * 70);
     world.meters += world.speed * dt * 0.12;
 
     // física da nave
@@ -215,7 +235,8 @@ const Game = (() => {
 
     // obstáculos
     spawnTimer -= dt;
-    const interval = Math.max(0.55, 1.5 - world.difficulty * 0.05);
+    // começa com poucos obstáculos e aumenta a frequência
+    const interval = Math.max(0.5, 2.2 - world.difficulty * 0.18);
     if (spawnTimer <= 0) { spawnObstacle(); spawnTimer = interval * (0.7 + Math.random() * 0.6); }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -243,7 +264,7 @@ const Game = (() => {
 
   function gameOver() {
     if (state === 'over') return;
-    state = 'over';
+    setState('over');
     crashAnim = 0;
     explode(ship.x, ship.y);
     Audio2.crash();
@@ -260,8 +281,8 @@ const Game = (() => {
     drawStars();
     drawNearStars();
 
-    // plano local (gameplay) só quando não está no menu puro
-    if (state === 'playing' || state === 'paused' || state === 'over') {
+    // plano local (gameplay) do ready em diante
+    if (state === 'ready' || state === 'playing' || state === 'paused' || state === 'over') {
       drawTerrain();
       drawObstacles();
       drawShip(t);

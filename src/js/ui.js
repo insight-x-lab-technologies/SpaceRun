@@ -63,16 +63,22 @@ const UI = (() => {
     document.getElementById('set-lang').value = I18n.lang;
 
     document.getElementById('set-sound').onchange = e => {
+      Audio2.uiClick();
       Storage.setSetting('sound', e.target.checked);
       Audio2.setEnabled(e.target.checked);
     };
     document.getElementById('set-music').onchange = e => {
+      Audio2.uiClick();
       Storage.setSetting('music', e.target.checked);
+      Audio2.setMusicEnabled(e.target.checked);
+      window.dispatchEvent(new Event('musicchange'));
     };
     document.getElementById('set-particles').onchange = e => {
+      Audio2.uiClick();
       Storage.setSetting('particles', e.target.checked);
     };
     document.getElementById('set-lang').onchange = e => {
+      Audio2.uiClick();
       I18n.setLang(e.target.value);
       I18n.apply();
       document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
@@ -121,6 +127,7 @@ const UI = (() => {
   }
 
   function handleAction(a) {
+    Audio2.uiClick();
     switch (a) {
       case 'play':
         show(null);
@@ -142,13 +149,15 @@ const UI = (() => {
         if (confirm(I18n.t('settings.resetConfirm'))) { Storage.reset(); renderSettings(); refreshRecords(); }
         break;
       case 'resume':
-        Game.resume(); show(null);
+        Game.resume();
         break;
     }
   }
 
   function showPause() { show('screen-pause'); }
   function hidePause() { show(null); }
+  function showReady() { const e = document.getElementById('ready-overlay'); if (e) e.classList.remove('hidden'); }
+  function hideReady() { const e = document.getElementById('ready-overlay'); if (e) e.classList.add('hidden'); }
 
-  return { init, show, showGameOver, showPause, hidePause, refreshRecords };
+  return { init, show, showGameOver, showPause, hidePause, showReady, hideReady, refreshRecords };
 })();

@@ -1,8 +1,14 @@
 /* Áudio procedural (WebAudio, sem arquivos) */
 const Audio2 = (() => {
   let ctx = null;
-  let enabled = true;
-  let musicNodes = null;
+  let soundOn = true;     // efeitos sonoros
+  let musicOn = false;    // música de fundo
+
+  // ----- música -----
+  const music = { type: null, timer: null, next: 0, step: 0, master: null, drone: null };
+
+  const MENU_SEQ  = [220.00, 261.63, 329.63, 293.66, 261.63, 220.00, 329.63, 392.00];
+  const GAME_SEQ  = [440.00, 523.25, 659.25, 523.25, 587.33, 659.25, 523.25, 440.00];
 
   function ensure() {
     if (!ctx) {
@@ -13,8 +19,12 @@ const Audio2 = (() => {
     return ctx;
   }
 
+  function setEnabled(v) { soundOn = v; }
+  function setMusicEnabled(v) { musicOn = v; if (!v) stopMusic(); }
+
+  /* ---------- efeitos ---------- */
   function blip(freq, dur, type = 'square', vol = 0.12) {
-    if (!enabled) return;
+    if (!soundOn) return;
     const c = ensure(); if (!c) return;
     const o = c.createOscillator();
     const g = c.createGain();
@@ -25,8 +35,11 @@ const Audio2 = (() => {
     o.start(); o.stop(c.currentTime + dur);
   }
 
+  function uiClick() { blip(660, 0.05, 'square', 0.08); }
+  function thrust() { blip(420, 0.06, 'square', 0.05); }
+  function hit() { blip(160, 0.12, 'square', 0.12); }
   function crash() {
-    if (!enabled) return;
+    if (!soundOn) return;
     const c = ensure(); if (!c) return;
     const o = c.createOscillator();
     const g = c.createGain();
@@ -38,33 +51,90 @@ const Audio2 = (() => {
     o.connect(g); g.connect(c.destination);
     o.start(); o.stop(c.currentTime + 0.45);
   }
+  function unlock() { blip(660,0.1); setTimeout(()=>blip(880,0.12),100); setTimeout(()=>blip(1100,0.16),220); }
 
-  function startMusic() {
-    if (!enabled) return;
-    const c = ensure(); if (!c || musicNodes) return;
-    const o = c.createOscillator();
-    const o2 = c.createOscillator();
-    const g = c.createGain();
-    o.type = 'triangle'; o.frequency.value = 110;
-    o2.type = 'sine'; o2.frequency.value = 165;
-    g.gain.value = 0.04;
-    o.connect(g); o2.connect(g); g.connect(c.destination);
-    o.start(); o2.start();
-    musicNodes = { o, o2, g };
+  /* ---------- música procedural ---------- */
+  function startMusic(type) {
+    if (!musicOn) { stopMusic(); return; }
+    const c = ensure(); if (!c) return;
+    if (music.type === type && music.timer) return; // já tocando
+    stopMusic();
+    music.type = type;
+    music.step = 0;
+    music.next = c.currentTime + 0.06;
+    if (!music.master) {
+      music.master = c.createGain();
+      music.master.gain.value = 0.07;
+      music.master.connect(c.destination);
+    }
+    if (type === 'menu') startDrone(c, 110, 0.04); // pad grave
+    music.timer = setInterval(scheduler, 25);
   }
-  function stopMusic() {
-    if (musicNodes) {
-      try { musicNodes.o.stop(); musicNodes.o2.stop(); } catch (e) {}
-      musicNodes = null;
+
+  function startDrone(c, freq, vol) {
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = 'triangle'; o.frequency.value = freq;
+    g.gain.value = vol;
+    // leve vibrato
+    const lfo = c.createOscillator();
+    const lg = c.createGain();
+    lfo.frequency.value = 0.2; lg.gain.value = 2;
+    lfo.connect(lg); lg.connect(o.frequency);
+    o.connect(g); g.connect(music.master);
+    o.start(); lfo.start();
+    music.drone = { o, lfo };
+  }
+
+  function stopDrone() {
+    if (music.drone) {
+      try { music.drone.o.stop(); music.drone.lfo.stop(); } catch (e) {}
+      music.drone = null;
     }
   }
 
+  function note(freq, start, dur, type, rel) {
+    const c = ctx;
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(rel, start + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    o.connect(g); g.connect(music.master);
+    o.start(start); o.stop(start + dur + 0.02);
+  }
+
+  function scheduler() {
+    const c = ctx; if (!c || c.state !== 'running') return;
+    if (music.next < c.currentTime) music.next = c.currentTime + 0.05; // resync
+    while (music.next < c.currentTime + 0.12) {
+      const type = music.type;
+      if (type === 'menu') {
+        const f = MENU_SEQ[music.step % MENU_SEQ.length];
+        note(f, music.next, 0.42, 'triangle', 0.5);
+        if (music.step % 4 === 0) note(f * 2, music.next, 0.3, 'sine', 0.18);
+      } else { // game
+        const f = GAME_SEQ[music.step % GAME_SEQ.length];
+        note(f, music.next, 0.15, 'square', 0.32);
+        if (music.step % 2 === 0) note(110, music.next, 0.15, 'triangle', 0.5);
+        if (music.step % 4 === 2) note(164.81, music.next, 0.15, 'triangle', 0.3);
+      }
+      music.next += (type === 'menu') ? 0.46 : 0.16;
+      music.step++;
+    }
+  }
+
+  function stopMusic() {
+    if (music.timer) { clearInterval(music.timer); music.timer = null; }
+    stopDrone();
+    music.type = null;
+  }
+
   return {
-    setEnabled: v => { enabled = v; if (!v) stopMusic(); },
-    thrust: () => blip(420, 0.06, 'square', 0.05),
-    hit: () => blip(160, 0.12, 'square', 0.12),
-    crash,
-    unlock: () => { blip(660,0.1); setTimeout(()=>blip(880,0.12),100); setTimeout(()=>blip(1100,0.16),220); },
+    ensure,
+    setEnabled, setMusicEnabled,
+    uiClick, thrust, hit, crash, unlock,
     startMusic, stopMusic
   };
 })();
