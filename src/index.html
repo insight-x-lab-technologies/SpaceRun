@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#05010f">
+  <meta name="description" content="SpaceRun - um endless runner espacial gerado proceduralmente.">
+  <title>SpaceRun</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD (visível apenas no jogo) -->
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <span id="hud-distance">0 m</span>
+        <span id="hud-speed"></span>
+        <button id="hud-pause" aria-label="Pause">II</button>
+      </div>
+    </div>
+
+    <!-- Tela Home -->
+    <section id="screen-home" class="screen">
+      <div class="panel">
+        <h1 class="logo">SPACE<span>RUN</span></h1>
+        <p class="tagline" data-i18n="home.tagline">Sobreviva ao vazio infinito</p>
+        <div class="menu">
+          <button class="btn btn-primary" data-action="play" data-i18n="menu.play">Novo Jogo</button>
+          <button class="btn" data-action="hangar" data-i18n="menu.hangar">Hangar</button>
+          <button class="btn" data-action="settings" data-i18n="menu.settings">Configurações</button>
+          <button class="btn" data-action="donate" data-i18n="menu.donate">Doar</button>
+        </div>
+      </div>
+      <div class="best-record"><span data-i18n="home.best">Recorde:</span> <span id="home-best">0 m</span></div>
+      <div class="footer" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.1</div>
+    </section>
+
+    <!-- Tela Hangar -->
+    <section id="screen-hangar" class="screen hidden">
+      <div class="panel">
+        <h2 data-i18n="hangar.title">Hangar</h2>
+        <p class="subtitle" data-i18n="hangar.subtitle">Escolha sua aeronave</p>
+        <div id="ship-list" class="ship-list"></div>
+        <div class="best-record"><span data-i18n="hangar.best">Melhor distância:</span> <span id="hangar-best">0 m</span></div>
+        <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
+      </div>
+    </section>
+
+    <!-- Tela Configurações -->
+    <section id="screen-settings" class="screen hidden">
+      <div class="panel">
+        <h2 data-i18n="settings.title">Configurações</h2>
+        <div class="setting-row">
+          <label for="set-lang" data-i18n="settings.lang">Idioma</label>
+          <select id="set-lang">
+            <option value="pt">Português</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label for="set-sound" data-i18n="settings.sound">Som</label>
+          <input type="checkbox" id="set-sound">
+        </div>
+        <div class="setting-row">
+          <label for="set-music" data-i18n="settings.music">Música</label>
+          <input type="checkbox" id="set-music">
+        </div>
+        <div class="setting-row">
+          <label for="set-particles" data-i18n="settings.particles">Partículas</label>
+          <input type="checkbox" id="set-particles">
+        </div>
+        <button class="btn danger" data-action="reset" data-i18n="settings.reset">Apagar progresso</button>
+        <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
+      </div>
+    </section>
+
+    <!-- Tela Doar -->
+    <section id="screen-donate" class="screen hidden overlay">
+      <div class="panel">
+        <h2 data-i18n="donate.title">Apoie o projeto</h2>
+        <p class="subtitle" data-i18n="donate.subtitle">Escolha uma plataforma:</p>
+        <div class="menu">
+          <a class="btn btn-primary" href="https://ko-fi.com/insightxlabgamestudio" target="_blank" rel="noopener noreferrer" data-i18n="donate.kofi">Ko-Fi</a>
+          <a class="btn" href="https://buymeacoffee.com/insight.x.lab.game.studio" target="_blank" rel="noopener noreferrer" data-i18n="donate.bmc">Buy Me a Coffee</a>
+        </div>
+        <button class="btn back" data-action="home" data-i18n="donate.back">Voltar</button>
+      </div>
+    </section>
+
+    <!-- Tela Game Over -->
+    <section id="screen-gameover" class="screen hidden">
+      <div class="panel">
+        <h2 class="go-title" data-i18n="go.title">FIM DE JOGO</h2>
+        <div class="result">
+          <div class="result-row"><span data-i18n="go.distance">Distância</span><strong id="go-distance">0 m</strong></div>
+          <div class="result-row"><span data-i18n="go.best">Recorde</span><strong id="go-best">0 m</strong></div>
+          <div id="go-unlock" class="unlock hidden"></div>
+        </div>
+        <div class="menu">
+          <button class="btn btn-primary" data-action="play" data-i18n="go.again">Jogar de novo</button>
+          <button class="btn" data-action="home" data-i18n="go.menu">Menu</button>
+          <button class="btn" data-action="hangar" data-i18n="menu.hangar">Hangar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tela Pausa -->
+    <section id="screen-pause" class="screen hidden overlay">
+      <div class="panel small">
+        <h2 data-i18n="pause.title">Pausado</h2>
+        <div class="menu">
+          <button class="btn btn-primary" data-action="resume" data-i18n="pause.resume">Continuar</button>
+          <button class="btn" data-action="home" data-i18n="pause.menu">Menu</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/ships.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

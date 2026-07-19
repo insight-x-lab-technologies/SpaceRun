@@ -1,0 +1,117 @@
+/* Definição das aeronaves (desenho 100% procedural, sem imagens) */
+const Ships = (() => {
+  /*
+    Cada nave tem:
+    - id, name, desc
+    - unlockAt: metros totais acumulados para desbloquear (0 = já liberta)
+    - color / accent: cores base
+    - stats: agility (sobe/desce mais rápido), size (hitbox), thrust (empuxo)
+    - draw(ctx, x, y, w, h, t): desenha a nave centralizada em (x,y)
+  */
+  function drawBody(ctx, x, y, w, h, color, accent, t, flame) {
+    const half = w / 2, q = h / 2;
+    // chama de propulsão
+    if (flame) {
+      const fl = q * (0.6 + 0.4 * Math.sin(t * 0.02));
+      const grad = ctx.createLinearGradient(x - half, 0, x - half - fl, 0);
+      grad.addColorStop(0, accent);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(x - half, y - q * 0.5);
+      ctx.lineTo(x - half - fl, y);
+      ctx.lineTo(x - half, y + q * 0.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+    // corpo
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x + half, y);
+    ctx.lineTo(x - half * 0.6, y - q);
+    ctx.lineTo(x - half, y - q * 0.3);
+    ctx.lineTo(x - half, y + q * 0.3);
+    ctx.lineTo(x - half * 0.6, y + q);
+    ctx.closePath();
+    ctx.fill();
+    // detalhe
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.ellipse(x + half * 0.2, y, w * 0.16, q * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // cockpit
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(x + half * 0.35, y, q * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const list = [
+    {
+      id: 'scout', name: 'Scout',
+      unlockAt: 0, color: '#4af0ff', accent: '#ff4ad8',
+      stats: { agility: 1.0, size: 1.0, thrust: 1.0 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#4af0ff','#ff4ad8',t,f)
+    },
+    {
+      id: 'falcon', name: 'Falcon',
+      unlockAt: 500, color: '#7CFF6B', accent: '#ffd84a',
+      stats: { agility: 1.25, size: 0.95, thrust: 1.1 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#7CFF6B','#ffd84a',t,f)
+    },
+    {
+      id: 'tank', name: 'Tank',
+      unlockAt: 1500, color: '#ff9a4a', accent: '#ff5570',
+      stats: { agility: 0.85, size: 1.25, thrust: 0.95 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#ff9a4a','#ff5570',t,f)
+    },
+    {
+      id: 'phantom', name: 'Phantom',
+      unlockAt: 3500, color: '#b06bff', accent: '#4af0ff',
+      stats: { agility: 1.4, size: 0.85, thrust: 1.25 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#b06bff','#4af0ff',t,f)
+    },
+    {
+      id: 'nova', name: 'Nova',
+      unlockAt: 8000, color: '#ffe04a', accent: '#ff4ad8',
+      stats: { agility: 1.3, size: 0.9, thrust: 1.3 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#ffe04a','#ff4ad8',t,f)
+    },
+    /* --- Naves avançadas (desbloqueio mais difícil) --- */
+    {
+      id: 'vortex', name: 'Vortex',
+      unlockAt: 15000, color: '#00ffd0', accent: '#ff00aa',
+      stats: { agility: 1.35, size: 0.85, thrust: 1.35 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#00ffd0','#ff00aa',t,f)
+    },
+    {
+      id: 'quasar', name: 'Quasar',
+      unlockAt: 30000, color: '#ff5edb', accent: '#5effd0',
+      stats: { agility: 1.45, size: 0.8, thrust: 1.45 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#ff5edb','#5effd0',t,f)
+    },
+    {
+      id: 'pulsar', name: 'Pulsar',
+      unlockAt: 60000, color: '#a0ff5e', accent: '#ffd84a',
+      stats: { agility: 1.5, size: 0.8, thrust: 1.5 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#a0ff5e','#ffd84a',t,f)
+    },
+    {
+      id: 'nebula', name: 'Nebula',
+      unlockAt: 120000, color: '#5e9bff', accent: '#ff5e9b',
+      stats: { agility: 1.55, size: 0.78, thrust: 1.55 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#5e9bff','#ff5e9b',t,f)
+    },
+    {
+      id: 'singularity', name: 'Singularity',
+      unlockAt: 250000, color: '#ffffff', accent: '#ff4ad8',
+      stats: { agility: 1.6, size: 0.75, thrust: 1.6 },
+      draw: (c,x,y,w,h,t,f) => drawBody(c,x,y,w,h,'#ffffff','#ff4ad8',t,f)
+    }
+  ];
+
+  const byId = {};
+  list.forEach(s => byId[s.id] = s);
+
+  return { list, get: id => byId[id] || list[0] };
+})();

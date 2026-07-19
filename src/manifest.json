@@ -1,0 +1,19 @@
+{
+  "name": "SpaceRun",
+  "short_name": "SpaceRun",
+  "description": "Endless runner espacial gerado proceduralmente.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#05010f",
+  "theme_color": "#05010f",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
