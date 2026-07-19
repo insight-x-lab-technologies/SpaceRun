@@ -5,9 +5,13 @@ const Storage = (() => {
   const defaults = {
     best: 0,             // melhor distância (m)
     totalMeters: 0,      // metros acumulados (para desbloqueios)
+    totalRuns: 0,        // quantas partidas foram jogadas
+    bestTime: 0,         // tempo (s) da partida de melhor distância
+    crystals: 0,         // cristais acumulados (moeda virtual, só progressão)
     selectedShip: 'scout',
     unlocked: ['scout'],
-    settings: { sound: true, music: false, particles: true, lang: null }
+    settings: { sound: true, music: false, particles: true, lang: null,
+                reduceMotion: false, highContrast: false }
   };
 
   let data = load();
@@ -47,10 +51,18 @@ const Storage = (() => {
     isUnlocked(id) { return data.unlocked.includes(id); },
 
     /* Registra uma partida. Retorna {isBest, newUnlocks:[shipId...]} */
-    recordRun(meters) {
+    recordRun(meters, time, crystals) {
       const res = { isBest: false, newUnlocks: [] };
+      data.totalRuns += 1;
       data.totalMeters += meters;
-      if (meters > data.best) { data.best = meters; res.isBest = true; }
+      if (typeof crystals === 'number' && isFinite(crystals)) data.crystals += crystals;
+      if (meters > data.best) {
+        data.best = meters; res.isBest = true;
+      }
+      // Best Time = maior tempo de voo já sobrevivido (independente da distância)
+      if (typeof time === 'number' && isFinite(time) && time > data.bestTime) {
+        data.bestTime = time;
+      }
 
       Ships.list.forEach(s => {
         if (!data.unlocked.includes(s.id) && data.totalMeters >= s.unlockAt) {

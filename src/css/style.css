@@ -101,6 +101,7 @@ h2 { font-size: clamp(22px, 6vw, 32px); margin-bottom: 6px; letter-spacing: 2px;
   cursor: pointer;
   transition: transform 0.08s, background 0.2s, box-shadow 0.2s;
   letter-spacing: 1px;
+  text-decoration: none;
 }
 .btn:hover { background: rgba(74, 240, 255, 0.14); }
 .btn:active { transform: scale(0.97); }
@@ -157,6 +158,59 @@ h2 { font-size: clamp(22px, 6vw, 32px); margin-bottom: 6px; letter-spacing: 2px;
   color: var(--text);
   font-size: clamp(14px, 4vw, 18px);
   line-height: 1.5;
+}
+/* ícone "segurar para subir" (onboarding) */
+.hold-icon {
+  width: 0; height: 0;
+  margin: 0 auto 16px;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-bottom: 28px solid var(--accent);
+  filter: drop-shadow(0 0 12px rgba(74, 240, 255, 0.7));
+  animation: holdbob 1.2s ease-in-out infinite;
+}
+@keyframes holdbob {
+  0%, 100% { transform: translateY(0); opacity: 0.65; }
+  50% { transform: translateY(-12px); opacity: 1; }
+}
+
+/* linha de estatísticas (Home/Hangar) */
+.stats-line {
+  margin-top: 10px;
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 13px;
+}
+.stats-line b { color: var(--accent); font-weight: 700; }
+
+/* ---------- Acessibilidade ---------- */
+/* Reduzir movimento: desliga animações e transições */
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+/* Alto contraste: reforça cores e contornos */
+body.high-contrast {
+  --bg: #000000;
+  --bg2: #000000;
+  --text: #ffffff;
+  --muted: #d6e6ff;
+  --accent: #7afcff;
+  --accent2: #ff7ae6;
+  --panel: rgba(0, 0, 0, 0.96);
+}
+body.high-contrast .panel,
+body.high-contrast .ship-card {
+  border-color: #ffffff;
+  box-shadow: 0 0 24px rgba(122, 252, 255, 0.35);
+}
+body.high-contrast .btn {
+  border-color: #ffffff;
 }
 
 /* ---------- Hangar ---------- */
@@ -247,4 +301,37 @@ h2 { font-size: clamp(22px, 6vw, 32px); margin-bottom: 6px; letter-spacing: 2px;
   font-weight: 900;
   letter-spacing: 2px;
   cursor: pointer;
+}
+.hud-mid { display: flex; align-items: center; gap: 14px; }
+.hud-crystals {
+  color: #ffd84a;
+  font-size: clamp(16px, 4vw, 22px);
+  text-shadow: 0 0 10px rgba(255, 200, 80, 0.6);
+}
+.hud-combo {
+  color: #ff7ae6;
+  font-size: clamp(14px, 3.5vw, 18px);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* popup de marco de distância */
+.milestone {
+  position: absolute;
+  top: 18%; left: 0; right: 0;
+  text-align: center;
+  z-index: 7;
+  pointer-events: none;
+  font-size: clamp(26px, 8vw, 52px);
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 0 0 24px rgba(74, 240, 255, 0.8);
+  animation: milestonePop 1.4s ease-out forwards;
+}
+@keyframes milestonePop {
+  0% { transform: scale(0.6) translateY(20px); opacity: 0; }
+  20% { transform: scale(1.05) translateY(0); opacity: 1; }
+  75% { opacity: 1; }
+  100% { transform: scale(1) translateY(-14px); opacity: 0; }
 }

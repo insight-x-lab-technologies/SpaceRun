@@ -22,6 +22,7 @@
     <!-- Overlay "pronto" (inicia com espaço/toque) -->
     <div id="ready-overlay" class="overlay-msg hidden">
       <div class="overlay-inner">
+        <div class="hold-icon" aria-hidden="true"></div>
         <h2 data-i18n="ready.title">Pronto?</h2>
         <p data-i18n="ready.msg">Pressione ESPAÇO ou toque a tela para iniciar</p>
       </div>
@@ -31,10 +32,17 @@
     <div id="hud" class="hidden">
       <div class="hud-top">
         <span id="hud-distance">0 m</span>
-        <span id="hud-speed"></span>
+        <span class="hud-mid">
+          <span id="hud-crystals" class="hud-crystals">◆ 0</span>
+          <span id="hud-speed"></span>
+          <span id="hud-combo" class="hud-combo"></span>
+        </span>
         <button id="hud-pause" aria-label="Pause">II</button>
       </div>
     </div>
+
+    <!-- Popup de marco de distância -->
+    <div id="milestone" class="milestone hidden"></div>
 
     <!-- Tela Home -->
     <section id="screen-home" class="screen">
@@ -50,8 +58,12 @@
         </div>
         <p class="hint hidden" id="install-hint" data-i18n="home.installHint"></p>
       </div>
-      <div class="best-record"><span data-i18n="home.best">Recorde:</span> <span id="home-best">0 m</span></div>
-      <div class="footer" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.1</div>
+        <div class="best-record"><span data-i18n="home.best">Recorde:</span> <span id="home-best">0 m</span></div>
+        <div class="stats-line">
+          <span><span data-i18n="stats.runs">Partidas</span>: <b id="home-runs">0</b></span>
+          <span><span data-i18n="stats.bestTime">Melhor tempo</span>: <b id="home-time">0s</b></span>
+        </div>
+        <div class="footer" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.1</div>
     </section>
 
     <!-- Tela Hangar -->
@@ -61,6 +73,10 @@
         <p class="subtitle" data-i18n="hangar.subtitle">Escolha sua aeronave</p>
         <div id="ship-list" class="ship-list"></div>
         <div class="best-record"><span data-i18n="hangar.best">Melhor distância:</span> <span id="hangar-best">0 m</span></div>
+        <div class="stats-line">
+          <span><span data-i18n="stats.runs">Partidas</span>: <b id="hangar-runs">0</b></span>
+          <span><span data-i18n="stats.bestTime">Melhor tempo</span>: <b id="hangar-time">0s</b></span>
+        </div>
         <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
       </div>
     </section>
@@ -89,6 +105,14 @@
           <label for="set-particles" data-i18n="settings.particles">Partículas</label>
           <input type="checkbox" id="set-particles">
         </div>
+        <div class="setting-row">
+          <label for="set-reduce-motion" data-i18n="settings.reduceMotion">Reduzir movimento</label>
+          <input type="checkbox" id="set-reduce-motion">
+        </div>
+        <div class="setting-row">
+          <label for="set-high-contrast" data-i18n="settings.highContrast">Alto contraste</label>
+          <input type="checkbox" id="set-high-contrast">
+        </div>
         <button class="btn danger" data-action="reset" data-i18n="settings.reset">Apagar progresso</button>
         <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
       </div>
@@ -114,6 +138,9 @@
         <div class="result">
           <div class="result-row"><span data-i18n="go.distance">Distância</span><strong id="go-distance">0 m</strong></div>
           <div class="result-row"><span data-i18n="go.best">Recorde</span><strong id="go-best">0 m</strong></div>
+          <div class="result-row"><span data-i18n="go.time">Tempo</span><strong id="go-time">0s</strong></div>
+          <div class="result-row"><span data-i18n="go.crystals">Cristais</span><strong id="go-crystals">0</strong></div>
+          <div class="result-row hidden" id="go-seed-row"><span data-i18n="go.seed">Seed</span><strong id="go-seed">-</strong></div>
           <div id="go-unlock" class="unlock hidden"></div>
         </div>
         <div class="menu">

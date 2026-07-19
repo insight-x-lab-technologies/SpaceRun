@@ -4,13 +4,15 @@
   const hud = document.getElementById('hud');
   const hudDistance = document.getElementById('hud-distance');
   const hudSpeed = document.getElementById('hud-speed');
+  const hudCrystals = document.getElementById('hud-crystals');
+  const hudCombo = document.getElementById('hud-combo');
   const hudPause = document.getElementById('hud-pause');
 
   let hudActive = false;
 
-  function startGame() {
+  function startGame(mode) {
     Audio2.setEnabled(Storage.getSettings().sound);
-    Game.start();   // entra em estado "ready"
+    Game.start(mode);   // entra em estado "ready"
   }
 
   function hudLoop() {
@@ -18,6 +20,13 @@
       const h = Game.getHud();
       hudDistance.textContent = h.meters + ' m';
       hudSpeed.textContent = h.speed + ' km/s';
+      if (hudCrystals) hudCrystals.textContent = '◆ ' + h.crystals;
+      if (hudCombo) {
+        const mult = 1 + Math.floor((Math.max(0, h.combo - 1)) / 5);
+        hudCombo.textContent = h.combo > 1
+          ? (mult > 1 ? ('x' + mult + ' · ' + h.combo) : (h.combo + ' combo'))
+          : '';
+      }
       requestAnimationFrame(hudLoop);
     } else {
       hudActive = false;
@@ -46,10 +55,10 @@
   window.addEventListener('pointerdown', unlockAudioOnce);
   window.addEventListener('keydown', unlockAudioOnce);
 
-  Game.init(canvas, meters => {
+  Game.init(canvas, result => {
     // game over
     hud.classList.add('hidden');
-    UI.showGameOver(meters);
+    UI.showGameOver(result);
     refreshMusic();   // volta para a música do menu
   }, s => {
     // mudança de estado

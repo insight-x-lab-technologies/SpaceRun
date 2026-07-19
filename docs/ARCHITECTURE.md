@@ -56,12 +56,12 @@ building screens. **Do not reorder or rely on `import`/`export`.**
 
 | Global   | Responsibility |
 |----------|----------------|
-| `Storage`| Save/load progress (`best`, `totalMeters`, `unlocked`, `settings`); `recordRun(m)`, `reset()`. |
+| `Storage`| Save/load progress (`best`, `totalMeters`, `totalRuns`, `bestTime`, `crystals`, `unlocked`, `settings`); `recordRun(m, time, crystals)`, `reset()`. |
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `draw`). `get(id)`. |
 | `Audio2` | `uiClick()`, `crash()`, `unlock()`, `startMusic(type)`, `stopMusic()`, `setEnabled`, `setMusicEnabled`, `ensure`. |
 | `Input`  | `init()`, `isThrusting()`, `on('start'|'end', fn)`. Unifies Space + pointer as "thrust". |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start`, `pause`, `resume`, `stop`, `getHud()`, `state`. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode)`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo), `state`. |
 | `UI`     | `init(playCb)`, `show`, `showGameOver`, `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`. |
 | `main`   | Bootstraps everything; HUD loop; music switching; install (`beforeinstallprompt`); SW registration. |
 

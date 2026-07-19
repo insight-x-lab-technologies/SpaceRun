@@ -52,6 +52,7 @@ const Audio2 = (() => {
     o.start(); o.stop(c.currentTime + 0.45);
   }
   function unlock() { blip(660,0.1); setTimeout(()=>blip(880,0.12),100); setTimeout(()=>blip(1100,0.16),220); }
+  function pickup() { blip(1180, 0.07, 'triangle', 0.09); }
 
   /* ---------- música procedural ---------- */
   function startMusic(type) {
@@ -134,7 +135,7 @@ const Audio2 = (() => {
   return {
     ensure,
     setEnabled, setMusicEnabled,
-    uiClick, thrust, hit, crash, unlock,
+    uiClick, thrust, hit, crash, unlock, pickup,
     startMusic, stopMusic
   };
 })();

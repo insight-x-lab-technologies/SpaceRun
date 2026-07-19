@@ -15,6 +15,25 @@ const UI = (() => {
     const ab = document.getElementById('hangar-best');
     if (hb) hb.textContent = b;
     if (ab) ab.textContent = b;
+
+    const data = Storage.get();
+    const runs = data.totalRuns;
+    const time = data.bestTime ? data.bestTime.toFixed(1) + 's' : '0s';
+    const hr = document.getElementById('home-runs');
+    const ht = document.getElementById('home-time');
+    const ar = document.getElementById('hangar-runs');
+    const at = document.getElementById('hangar-time');
+    if (hr) hr.textContent = runs;
+    if (ht) ht.textContent = time;
+    if (ar) ar.textContent = runs;
+    if (at) at.textContent = time;
+  }
+
+  /* Aplica classes de acessibilidade no <body> conforme as configurações */
+  function applyAccessibility() {
+    const s = Storage.getSettings();
+    document.body.classList.toggle('reduce-motion', !!s.reduceMotion);
+    document.body.classList.toggle('high-contrast', !!s.highContrast);
   }
 
   function renderHangar() {
@@ -60,6 +79,8 @@ const UI = (() => {
     document.getElementById('set-sound').checked = s.sound;
     document.getElementById('set-music').checked = s.music;
     document.getElementById('set-particles').checked = s.particles;
+    document.getElementById('set-reduce-motion').checked = s.reduceMotion;
+    document.getElementById('set-high-contrast').checked = s.highContrast;
     document.getElementById('set-lang').value = I18n.lang;
 
     document.getElementById('set-sound').onchange = e => {
@@ -77,6 +98,16 @@ const UI = (() => {
       Audio2.uiClick();
       Storage.setSetting('particles', e.target.checked);
     };
+    document.getElementById('set-reduce-motion').onchange = e => {
+      Audio2.uiClick();
+      Storage.setSetting('reduceMotion', e.target.checked);
+      applyAccessibility();
+    };
+    document.getElementById('set-high-contrast').onchange = e => {
+      Audio2.uiClick();
+      Storage.setSetting('highContrast', e.target.checked);
+      applyAccessibility();
+    };
     document.getElementById('set-lang').onchange = e => {
       Audio2.uiClick();
       I18n.setLang(e.target.value);
@@ -88,10 +119,25 @@ const UI = (() => {
     };
   }
 
-  function showGameOver(meters) {
-    const res = Storage.recordRun(meters);
+  function showGameOver(payload) {
+    const meters = (payload && typeof payload === 'object') ? payload.meters : payload;
+    const time = (payload && typeof payload === 'object') ? payload.time : 0;
+    const crystals = (payload && typeof payload === 'object') ? payload.crystals : 0;
+    const seed = (payload && typeof payload === 'object') ? payload.seed : 0;
+    const daily = (payload && typeof payload === 'object') ? payload.daily : false;
+    const res = Storage.recordRun(meters, time, crystals);
     document.getElementById('go-distance').textContent = meters + ' m';
     document.getElementById('go-best').textContent = Storage.getBest() + ' m';
+    const timeEl = document.getElementById('go-time');
+    if (timeEl) timeEl.textContent = (time ? time.toFixed(1) : '0') + 's';
+    const cryEl = document.getElementById('go-crystals');
+    if (cryEl) cryEl.textContent = crystals;
+    const seedRow = document.getElementById('go-seed-row');
+    const seedEl = document.getElementById('go-seed');
+    if (seedRow && seedEl) {
+      if (daily) { seedEl.textContent = String(seed); seedRow.classList.remove('hidden'); }
+      else seedRow.classList.add('hidden');
+    }
     const unlockEl = document.getElementById('go-unlock');
     if (res.newUnlocks.length) {
       const names = res.newUnlocks.map(id => Ships.get(id).name).join(', ');
@@ -104,6 +150,20 @@ const UI = (() => {
     show('screen-gameover');
   }
 
+  /* Popup de marco de distância */
+  let milestoneEl = null;
+  function showMilestone(text) {
+    if (!milestoneEl) milestoneEl = document.getElementById('milestone');
+    if (!milestoneEl) return;
+    milestoneEl.textContent = text;
+    milestoneEl.classList.remove('hidden');
+    milestoneEl.style.animation = 'none';
+    void milestoneEl.offsetWidth;   // reflow p/ reiniciar animação
+    milestoneEl.style.animation = '';
+    clearTimeout(milestoneEl._t);
+    milestoneEl._t = setTimeout(() => milestoneEl.classList.add('hidden'), 1400);
+  }
+
   function init(playCb) {
     onPlay = playCb;
     ['screen-home', 'screen-hangar', 'screen-settings', 'screen-donate',
@@ -112,6 +172,7 @@ const UI = (() => {
 
     I18n.init();
     I18n.apply();
+    applyAccessibility();
     document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
 
     // delegação de cliques nos botões data-action
@@ -159,5 +220,5 @@ const UI = (() => {
   function showReady() { const e = document.getElementById('ready-overlay'); if (e) e.classList.remove('hidden'); }
   function hideReady() { const e = document.getElementById('ready-overlay'); if (e) e.classList.add('hidden'); }
 
-  return { init, show, showGameOver, showPause, hidePause, showReady, hideReady, refreshRecords };
+  return { init, show, showGameOver, showPause, hidePause, showReady, hideReady, refreshRecords, applyAccessibility, showMilestone };
 })();
