@@ -53,6 +53,8 @@ const Audio2 = (() => {
   }
   function unlock() { blip(660,0.1); setTimeout(()=>blip(880,0.12),100); setTimeout(()=>blip(1100,0.16),220); }
   function pickup() { blip(1180, 0.07, 'triangle', 0.09); }
+  function ability() { blip(880, 0.08, 'square', 0.07); setTimeout(() => blip(1320, 0.1, 'square', 0.06), 70); }
+  function shield() { blip(520, 0.14, 'sawtooth', 0.1); setTimeout(() => blip(300, 0.18, 'sawtooth', 0.09), 60); }
 
   /* ---------- música procedural ---------- */
   function startMusic(type) {
@@ -135,7 +137,7 @@ const Audio2 = (() => {
   return {
     ensure,
     setEnabled, setMusicEnabled,
-    uiClick, thrust, hit, crash, unlock, pickup,
+    uiClick, thrust, hit, crash, unlock, pickup, ability, shield,
     startMusic, stopMusic
   };
 })();

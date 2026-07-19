@@ -6,6 +6,7 @@
   const hudSpeed = document.getElementById('hud-speed');
   const hudCrystals = document.getElementById('hud-crystals');
   const hudCombo = document.getElementById('hud-combo');
+  const hudAbility = document.getElementById('hud-ability');
   const hudPause = document.getElementById('hud-pause');
 
   let hudActive = false;
@@ -26,6 +27,19 @@
         hudCombo.textContent = h.combo > 1
           ? (mult > 1 ? ('x' + mult + ' · ' + h.combo) : (h.combo + ' combo'))
           : '';
+      }
+      if (hudAbility) {
+        if (h.ability) {
+          let txt = I18n.t('ability.' + h.ability);
+          if (h.shield) txt += ' 🛡';
+          else if (h.dash) txt += ' »';
+          else if (h.slowmo) txt += ' ◷';
+          if (h.abilityCd > 0) txt += ' · ' + I18n.t('hud.recharging');
+          hudAbility.textContent = txt;
+          hudAbility.className = 'hud-ability' + (h.abilityCd > 0 ? ' cd' : '');
+        } else {
+          hudAbility.textContent = '';
+        }
       }
       requestAnimationFrame(hudLoop);
     } else {

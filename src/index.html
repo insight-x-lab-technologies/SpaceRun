@@ -36,6 +36,7 @@
           <span id="hud-crystals" class="hud-crystals">◆ 0</span>
           <span id="hud-speed"></span>
           <span id="hud-combo" class="hud-combo"></span>
+          <span id="hud-ability" class="hud-ability"></span>
         </span>
         <button id="hud-pause" aria-label="Pause">II</button>
       </div>
@@ -43,6 +44,9 @@
 
     <!-- Popup de marco de distância -->
     <div id="milestone" class="milestone hidden"></div>
+
+    <!-- Toast de conquista -->
+    <div id="achievement" class="achievement hidden"></div>
 
     <!-- Tela Home -->
     <section id="screen-home" class="screen">
@@ -52,6 +56,9 @@
         <div class="menu">
           <button class="btn btn-primary" data-action="play" data-i18n="menu.play">Novo Jogo</button>
           <button class="btn" data-action="hangar" data-i18n="menu.hangar">Hangar</button>
+          <button class="btn" data-action="achievements" data-i18n="menu.achievements">Conquistas</button>
+          <button class="btn" data-action="stats" data-i18n="menu.stats">Estatísticas</button>
+          <button class="btn" data-action="leaderboard" data-i18n="menu.leaderboard">Ranking</button>
           <button class="btn" data-action="settings" data-i18n="menu.settings">Configurações</button>
           <button class="btn" data-action="donate" data-i18n="menu.donate">Doar</button>
           <button class="btn hidden" id="install-btn" data-i18n="menu.install">Install</button>
@@ -72,10 +79,57 @@
         <h2 data-i18n="hangar.title">Hangar</h2>
         <p class="subtitle" data-i18n="hangar.subtitle">Escolha sua aeronave</p>
         <div id="ship-list" class="ship-list"></div>
+        <div id="hangar-extra"></div>
         <div class="best-record"><span data-i18n="hangar.best">Melhor distância:</span> <span id="hangar-best">0 m</span></div>
         <div class="stats-line">
           <span><span data-i18n="stats.runs">Partidas</span>: <b id="hangar-runs">0</b></span>
           <span><span data-i18n="stats.bestTime">Melhor tempo</span>: <b id="hangar-time">0s</b></span>
+        </div>
+        <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
+      </div>
+    </section>
+
+    <!-- Tela Conquistas -->
+    <section id="screen-achievements" class="screen hidden">
+      <div class="panel">
+        <h2 data-i18n="ach.title">Conquistas</h2>
+        <p class="subtitle" data-i18n="ach.subtitle">Desafios e marcos</p>
+        <div id="ach-count" class="ach-count"></div>
+        <div id="ach-list" class="ach-list"></div>
+        <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
+      </div>
+    </section>
+
+    <!-- Tela Estatísticas -->
+    <section id="screen-stats" class="screen hidden">
+      <div class="panel">
+        <h2 data-i18n="stats.title">Estatísticas</h2>
+        <p class="subtitle" data-i18n="stats.subtitle">Seu histórico de voo</p>
+        <div class="result">
+          <div class="result-row"><span data-i18n="stats.runs">Partidas</span><strong id="stats-runs">0</strong></div>
+          <div class="result-row"><span data-i18n="stats.totalMeters">Distância total</span><strong id="stats-total-meters">0 m</strong></div>
+          <div class="result-row"><span data-i18n="go.best">Recorde</span><strong id="stats-best">0 m</strong></div>
+          <div class="result-row"><span data-i18n="stats.avgDistance">Distância média</span><strong id="stats-avg-distance">0 m</strong></div>
+          <div class="result-row"><span data-i18n="stats.avgTime">Tempo médio</span><strong id="stats-avg-time">0.0s</strong></div>
+          <div class="result-row"><span data-i18n="stats.bestStreak">Maior sequência</span><strong id="stats-best-streak">0</strong></div>
+          <div class="result-row"><span data-i18n="stats.totalCrystals">Cristais totais</span><strong id="stats-total-crystals">0</strong></div>
+        </div>
+        <h3 class="hist-title" data-i18n="stats.history">Histórico recente</h3>
+        <div id="stats-history" class="hist-list"></div>
+        <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
+      </div>
+    </section>
+
+    <!-- Tela Ranking -->
+    <section id="screen-leaderboard" class="screen hidden">
+      <div class="panel">
+        <h2 data-i18n="lb.title">Ranking</h2>
+        <p class="subtitle" data-i18n="lb.subtitle">Top 10 local</p>
+        <div id="lb-list" class="lb-list"></div>
+        <div class="name-row">
+          <label for="lb-name" data-i18n="lb.setname">Seu nome</label>
+          <input type="text" id="lb-name" maxlength="16" placeholder="">
+          <button class="btn small" data-action="saveName" data-i18n="hangar.saveSkin">Salvar</button>
         </div>
         <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
       </div>
@@ -131,6 +185,20 @@
       </div>
     </section>
 
+    <!-- Tela Compartilhar -->
+    <section id="screen-share" class="screen hidden overlay">
+      <div class="panel">
+        <h2 data-i18n="share.title">Compartilhar recorde</h2>
+        <p class="subtitle" data-i18n="share.desc">Salve ou compartilhe seu score card.</p>
+        <canvas id="share-canvas" width="600" height="800"></canvas>
+        <div class="menu">
+          <a class="btn btn-primary" id="share-download" download="spacerun.png" data-i18n="share.download">Baixar imagem</a>
+          <button class="btn" data-action="shareNative" data-i18n="share.share">Compartilhar</button>
+          <button class="btn" data-action="closeShare" data-i18n="share.close">Fechar</button>
+        </div>
+      </div>
+    </section>
+
     <!-- Tela Game Over -->
     <section id="screen-gameover" class="screen hidden">
       <div class="panel">
@@ -145,6 +213,7 @@
         </div>
         <div class="menu">
           <button class="btn btn-primary" data-action="play" data-i18n="go.again">Jogar de novo</button>
+          <button class="btn" data-action="share" data-i18n="go.share">Compartilhar</button>
           <button class="btn" data-action="home" data-i18n="go.menu">Menu</button>
           <button class="btn" data-action="hangar" data-i18n="menu.hangar">Hangar</button>
         </div>
@@ -166,10 +235,12 @@
   <script src="js/storage.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/ships.js"></script>
+  <script src="js/achievements.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/input.js"></script>
   <script src="js/game.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/share.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

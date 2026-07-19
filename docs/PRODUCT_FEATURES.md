@@ -1,7 +1,9 @@
 # SpaceRun — Product Features
 
-Version **0.1**. All gameplay, art, and audio are procedural; the app is a
-serverless PWA (vanilla HTML/JS, no frameworks, no binary assets).
+Version **0.2**. All gameplay, art, and audio are procedural; the app is a
+serverless PWA (vanilla HTML/JS, no frameworks, no binary assets). Fase 2
+(habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
+ranking local e compartilhamento) estão implementadas.
 
 ## Core gameplay
 
@@ -70,14 +72,42 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 
 ## Ships & progression
 
-- **10 ships** in the Hangar: 5 base + 5 advanced.
+- **20 ships total** (10 base + 10 advanced added in Fase 2), with distinct
+  stats and unlock thresholds up to 5,000,000 m.
   - Base: Scout (free), Falcon (500 m), Tank (1,500 m), Phantom (3,500 m),
     Nova (8,000 m).
   - Advanced: Vortex (15,000 m), Quasar (30,000 m), Pulsar (60,000 m),
     Nebula (120,000 m), Singularity (250,000 m).
+  - Fase 2: Comet (300k), Aurora (400k), Raptor (550k), Helix (700k),
+    Titan (900k), Spectre (1.2M), Ember (1.6M), Zephyr (2.2M),
+    Cosmos (3M), Eclipse (5M).
 - Ships are **unlocked by total accumulated meters** (across all runs), not per
   run. Each ship has stats: `agility`, `size` (hitbox), `thrust`.
-- Hangar lets the player preview and select an unlocked ship.
+- **Special abilities** (Fase 2) triggered by a quick **double-tap** (two thrust
+  presses in a row): `dash` (burst of speed), `shield` (absorbs one hit),
+  `slowmo` (bullet-time for ~2 s). Several ships have a playable ability.
+- **Procedural ship skins** (Fase 2): the player can repaint any unlocked ship
+  (body + accent colors) in the Hangar; the choice is saved in `Storage`.
+- **Crystal upgrades** (Fase 2): spend accumulated crystals on permanent
+  `+agility` / `+thrust` multipliers (cosmetic feel, not pay-to-win).
+- Hangar lets the player preview, customize (skin/upgrades) and select an
+  unlocked ship.
+
+## Meta & Social (Fase 3)
+
+- **Achievements:** 13 challenges (distance milestones, crystals per run, combo,
+  survival time, full fleet, record streak, daily). Unlocks show a toast + jingle
+  and persist in `Storage`. Screen accessible from Home.
+- **Detailed statistics:** total runs, total/average distance, average/best time,
+  best streak, total crystals, and a recent run history — computed from
+  `Storage` and shown in the Statistics screen.
+- **Local leaderboard:** Top 10 runs (with optional player name) shown in the
+  Ranking screen; auto-recorded on every run.
+- **Share score card (serverless):** generate a procedural PNG "score card"
+  (`share.js`, canvas only) from the Game Over screen — download or share via
+  the Web Share API. No backend involved.
+- **Daily Challenge:** implemented in the engine (seeded RNG) but **not yet
+  exposed in the UI** — pending deterministic-parity validation (see ROADMAP).
 
 ## Screens & navigation
 

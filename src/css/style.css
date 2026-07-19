@@ -335,3 +335,113 @@ body.high-contrast .btn {
   75% { opacity: 1; }
   100% { transform: scale(1) translateY(-14px); opacity: 0; }
 }
+
+/* ---------- HUD: habilidade ---------- */
+.hud-ability {
+  color: var(--accent2);
+  font-size: clamp(13px, 3.2vw, 16px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(255, 74, 216, 0.5);
+}
+.hud-ability.cd { opacity: 0.55; text-shadow: none; }
+
+/* ---------- Toast de conquista ---------- */
+.achievement {
+  position: absolute;
+  bottom: 12%; left: 0; right: 0;
+  text-align: center;
+  z-index: 8;
+  pointer-events: none;
+  font-size: clamp(16px, 4.5vw, 22px);
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(74, 240, 255, 0.8);
+  animation: achPop 2.2s ease-out forwards;
+}
+@keyframes achPop {
+  0% { transform: translateY(20px) scale(0.8); opacity: 0; }
+  15% { transform: translateY(0) scale(1.05); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(-10px); opacity: 0; }
+}
+
+/* ---------- Hangar: personalizar + upgrades (Fase 2) ---------- */
+.hangar-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(74, 240, 255, 0.12);
+  text-align: left;
+}
+.hangar-section h3 {
+  font-size: 16px; letter-spacing: 1px; margin-bottom: 10px;
+  color: var(--accent);
+}
+.customize-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.customize-row label { font-size: 13px; color: var(--muted); }
+.customize-row input[type="color"] {
+  width: 44px; height: 30px; border: 1px solid rgba(74,240,255,0.3);
+  border-radius: 8px; background: transparent; cursor: pointer; padding: 2px;
+}
+.customize-actions { display: flex; gap: 10px; margin-top: 10px; }
+.btn.small { font-size: 14px; padding: 8px 14px; letter-spacing: 0; }
+.ability-line { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.ability-line b { color: var(--accent2); }
+.upgrade-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; font-size: 14px;
+}
+.upgrade-row .maxed { color: var(--muted); font-size: 13px; }
+.crystals-line { margin-top: 6px; color: #ffd84a; font-size: 13px; }
+
+/* ---------- Conquistas (Fase 3) ---------- */
+.ach-count { color: var(--accent); margin-bottom: 10px; font-size: 14px; letter-spacing: 1px; }
+.ach-list {
+  display: grid; gap: 10px; margin: 8px 0 14px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.ach-card {
+  border: 1px solid rgba(74, 240, 255, 0.18); border-radius: 12px;
+  padding: 10px 12px; text-align: left; font-size: 12px;
+}
+.ach-card.unlocked { border-color: var(--accent); background: rgba(74, 240, 255, 0.08); }
+.ach-card.locked { opacity: 0.6; }
+.ach-name { font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+.ach-desc { color: var(--muted); margin-top: 4px; line-height: 1.4; }
+.ach-locked { color: var(--accent2); margin-top: 4px; font-weight: 700; }
+
+/* ---------- Estatísticas (Fase 3) ---------- */
+.hist-title { margin: 16px 0 8px; color: var(--accent); font-size: 15px; letter-spacing: 1px; }
+.hist-list { display: flex; flex-direction: column; gap: 4px; }
+.hist-row {
+  display: flex; justify-content: space-between; font-size: 13px;
+  color: var(--muted); padding: 6px 4px; border-bottom: 1px solid rgba(74,240,255,0.1);
+}
+.stats-empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
+
+/* ---------- Ranking (Fase 3) ---------- */
+.lb-list { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+.lb-row {
+  display: flex; align-items: center; gap: 8px; font-size: 14px;
+  padding: 7px 8px; border-bottom: 1px solid rgba(74,240,255,0.1);
+}
+.lb-row.me { color: var(--accent); font-weight: 700; background: rgba(74,240,255,0.06); border-radius: 8px; }
+.lb-rank { width: 36px; font-weight: 700; }
+.lb-name { flex: 1; text-align: left; }
+.lb-m, .lb-t { color: var(--muted); }
+.name-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.name-row label { font-size: 13px; color: var(--muted); }
+.name-row input {
+  flex: 1; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid rgba(74,240,255,0.3); background: rgba(0,0,0,0.3);
+  color: var(--text); font-size: 14px;
+}
+
+/* ---------- Compartilhar (Fase 3) ---------- */
+#share-canvas {
+  max-width: 240px; width: 70%; height: auto;
+  border-radius: 12px; margin: 10px auto; display: block;
+  border: 1px solid rgba(74, 240, 255, 0.3);
+  box-shadow: 0 0 24px rgba(74, 240, 255, 0.15);
+}

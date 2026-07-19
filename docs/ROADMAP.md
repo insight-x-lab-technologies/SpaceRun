@@ -85,7 +85,7 @@ cor do espaço muda com a distância.
 
 ---
 
-## Fase 2 — Variedade de Naves & Customização  ·  P1/P2  ·  complexidade média
+## Fase 2 — Variedade de Naves & Customização  ·  P1/P2  ·  complexidade média  ·  ✅ entregue
 
 Identidade e escolha, mantendo o controle "segurar para subir".
 
@@ -101,11 +101,12 @@ Identidade e escolha, mantendo o controle "segurar para subir".
   (cosmético de sensação, não pay-to-win — só gasta cristais de gameplay).
 
 **Pronto quando:** pelo menos 3 naves têm habilidade jogável e o jogador pode
-  pintar sua nave.
+  pintar sua nave. — **entregue** (habilidades `dash`/`shield`/`slowmo` via
+  double-tap; +10 naves; skins procedurais; upgrades com cristais).
 
 ---
 
-## Fase 3 — Meta & Social (offline-first)  ·  P2  ·  complexidade média
+## Fase 3 — Meta & Social (offline-first)  ·  P2  ·  complexidade média  ·  ✅ entregue
 
 Camada de "ficar no jogo" sem servidor. Tudo local + compartilhamento.
 
@@ -120,7 +121,8 @@ Camada de "ficar no jogo" sem servidor. Tudo local + compartilhamento.
   dia.
 
 **Pronto quando:** o jogador tem conquistas, um Top 10 local e consegue exportar
-  um card de recorde como imagem.
+  um card de recorde como imagem. — **entregue** (13 conquistas; ranking Top 10
+  com nome opcional; score card em canvas via `share.js` com download/Web Share).
 
 ---
 
@@ -187,10 +189,12 @@ Só depois do jogo ser divertido e completo. Nunca pay-to-win.
   `terrain`), `audio.js` (`thrust`, `hit`), `ui.js` (Settings + acessibilidade).
 - **Colecionáveis/obstáculos (F1):** `game.js` (`spawnObstacle`, novo `spawnPickup`),
   `storage.js` (`crystals`), `i18n.js` (novas chaves), `sw.js` (se novo módulo).
-- **Naves/habilidades (F2):** `ships.js` (`ability`, mais entradas), `input.js`
-  (evento `ability`), `storage.js` (skins).
-- **Meta/social (F3):** `storage.js` (achievements, leaderboard), `ui.js`
-  (telas), geração de imagem via canvas em novo módulo `share.js`.
+- **Naves/habilidades (F2):** `ships.js` (`ability`, `+10` entradas, `getSkin`),
+  `input.js` (evento `ability` via double-tap), `storage.js` (skins, upgrades),
+  `game.js` (aplicação de habilidades, upgrades, escudo/invuln, dash/slowmo).
+- **Meta/social (F3):** `storage.js` (achievements, leaderboard, history,
+  streak), `achievements.js` (defs + checagem), `ui.js` (telas Achievements/
+  Stats/Leaderboard/Share), geração de imagem via canvas em `share.js`.
 - **Modos/bosses (F4):** `game.js` (modos via flag em `buildWorld`), possível
   novo módulo `boss.js` (IIFE-global, adicionado à ordem de load antes de `main`).
 - **Ultra (F5):** novos módulos IIFE (`ghosts.js`, `campaign.js`, `share.js`),

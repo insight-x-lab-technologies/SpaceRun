@@ -17,6 +17,8 @@ const ASSETS = [
   'js/input.js',
   'js/game.js',
   'js/ui.js',
+  'js/achievements.js',
+  'js/share.js',
   'js/main.js'
 ];
 

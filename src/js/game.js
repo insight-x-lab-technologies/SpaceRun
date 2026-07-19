@@ -85,6 +85,8 @@ const Game = (() => {
     Input.init();
     // primeiro input (espaço/toque) inicia o jogo a partir do estado "ready"
     Input.on('start', () => { if (state === 'ready') setState('playing'); });
+    // double-tap dispara a habilidade da nave (Fase 2)
+    Input.on('ability', tryAbility);
     resize();
     window.addEventListener('resize', resize);
     lastT = performance.now();
@@ -124,7 +126,8 @@ const Game = (() => {
     const s = Ships.get(Storage.get().selectedShip);
     world = {
       scroll: 0, speed: 220, meters: 0, difficulty: 0,
-      crystals: 0, combo: 0, comboTimer: 0,
+      crystals: 0, combo: 0, comboTimer: 0, maxCombo: 0,
+      slowmoTimer: 0, wf: 1,
       seed: seed || 0, daily: !!daily, rng: null, accent: '#4af0ff'
     };
     if (seed) world.rng = mulberry32(seed >>> 0);
@@ -135,8 +138,16 @@ const Game = (() => {
       w: 46 * s.stats.size,
       h: 26 * s.stats.size,
       ship: s,
-      tilt: 0
+      tilt: 0,
+      ability: s.ability || null,
+      abilityCd: 1.5,          // pequeno cooldown inicial p/ evitar disparo acidental
+      dashTimer: 0,
+      shield: false,
+      invuln: 0
     };
+    const skin = Ships.getSkin(s.id);
+    ship.color = skin.color;
+    ship.accent = skin.accent;
     obstacles = [];
     particles = [];
     pickups = [];
@@ -150,6 +161,7 @@ const Game = (() => {
     nextMilestone = 1000;
     milestoneIdx = 0;
     biomeIdx = -1;
+    world.maxCombo = 0;
     applyBiome(0);
   }
 
@@ -271,6 +283,68 @@ const Game = (() => {
     }
   }
 
+  function explodeShield(x, y) {
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 80 + Math.random() * 160;
+      addParticle(x, y, Math.cos(a) * sp, Math.sin(a) * sp,
+        0.3 + Math.random() * 0.3, '#4af0ff', 1.5 + Math.random() * 2);
+    }
+  }
+
+  /* ---------- Habilidades (Fase 2) ---------- */
+  function tryAbility() {
+    if (state !== 'playing' || !ship || !ship.ability) return;
+    if (ship.abilityCd > 0) return;
+    Audio2.ability();
+    if (ship.ability === 'dash') {
+      ship.dashTimer = 0.6; ship.abilityCd = 3;
+      for (let i = 0; i < 10; i++)
+        addParticle(ship.x - ship.w * 0.5, ship.y + (Math.random() - 0.5) * ship.h,
+          -200 - Math.random() * 200, (Math.random() - 0.5) * 60, 0.3, ship.accent, 2 + Math.random() * 2);
+    } else if (ship.ability === 'shield') {
+      ship.shield = true; ship.abilityCd = 6;
+    } else if (ship.ability === 'slowmo') {
+      world.slowmoTimer = 2; ship.abilityCd = 8;
+    }
+  }
+
+  /* Colisão mortal respeitando escudo/invulnerabilidade */
+  function hit() {
+    if (ship.invuln > 0) return;          // breve invulnerabilidade pós-escudo
+    if (ship.shield) {
+      ship.shield = false;
+      ship.invuln = 1.0;
+      Audio2.shield();
+      explodeShield(ship.x, ship.y);
+      if (Storage.getSettings().reduceMotion !== true) shake = Math.max(shake, 6);
+      return;
+    }
+    gameOver();
+  }
+
+  /* ---------- Conquistas (Fase 3) ---------- */
+  function buildAchCtx() {
+    return {
+      meters: world.meters,
+      time: runTime,
+      runCrystals: world.crystals,
+      maxCombo: world.combo,
+      runs: Storage.get().totalRuns,
+      unlockedCount: Storage.get().unlocked.length,
+      maxStreak: Storage.get().maxStreak,
+      daily: world.daily
+    };
+  }
+  function notifyAchievements() {
+    if (state !== 'playing') return;
+    const newly = Achievements.check(buildAchCtx());
+    for (const id of newly) {
+      UI.showAchievement(Achievements.getName(id));
+      Audio2.unlock();
+    }
+  }
+
   function loop(t) {
     raf = requestAnimationFrame(loop);
     let dt = (t - lastT) / 1000;
@@ -288,7 +362,7 @@ const Game = (() => {
       return;
     }
     // velocidade do scroll (parallax) - devagar no menu, rápido no jogo
-    const scrollSpeed = (state === 'playing') ? world.speed : 60;
+    const scrollSpeed = (state === 'playing') ? world.speed * (world.wf || 1) : 60;
     world.scroll += scrollSpeed * dt;
 
     // parallax sempre anima
@@ -328,7 +402,15 @@ const Game = (() => {
     world.difficulty = world.meters / 1200;
     // começa em 220 e acelera com a distância (rampa mais suave)
     world.speed = Math.min(700, 220 + world.difficulty * 58);
-    world.meters += world.speed * dt * 0.12;
+    // fatores de habilidade: dash acelera, slowmo desacelera o mundo
+    const wf = (world.slowmoTimer > 0 ? 0.4 : 1) * (ship.dashTimer > 0 ? 2.2 : 1);
+    world.wf = wf;
+    if (ship.dashTimer > 0) ship.dashTimer -= dt;
+    if (world.slowmoTimer > 0) world.slowmoTimer -= dt;
+    if (ship.abilityCd > 0) ship.abilityCd -= dt;
+    if (ship.invuln > 0) ship.invuln -= dt;
+    world.meters += world.speed * wf * dt * 0.12;
+    if (world.combo > world.maxCombo) world.maxCombo = world.combo;
 
     // bioma por distância (troca de paleta a cada 5000 m)
     const bi = Math.floor(world.meters / 5000);
@@ -345,7 +427,9 @@ const Game = (() => {
     // física da nave
     const st = ship.ship.stats;
     const gravity = 1150;
-    const thrust = 2300 * st.agility * st.thrust;
+    const upAg = Storage.getUpgradeMult('agility');
+    const upTh = Storage.getUpgradeMult('thrust');
+    const thrust = 2300 * st.agility * upAg * st.thrust * upTh;
     const thrusting = Input.isThrusting();
     if (thrusting) {
       if (!wasThrusting) Audio2.thrust();   // som de empuxo no início do pulso
@@ -366,7 +450,7 @@ const Game = (() => {
     const tInfo = terrain(ship.x + world.scroll);
     const halfH = ship.h * 0.5;
     if (ship.y - halfH < tInfo.top || ship.y + halfH > tInfo.bot) {
-      return gameOver();
+      return hit();
     }
     if (ship.y < halfH) ship.y = halfH;
     if (ship.y > H - halfH) ship.y = H - halfH;
@@ -392,11 +476,11 @@ const Game = (() => {
       world.comboTimer -= dt;
       if (world.comboTimer <= 0) world.combo = 0;
     }
-    pickupTimer -= dt;
+    pickupTimer -= dt * wf;
     if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 1.6 + rnd() * 1.8; }
     for (let i = pickups.length - 1; i >= 0; i--) {
       const p = pickups[i];
-      p.x -= world.speed * dt;
+      p.x -= world.speed * wf * dt;
       p.spin += dt * 3;
       if (p.x + p.r < -20) { pickups.splice(i, 1); continue; }
       const dx = p.x - ship.x, dy = p.y - ship.y;
@@ -405,19 +489,19 @@ const Game = (() => {
     }
 
     // obstáculos
-    spawnTimer -= dt;
+    spawnTimer -= dt * wf;
     // começa com poucos obstáculos e aumenta a frequência
     const interval = Math.max(0.5, 2.2 - world.difficulty * 0.18);
     if (spawnTimer <= 0) { spawnObstacle(); spawnTimer = interval * (0.7 + rnd() * 0.6); }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
-      o.x -= world.speed * dt;
+      o.x -= world.speed * wf * dt;
       if (o.type === 'asteroid') {
         o.rot += o.spin * dt;
         const dx = o.x - ship.x, dy = o.y - ship.y;
         const rr = o.r + ship.w * 0.32;
-        if (dx * dx + dy * dy < rr * rr) return gameOver();
+        if (dx * dx + dy * dy < rr * rr) return hit();
       } else if (o.type === 'blackhole') {
         o.ring += o.spin * dt;
         const dx = o.x - ship.x, dy = o.y - ship.y;
@@ -427,20 +511,21 @@ const Game = (() => {
           const f = (1 - dist / well) * o.pull;
           ship.vy += (dy / dist) * f * dt;   // poço de gravidade puxa a nave
         }
-        if (dist < o.r) return gameOver();
+        if (dist < o.r) return hit();
       } else if (o.type === 'laser') {
         o.timer -= dt;
         if (o.timer <= 0) { o.on = !o.on; o.timer = o.on ? o.onDur : o.offDur; }
         if (o.on) {
           const inX = Math.abs(o.x - ship.x) < (o.w * 0.5 + ship.w * 0.3);
           const inGap = ship.y > o.gapY - o.gapH / 2 && ship.y < o.gapY + o.gapH / 2;
-          if (inX && !inGap) return gameOver();
+          if (inX && !inGap) return hit();
         }
       }
       const margin = (o.type === 'laser') ? o.w * 3 + 20 : (o.r * 3 + 40);
       if (o.x < -margin) obstacles.splice(i, 1);
     }
 
+    notifyAchievements();
     updateParticles(dt);
   }
 
@@ -467,7 +552,8 @@ const Game = (() => {
     Audio2.stopMusic();
     const meters = Math.floor(world.meters);
     const time = runTime;
-    const payload = { meters, time, crystals: world.crystals, seed: world.seed, daily: world.daily };
+    const payload = { meters, time, crystals: world.crystals, seed: world.seed, daily: world.daily,
+                      shipId: ship.ship.id, maxCombo: world.maxCombo };
     setTimeout(() => { if (onOverCb) onOverCb(payload); }, 700);
   }
 
@@ -696,7 +782,27 @@ const Game = (() => {
     ctx.save();
     ctx.translate(ship.x, ship.y);
     ctx.rotate(ship.tilt);
-    ship.ship.draw(ctx, 0, 0, ship.w, ship.h, t, Input.isThrusting() && state === 'playing');
+    ship.ship.draw(ctx, 0, 0, ship.w, ship.h, t, Input.isThrusting() && state === 'playing', ship.color, ship.accent);
+    // anel de escudo (absorve 1 hit)
+    if (ship.shield) {
+      ctx.strokeStyle = '#4af0ff';
+      ctx.globalAlpha = 0.6 + 0.3 * Math.sin(t * 0.02);
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#4af0ff';
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.arc(0, 0, ship.w * 0.7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    } else if (ship.invuln > 0) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.globalAlpha = 0.4 * Math.min(1, ship.invuln);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, ship.w * 0.6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
     ctx.restore();
   }
 
@@ -725,7 +831,12 @@ const Game = (() => {
       meters: Math.floor(world.meters),
       speed: Math.floor(world.speed),
       crystals: world.crystals,
-      combo: world.combo
+      combo: world.combo,
+      ability: ship ? ship.ability : null,
+      abilityCd: ship ? Math.max(0, ship.abilityCd) : 0,
+      shield: ship ? ship.shield : false,
+      dash: ship ? ship.dashTimer > 0 : false,
+      slowmo: world.slowmoTimer > 0
     };
   }
 

@@ -30,11 +30,13 @@ SpaceRun/
     └── js/
         ├── storage.js        # localStorage persistence (progress, settings)
         ├── i18n.js           # Translations (pt/en/es) + apply/t/setLang
-        ├── ships.js          # Ship definitions (stats, draw fn, unlockAt)
+        ├── ships.js          # Ship definitions (stats, draw fn, unlockAt, ability)
+        ├── achievements.js   # Achievement defs + check (Fase 3)
         ├── audio.js          # Audio2: SFX + procedural music (WebAudio)
-        ├── input.js          # Input: unified "thrust" (keyboard + touch)
+        ├── input.js          # Input: unified "thrust" + "ability" (double-tap)
         ├── game.js           # Game: engine, state machine, render, physics
         ├── ui.js             # UI: screen routing, hangar, settings, gameover
+        ├── share.js          # Share: procedural score-card canvas (Fase 3)
         └── main.js           # Bootstrap: wires modules, HUD, music, PWA
 ```
 
@@ -45,7 +47,7 @@ Each `js/*.js` file is an **IIFE that exposes a single global object**. There is
 globals and are loaded in a fixed `<script>` order in `index.html`:
 
 ```
-storage → i18n → ships → audio → input → game → ui → main
+storage → i18n → ships → achievements → audio → input → game → ui → share → main
 ```
 
 Load order matters: `i18n.init()` reads `Storage`, `Game.init()` registers an
@@ -56,14 +58,16 @@ building screens. **Do not reorder or rely on `import`/`export`.**
 
 | Global   | Responsibility |
 |----------|----------------|
-| `Storage`| Save/load progress (`best`, `totalMeters`, `totalRuns`, `bestTime`, `crystals`, `unlocked`, `settings`); `recordRun(m, time, crystals)`, `reset()`. |
+| `Storage`| Save/load progress (`best`, `totalMeters`, `totalRuns`, `bestTime`, `crystals`, `unlocked`, `settings`, `achievements`, `history`, `streak`/`maxStreak`, `leaderboard`, `playerName`, `shipSkins`, `upgrades`); `recordRun(m, time, crystals)`, `recordLeaderboard`, skin/upgrade helpers, `reset()`. |
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
-| `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `draw`). `get(id)`. |
-| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `startMusic(type)`, `stopMusic()`, `setEnabled`, `setMusicEnabled`, `ensure`. |
-| `Input`  | `init()`, `isThrusting()`, `on('start'|'end', fn)`. Unifies Space + pointer as "thrust". |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode)`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo), `state`. |
-| `UI`     | `init(playCb)`, `show`, `showGameOver`, `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`. |
-| `main`   | Bootstraps everything; HUD loop; music switching; install (`beforeinstallprompt`); SW registration. |
+| `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
+| `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
+| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setEnabled`, `setMusicEnabled`, `ensure`. |
+| `Input`  | `init()`, `isThrusting()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; double-tap emits `ability`. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode)`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability, abilityCd, shield, dash, slowmo), `state`. Handles ship abilities, shield/invuln, dash/slowmo world factors, crystal upgrades, achievement checks. |
+| `UI`     | `init(playCb)`, `show`, `showGameOver` (records run + leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
+| `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |
+| `main`   | Bootstraps everything; HUD loop (incl. ability status); music switching; install (`beforeinstallprompt`); SW registration. |
 
 ## Game state machine
 
