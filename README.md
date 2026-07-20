@@ -27,4 +27,4 @@ The deeper you go, the faster it gets — so breathe, time your taps, and chase 
 
 Jump in, pick your ship, and see how many meters of open space you can conquer. The void is waiting. 🌠
 
-*SpaceRun — Insight X Lab Technologies · v0.2*
+*SpaceRun — Insight X Lab Technologies · v0.4*

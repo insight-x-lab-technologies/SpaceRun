@@ -31,7 +31,28 @@ const Achievements = (() => {
     { id: 'streak_3',      nameKey: 'ach.streak_3.name',      descKey: 'ach.streak_3.desc',
       chk: c => c.maxStreak >= 3 },
     { id: 'daily_first',   nameKey: 'ach.daily_first.name',   descKey: 'ach.daily_first.desc',
-      chk: c => c.daily === true }
+      chk: c => c.daily === true },
+    /* --- Novas conquistas --- */
+    { id: 'dist_50k',      nameKey: 'ach.dist_50k.name',      descKey: 'ach.dist_50k.desc',
+      chk: c => c.meters >= 50000 },
+    { id: 'dist_250k',     nameKey: 'ach.dist_250k.name',     descKey: 'ach.dist_250k.desc',
+      chk: c => c.meters >= 250000 },
+    { id: 'dist_500k',     nameKey: 'ach.dist_500k.name',     descKey: 'ach.dist_500k.desc',
+      chk: c => c.meters >= 500000 },
+    { id: 'crystals_250',  nameKey: 'ach.crystals_250.name',  descKey: 'ach.crystals_250.desc',
+      chk: c => c.runCrystals >= 250 },
+    { id: 'combo_25',      nameKey: 'ach.combo_25.name',      descKey: 'ach.combo_25.desc',
+      chk: c => c.maxCombo >= 25 },
+    { id: 'combo_50',      nameKey: 'ach.combo_50.name',      descKey: 'ach.combo_50.desc',
+      chk: c => c.maxCombo >= 50 },
+    { id: 'time_10min',    nameKey: 'ach.time_10min.name',    descKey: 'ach.time_10min.desc',
+      chk: c => c.time >= 600 },
+    { id: 'streak_5',      nameKey: 'ach.streak_5.name',      descKey: 'ach.streak_5.desc',
+      chk: c => c.maxStreak >= 5 },
+    { id: 'streak_10',     nameKey: 'ach.streak_10.name',     descKey: 'ach.streak_10.desc',
+      chk: c => c.maxStreak >= 10 },
+    { id: 'total_1m',      nameKey: 'ach.total_1m.name',      descKey: 'ach.total_1m.desc',
+      chk: c => c.totalMeters >= 1000000 }
   ];
 
   const byId = {};

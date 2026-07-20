@@ -7,6 +7,7 @@
   --muted: #8b93b8;
   --panel: rgba(14, 8, 38, 0.92);
   --danger: #ff5570;
+  --font: "Segoe UI", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -17,7 +18,7 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font, "Segoe UI", system-ui, sans-serif);
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -546,5 +547,11 @@ body.high-contrast .btn {
   .ship-list {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  /* Conquistas: painel 50% mais largo + grid de 3 colunas */
+  #screen-achievements .panel { width: min(780px, 94vw); }
+  #screen-achievements .ach-list {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }

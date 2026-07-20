@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.2**. All gameplay, art, and audio are procedural; the app is a
+Version **0.4**. All gameplay, art, and audio are procedural; the app is a
 serverless PWA (vanilla HTML/JS, no frameworks, no binary assets). Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
 ranking local e compartilhamento) estão implementadas.
@@ -41,6 +41,15 @@ ranking local e compartilhamento) estão implementadas.
   Donate) laid out in a 2-column grid (New Game + Daily span the full width).
   The Hangar also widens 50% and shows ships in a 2-column grid. Portrait
   (mobile/tablet) keeps the original single-column layout.
+- **Themes (cosmetic):** the whole UI is driven by CSS custom properties
+  (`--bg`, `--panel`, `--accent`, `--accent2`, `--text`, `--text-dim`, `--font`)
+  set on the document root. Three built-in themes ship by default — **Neon**
+  (default, cyan/magenta on deep-space navy), **Retro** (amber/green
+  monospace), and **Aurora** (purple/teal serif). The active theme is chosen in
+  Settings and persisted in `Storage`; it also selects the procedural music
+  palette and an optional per-theme audio track (see Audio). Toggles of
+  accessibility (`reduce-motion`, `high-contrast`) still override the theme via
+  the `<body>` cascade.
 
 ## Game feel & feedback
 
@@ -102,9 +111,11 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 
 ## Meta & Social (Fase 3)
 
-- **Achievements:** 13 challenges (distance milestones, crystals per run, combo,
-  survival time, full fleet, record streak, daily). Unlocks show a toast + jingle
-  and persist in `Storage`. Screen accessible from Home.
+- **Achievements:** 23 challenges (distance milestones — 10k/25k/50k/100k/250k/
+  500k, crystals per run, total crystals, combo, survival time, full fleet,
+  record streak, daily). Unlocks show a toast + jingle and persist in `Storage`.
+  Screen accessible from Home; on wide orientations the grid expands to **3
+  columns** (50% wider panel).
 - **Detailed statistics:** total runs, total/average distance, average/best time,
   best streak, total crystals, and a recent run history — computed from
   `Storage` and shown in the Statistics screen.
@@ -123,8 +134,8 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
   Instagram and copy-link) that open a localized share message with the game URL
   (TikTok/Instagram use the native Web Share sheet; copy-link copies to clipboard).
 - **Hangar:** ship grid with locked/unlocked/selected states.
-- **Settings:** Sound, Music, Particles, **Reduce motion**, **High contrast**,
-  Language (pt/en/es), Erase progress.
+- **Settings:** **Theme** (Neon / Retro / Aurora), Sound, Music, Particles,
+  **Reduce motion**, **High contrast**, Language (pt/en/es), Erase progress.
 - **Donate:** Ko-Fi and Buy Me a Coffee external links.
 - **Pause:** Resume / Menu (also auto-pauses when the tab is hidden).
 - **Game Over:** distance, best, **time**, **crystals collected**,
@@ -141,9 +152,14 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 ## Audio (procedural, WebAudio)
 
 - **Sound effects:** UI click, crash, ship-unlock jingle.
-- **Two background music tracks** generated live:
-  - Menu music (calm pad + arpeggio).
-  - Gameplay music (faster, driving arpeggio + bass).
+- **Background music generated live** (two tracks — menu *and* gameplay), built
+  from a per-theme sequence (waveform, scale, tempo, arpeggio) so each theme
+  sounds distinct.
+- **Optional per-theme MP3:** a theme may reference an `.mp3` track for the menu
+  and/or gameplay (`menuMp3` / `gameMp3`). When present, it is played (looped)
+  instead of the procedural sequence; when absent (the default Neon theme), the
+  game stays fully procedural and asset-free. This is an opt-in enhancement — no
+  binary asset is required for the app to run.
 - Music and SFX are independently toggleable (Settings). Audio unlocks on the
   first user gesture (browser autoplay policy).
 
@@ -163,5 +179,5 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 
 ## Meta
 
-- Copyright footer: *© 2025 Insight X Lab Technologies · v0.2*.
+- Copyright footer: *© 2025 Insight X Lab Technologies · v0.4*.
 - Thematic brand: cyan/magenta neon on deep-space navy.

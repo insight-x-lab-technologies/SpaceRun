@@ -25,9 +25,21 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(document.getElementById('ship-list').children.length).toBe(20);
   });
 
-  it('renderAchievements lista 13 conquistas', () => {
+  it('renderAchievements lista 23 conquistas', () => {
     document.querySelector('[data-action="achievements"]').click();
-    expect(document.getElementById('ach-list').children.length).toBe(13);
+    expect(document.getElementById('ach-list').children.length).toBe(23);
+  });
+
+  it('trocar o tema persiste em Storage e aplica no DOM', () => {
+    document.querySelector('[data-action="settings"]').click();
+    const sel = document.getElementById('set-theme');
+    expect(sel).not.toBeNull();
+    sel.value = 'retro';
+    sel.dispatchEvent(new Event('change'));
+    expect(Storage.getSettings().theme).toBe('retro');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('retro');
+    sel.value = 'neon';
+    sel.dispatchEvent(new Event('change'));
   });
 
   it('showGameOver registra a run e preenche o resultado', () => {
@@ -83,5 +95,38 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     document.querySelector('[data-action="hangar"]').click();
     document.querySelector('[data-action="buyUpgrade"][data-stat="agility"]').click();
     expect(Storage.getUpgradeLevel('agility')).toBe(1);
+  });
+
+  it('fila de compartilhamento social monta os links no idioma atual', () => {
+    const row = document.getElementById('share-row');
+    expect(row).not.toBeNull();
+    const ics = row.querySelectorAll('.share-ic');
+    expect(ics.length).toBe(7);
+
+    const wa = row.querySelector('[data-share="whatsapp"]');
+    expect(wa.getAttribute('href')).toContain('wa.me/?text=');
+    expect(decodeURIComponent(wa.getAttribute('href'))).toContain('Check out this awesome game:');
+    expect(wa.getAttribute('aria-label')).toBe('Share on WhatsApp');
+
+    expect(row.querySelector('[data-share="telegram"]').getAttribute('href')).toContain('t.me/share/url');
+    expect(row.querySelector('[data-share="x"]').getAttribute('href')).toContain('twitter.com/intent/tweet');
+    expect(row.querySelector('[data-share="facebook"]').getAttribute('href')).toContain('facebook.com/sharer');
+
+    // TikTok/Instagram não têm web-intent: usam o Web Share nativo (sem href)
+    expect(row.querySelector('[data-share="tiktok"]').getAttribute('href')).toBeNull();
+    expect(row.querySelector('[data-share="instagram"]').getAttribute('href')).toBeNull();
+    // copy é um botão (sem href)
+    expect(row.querySelector('[data-share="copy"]').getAttribute('href')).toBeNull();
+  });
+
+  it('compartilhamento usa mensagem localizada ao trocar o idioma', () => {
+    const sel = document.getElementById('set-lang');
+    sel.value = 'pt';
+    sel.dispatchEvent(new Event('change'));
+    const wa = document.getElementById('share-row').querySelector('[data-share="whatsapp"]');
+    expect(decodeURIComponent(wa.getAttribute('href'))).toContain('Dê uma olhada neste jogo super legal:');
+    expect(wa.getAttribute('aria-label')).toBe('Compartilhar no WhatsApp');
+    sel.value = 'en';
+    sel.dispatchEvent(new Event('change'));
   });
 });

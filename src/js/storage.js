@@ -19,7 +19,7 @@ const Storage = (() => {
     shipSkins: {},       // id -> {color, accent} (customização procedural)
     upgrades: { agility: 0, thrust: 0 }, // níveis de upgrade (0..MAX)
     settings: { sound: true, music: true, particles: true, lang: null,
-                reduceMotion: false, highContrast: false }
+                reduceMotion: false, highContrast: false, theme: 'neon' }
   };
 
   const UPGRADE_MAX = 10;

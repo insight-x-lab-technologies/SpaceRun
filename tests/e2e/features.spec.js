@@ -46,11 +46,20 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await page.locator('#ship-list .ship-card').first().click();
   });
 
-  test('Conquistas lista 13 desafios', async ({ page }) => {
+  test('Conquistas lista 23 desafios', async ({ page }) => {
     await page.goto('/');
     await page.click(`${HOME} [data-action="achievements"]`);
     await expect(page.locator('#screen-achievements')).toBeVisible();
-    await expect(page.locator('#ach-list .ach-card')).toHaveCount(13);
+    await expect(page.locator('#ach-list .ach-card')).toHaveCount(23);
+  });
+
+  test('Configurações: trocar o tema aplica data-theme', async ({ page }) => {
+    await page.goto('/');
+    await page.click(`${HOME} [data-action="settings"]`);
+    await page.selectOption('#set-theme', 'retro');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'retro');
+    await page.selectOption('#set-theme', 'neon');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'neon');
   });
 
   test('Configurações: toggle de som persiste', async ({ page }) => {
@@ -60,6 +69,24 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     const before = await sound.isChecked();
     await sound.click();
     expect(await sound.isChecked()).toBe(!before);
+  });
+
+  test('Footer traz ícones de compartilhamento com links corretos', async ({ page }) => {
+    await page.goto('/');
+    const row = page.locator('#share-row');
+    await expect(row).toBeVisible();
+    await expect(row.locator('.share-ic')).toHaveCount(7);
+
+    const wa = row.locator('[data-share="whatsapp"]');
+    await expect(wa).toHaveAttribute('href', /wa\.me\/\?text=/);
+    await expect(wa).toHaveAttribute('aria-label', /WhatsApp/);
+
+    await expect(row.locator('[data-share="telegram"]')).toHaveAttribute('href', /t\.me\/share\/url/);
+    await expect(row.locator('[data-share="x"]')).toHaveAttribute('href', /twitter\.com\/intent\/tweet/);
+    await expect(row.locator('[data-share="facebook"]')).toHaveAttribute('href', /facebook\.com\/sharer/);
+    // TikTok/Instagram e copy não usam web-intent (sem href)
+    await expect(row.locator('[data-share="tiktok"]')).not.toHaveAttribute('href', /\w/);
+    await expect(row.locator('[data-share="instagram"]')).not.toHaveAttribute('href', /\w/);
   });
 
   test('Loop completo até Game Over e gravação', async ({ page }) => {

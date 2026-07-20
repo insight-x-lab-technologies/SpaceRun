@@ -1,6 +1,6 @@
 {
   "name": "spacerun",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "**Survive the infinite void. How far can you fly?** — serverless procedural PWA endless runner.",
   "type": "module",
   "directories": {

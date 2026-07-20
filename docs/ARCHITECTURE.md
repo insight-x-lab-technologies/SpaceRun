@@ -32,7 +32,8 @@ SpaceRun/
         ├── i18n.js           # Translations (pt/en/es) + apply/t/setLang
         ├── ships.js          # Ship definitions (stats, draw fn, unlockAt, ability)
         ├── achievements.js   # Achievement defs + check (Fase 3)
-        ├── audio.js          # Audio2: SFX + procedural music (WebAudio)
+        ├── audio.js          # Audio2: SFX + procedural music + optional MP3 (WebAudio)
+        ├── themes.js         # Themes: list + apply/set/init of CSS vars + audio (cosmetic)
         ├── input.js          # Input: unified "thrust" + "ability" (Shift / touch button)
         ├── game.js           # Game: engine, state machine, render, physics
         ├── ui.js             # UI: screen routing, hangar, settings, gameover
@@ -47,12 +48,14 @@ Each `js/*.js` file is an **IIFE that exposes a single global object**. There is
 globals and are loaded in a fixed `<script>` order in `index.html`:
 
 ```
-storage → i18n → ships → achievements → audio → input → game → ui → share → main
+storage → i18n → ships → achievements → audio → themes → input → game → ui → share → main
 ```
 
 Load order matters: `i18n.init()` reads `Storage`, `Game.init()` registers an
-`Input` listener, and `UI.init()` calls `I18n.init()`/`I18n.apply()` before
-building screens. **Do not reorder or rely on `import`/`export`.**
+`Input` listener, `UI.init()` calls `Themes.init()` (which applies the saved
+theme's CSS vars and per-theme audio config) *before* `I18n.init()`/`I18n.apply()`
+build the screens, and `Themes.init()` calls `Audio2.setTheme(...)`. **Do not
+reorder or rely on `import`/`export`.**
 
 ### Module responsibilities
 
@@ -62,7 +65,8 @@ building screens. **Do not reorder or rely on `import`/`export`.**
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
-| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setEnabled`, `setMusicEnabled`, `ensure`. |
+| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setTheme(t)`, `setMusicTracks({menu,game})`, `setEnabled`, `setMusicEnabled`, `ensure`. |
+| `Themes` | `list` (defs with `id`, `name`, `vars`, `font`, optional `audio`), `get(id)`, `currentId()`, `apply(id)`, `set(id)` (persists + applies + emits `musicchange`), `init()` (applies saved theme, sets `--font` on `<html>`, sets `data-theme`, wires `Audio2.setTheme`). |
 | `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; `Shift` (desktop) and the floating touch button (`#ability-btn`) emit `ability`. |
 | `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode)`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability, abilityCd, shield, dash, slowmo), `state`. Handles ship abilities, shield/invuln, dash/slowmo world factors, crystal upgrades, achievement checks. |
 | `UI`     | `init(playCb)`, `show`, `showGameOver` (records run + leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
@@ -120,7 +124,10 @@ effectively infinite and resolution-independent.
 2. **Asset-free by default.** Do not introduce `.jpg/.png` (except the required
    PWA icons) or audio files for gameplay. Keep all art/audio procedural
    (canvas drawing + WebAudio). The PWA PNG icons in `assets/` are generated,
-   not hand-edited.
+   not hand-edited. **Exception (opt-in):** a theme may ship an optional `.mp3`
+   track referenced via its `audio.menuMp3`/`audio.gameMp3` keys; when absent
+   all audio stays procedural. Never make a binary asset *required* for the app
+   to run.
 3. **i18n for every user-facing string.** Add new keys to **all three**
    dictionaries (`pt`, `en`, `es`) in `i18n.js`. Use `data-i18n` in HTML and
    `I18n.t()` in JS. Never hardcode UI text.
@@ -146,12 +153,12 @@ continua 100% vanilla/asset-free, sem build step no navegador.
   determinismo do Daily Run) e o `main` (bootstrap + reload do SW em nova
   versão, com e sem controller prévio). Os módulos IIFE-globals são carregados num único
   escopo isolado via `tests/helpers/loadApp.js`, que injeta o DOM do
-  `index.html` e expõe os globais.
-  - Rodar: `npm test` (ou `npm run test:unit`).
+   `index.html` e expõe os globais (incl. `Themes`).
+   - Rodar: `npm test` (ou `npm run test:unit`).
 - **End-to-end** — [`@playwright/test`](https://playwright.dev) com Chromium.
   Um servidor estático mínimo (`tests/e2e/server.mjs`) serve `src/` e os specs
   exercitam o fluxo real: Home → Novo Jogo/Daily → ready → playing → Game Over
-  → Share, além de Hangar (20 naves), Conquistas (13) e Configurações.
+   → Share, além de Hangar (20 naves), Conquistas (23), Temas e Configurações.
   - Rodar: `npm run test:e2e` (precisa de `npx playwright install chromium`).
 
 ### Seams de teste (inofensivos em produção)
@@ -168,6 +175,12 @@ continua 100% vanilla/asset-free, sem build step no navegador.
   `i18n.js`; reference it via `data-i18n` or `I18n.t()`.
 - **Add a settings toggle:** extend `Storage` defaults, add the control in
   `index.html` + `ui.js` `renderSettings`, and read it where needed.
+- **Add a theme:** append an entry to `Themes.list` with `id`, `name`, `vars`
+  (CSS custom properties), `font`, and an optional `audio` (`{ click,
+  menuWave, gameWave, menuSeq, gameSeq, menuMp3?, gameMp3? }`). No other code
+  changes needed — `Themes.apply` sets the vars on the document root and
+  `Themes.set` persists + notifies `Audio2`. Add the theme name key to all
+  three i18n dictionaries.
 - **Add a screen:** add a `.screen` section in `index.html` with a
   `data-action`, handle it in `UI.handleAction`, and keep `I18n` text external.
 - **Tune difficulty:** edit `terrain()` (gap/amp) and `updateGameplay()`

@@ -10,8 +10,19 @@ describe('Achievements — conquistas', () => {
     localStorage.clear();
   });
 
-  it('existem 13 conquistas', () => {
-    expect(Achievements.all().length).toBe(13);
+  it('existem 23 conquistas', () => {
+    expect(Achievements.all().length).toBe(23);
+  });
+
+  it('desbloqueia conquistas novas por distância/combo/tempo/streak/total', () => {
+    expect(Achievements.check({ runs: 1, meters: 500000, time: 0, runCrystals: 0, maxCombo: 0, unlockedCount: 1, maxStreak: 0, totalMeters: 0, daily: false }))
+      .toEqual(expect.arrayContaining(['dist_50k', 'dist_250k', 'dist_500k']));
+    Storage.reset(); localStorage.clear();
+    expect(Achievements.check({ runs: 1, meters: 0, time: 0, runCrystals: 300, maxCombo: 60, unlockedCount: 1, maxStreak: 0, totalMeters: 0, daily: false }))
+      .toEqual(expect.arrayContaining(['crystals_250', 'combo_25', 'combo_50']));
+    Storage.reset(); localStorage.clear();
+    expect(Achievements.check({ runs: 1, meters: 0, time: 700, runCrystals: 0, maxCombo: 0, unlockedCount: 1, maxStreak: 12, totalMeters: 1500000, daily: false }))
+      .toEqual(expect.arrayContaining(['time_10min', 'streak_5', 'streak_10', 'total_1m']));
   });
 
   it('desbloqueia first_flight ao completar 1 run', () => {

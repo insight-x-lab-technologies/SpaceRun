@@ -122,8 +122,8 @@ Camada de "ficar no jogo" sem servidor. Tudo local + compartilhamento.
   dia.
 
 **Pronto quando:** o jogador tem conquistas, um Top 10 local e consegue exportar
-  um card de recorde como imagem. — **entregue** (13 conquistas; ranking Top 10
-  com nome opcional; score card em canvas via `share.js` com download/Web Share).
+um card de recorde como imagem. — **entregue** (23 conquistas; ranking Top 10
+com nome opcional; score card em canvas via `share.js` com download/Web Share).
 
 ---
 
@@ -176,11 +176,18 @@ Só depois do jogo ser divertido e completo. Nunca pay-to-win.
 - **Cosméticos opcionais**: skins de nave, cores de rastro, "anthem" de menu —
   todos também desbloqueáveis por gameplay (cristais/metros), para não alienar
   quem não paga.
+- **Temas visuais** (cosméticos, entregues): o app é governado por CSS custom
+  properties e já traz 3 temas selecionáveis em Configurações — **Neon**
+  (padrão), **Retro** e **Aurora** — com fonte do sistema e paleta própria; o
+  tema também escolhe a paleta musical procedural e pode apontar para um `.mp3`
+  opcional (`menuMp3`/`gameMp3`). Ver `themes.js` + seção "Themes" em
+  `PRODUCT_FEATURES.md`.
 - **Sem servidor de pagamento próprio**: usa plataformas externas (Ko-Fi/BMC)
   como hoje; o app continua serverless.
 
 **Pronto quando:** há pelo menos 3 cosméticos desbloqueáveis e a doação está
-  visível sem atrapalhar o gameplay.
+visível sem atrapalhar o gameplay. — **temas entregues** (3 temas + seletor;
+MP3 opcional por tema; áudio do menu/gameplay procedural por tema).
 
 ---
 
@@ -196,6 +203,10 @@ Só depois do jogo ser divertido e completo. Nunca pay-to-win.
 - **Meta/social (F3):** `storage.js` (achievements, leaderboard, history,
   streak), `achievements.js` (defs + checagem), `ui.js` (telas Achievements/
   Stats/Leaderboard/Share), geração de imagem via canvas em `share.js`.
+- **Temas/áudio por tema (F6):** `themes.js` (defs + apply/set/init de CSS vars
+  + `--font` + `data-theme`), `audio.js` (`setTheme`/`setMusicTracks`,
+  sequências procedurais por tema + MP3 opcional), `storage.js` (`theme` em
+  `settings`), `ui.js` (seletor em Settings), `i18n.js` (nomes de tema pt/en/es).
 - **Modos/bosses (F4):** `game.js` (modos via flag em `buildWorld`), possível
   novo módulo `boss.js` (IIFE-global, adicionado à ordem de load antes de `main`).
 - **Ultra (F5):** novos módulos IIFE (`ghosts.js`, `campaign.js`, `share.js`),

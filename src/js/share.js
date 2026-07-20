@@ -97,7 +97,7 @@ const Share = (() => {
     ctx.fillStyle = 'rgba(139,147,184,0.6)';
     ctx.font = '15px Segoe UI, system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('© 2025 Insight X Lab Technologies · v0.2', W / 2, H - 40);
+    ctx.fillText('© 2025 Insight X Lab Technologies · v0.4', W / 2, H - 40);
   }
 
   return { render };

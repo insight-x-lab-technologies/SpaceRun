@@ -335,6 +335,7 @@ const Game = (() => {
       runs: Storage.get().totalRuns,
       unlockedCount: Storage.get().unlocked.length,
       maxStreak: Storage.get().maxStreak,
+      totalMeters: Storage.get().totalMeters,
       daily: world.daily
     };
   }

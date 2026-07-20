@@ -157,7 +157,7 @@ desenvolvimento**; o app em produção continua vanilla/asset-free.
 - **Local**: `tests/e2e/*.spec.js`.
 - **Servidor estático**: `tests/e2e/server.mjs` (porta `4173`, serve `src/`).
 - Exercite o fluxo real do app: Home → Novo Jogo/Daily → `ready` → `playing` →
-  Game Over → Share, além de Hangar (20 naves), Conquistas (13) e Settings.
+  Game Over → Share, além de Hangar (20 naves), Conquistas (23), Temas e Settings.
 - **Seletores**: prefira escopo por tela para evitar ambiguidade — vários
   botões compartilham `data-action` (ex.: `[data-action="play"]` existe no Home
   **e** no Game Over). Use `#screen-home [data-action="play"]`.
@@ -203,7 +203,7 @@ teste, conforme a causa real — não deixe vermelho.
 3. **Stage seletivo**: adicione apenas os arquivos intencionais (`src/`, `docs/`,
    `tests/`, configs e `package.json`/`package-lock.json`).
 4. **Mensagem**: concisa e descritiva, no estilo do repo (ex.:
-   `feat: deterministic Daily Run + v0.2`, `test: unit and e2e suites`,
+   `feat: deterministic Daily Run + v0.4`, `test: unit and e2e suites`,
    `docs: add DEVELOPMENT_GUIDE.md`). Use português ou inglês de forma
    consistente com o histórico.
 5. **Commit**: `git commit`.

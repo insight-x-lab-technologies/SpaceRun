@@ -64,4 +64,13 @@ describe('Input — empuxo unificado (teclado/toque) e habilidade (Shift)', () =
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
     expect(abilities).toBe(1);
   });
+
+  it('triggerAbility() emite "ability" (botão dedicado de toque)', () => {
+    let abilities = 0;
+    Input.on('ability', () => abilities++);
+    Input.triggerAbility();
+    expect(abilities).toBe(1);
+    Input.triggerAbility();
+    expect(abilities).toBe(2);
+  });
 });

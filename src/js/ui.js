@@ -327,6 +327,7 @@ const UI = (() => {
       runs: Storage.get().totalRuns,
       unlockedCount: Storage.get().unlocked.length,
       maxStreak: Storage.get().maxStreak,
+      totalMeters: Storage.get().totalMeters,
       daily
     };
     Achievements.check(fctx).forEach(id => { showAchievement(Achievements.getName(id)); Audio2.unlock(); });
@@ -364,6 +365,8 @@ const UI = (() => {
     document.getElementById('set-reduce-motion').checked = s.reduceMotion;
     document.getElementById('set-high-contrast').checked = s.highContrast;
     document.getElementById('set-lang').value = I18n.lang;
+    const themeSel = document.getElementById('set-theme');
+    if (themeSel) themeSel.value = Themes.currentId();
 
     document.getElementById('set-sound').onchange = e => {
       Audio2.uiClick();
@@ -389,6 +392,11 @@ const UI = (() => {
       Audio2.uiClick();
       Storage.setSetting('highContrast', e.target.checked);
       applyAccessibility();
+    };
+    const themeSelEl = document.getElementById('set-theme');
+    if (themeSelEl) themeSelEl.onchange = e => {
+      Themes.set(e.target.value);
+      Audio2.uiClick();
     };
     document.getElementById('set-lang').onchange = e => {
       Audio2.uiClick();
@@ -419,6 +427,7 @@ const UI = (() => {
 
     I18n.init();
     I18n.apply();
+    Themes.init();
     applyAccessibility();
     wireShare();
     updateShare();
