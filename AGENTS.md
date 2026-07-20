@@ -19,10 +19,17 @@ architecture, and the non-negotiable design premises you must follow:
    i18n in 3 languages, single canvas, state transitions, SW caching).
 4. **[docs/ROADMAP.md](./docs/ROADMAP.md)** — upcoming features (currently a
    placeholder to be filled in a future iteration).
+5. **[docs/DEVELOPMENT_GUIDE.md](./docs/DEVELOPMENT_GUIDE.md)** — the development
+   workflow contract. **Read it before implementing any change.** It prescribes
+   the step-by-step process: follow `PRODUCT_VISION`/`ARCHITECTURE`, keep
+   `PRODUCT_FEATURES`/`ROADMAP` in sync, write/update tests in the established
+   pattern, run the test suites as a quality gate, and commit/push on `main`.
 
 Keep these documents in sync when you add or change functionality. Update
 `PRODUCT_FEATURES.md` and `ARCHITECTURE.md` whenever you introduce a new feature,
-screen, ship, setting, or change the architecture.
+screen, ship, setting, or change the architecture. Follow the workflow defined in
+`DEVELOPMENT_GUIDE.md` for every change (including writing/updating tests and
+running the suites before committing).
 
 ## Quick orientation
 
