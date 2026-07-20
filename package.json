@@ -1,0 +1,28 @@
+{
+  "name": "spacerun",
+  "version": "0.2.0",
+  "description": "**Survive the infinite void. How far can you fly?** — serverless procedural PWA endless runner.",
+  "type": "module",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github-spacerun:insight-x-lab-technologies/SpaceRun.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@vitest/coverage-v8": "^2.1.9",
+    "jsdom": "^24.1.3",
+    "vitest": "^2.1.9"
+  }
+}
