@@ -32,7 +32,7 @@
 
 ---
 
-## Fase 0 — Game Feel & Polish  ·  P0  ·  complexidade baixa
+## Fase 0 — Game Feel & Polish  ·  P0  ·  complexidade baixa  ·  ✅ entregue
 
 Tornar o núcleo já existente **satisfatório**. É o trabalho de maior
 retorno por esforço: não adiciona sistemas novos, só densidade de feedback.
@@ -60,7 +60,7 @@ bem em portrait e landscape, e tem ao menos um toggle de acessibilidade.
 
 ---
 
-## Fase 1 — Progressão & Colecionáveis  ·  P1  ·  complexidade baixa/média
+## Fase 1 — Progressão & Colecionáveis  ·  P1  ·  complexidade baixa/média  ·  ✅ entregue
 
 Dar **motivo para a próxima run** e recompensar ações durante o voo.
 
