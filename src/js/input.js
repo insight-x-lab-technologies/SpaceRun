@@ -4,6 +4,7 @@ const Input = (() => {
   const listeners = { start: [], end: [], ability: [] };
   let lastEnd = -1e9;          // timestamp da última soltura (para detectar double-tap)
   const DOUBLE_TAP_MS = 280;   // janela para o gesto de habilidade
+  let inited = false;
 
   function onStart() {
     const now = performance.now();
@@ -18,6 +19,8 @@ const Input = (() => {
   }
 
   function init() {
+    if (inited) return;        // idempotente: evita listeners duplicados
+    inited = true;
     // Desktop: barra de espaço
     window.addEventListener('keydown', e => {
       if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); onStart(); }
@@ -37,8 +40,18 @@ const Input = (() => {
     window.addEventListener('blur', () => onEnd());
   }
 
+  // Seam de teste: limpa estado e ouvintes sem reanexar listeners do window.
+  function _reset() {
+    thrusting = false;
+    lastEnd = -1e9;
+    listeners.start.length = 0;
+    listeners.end.length = 0;
+    listeners.ability.length = 0;
+  }
+
   return {
     init,
+    _reset,
     isThrusting: () => thrusting,
     on(action, fn) { if (listeners[action]) listeners[action].push(fn); }
   };

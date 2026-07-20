@@ -383,6 +383,10 @@ const UI = (() => {
         show(null);
         onPlay();
         break;
+      case 'playDaily':
+        show(null);
+        onPlay('daily');
+        break;
       case 'hangar':
         renderHangar(); refreshRecords(); show('screen-hangar');
         break;

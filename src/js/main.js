@@ -110,10 +110,25 @@
   // (re)aplica a música quando o usuário alterna a configuração
   window.addEventListener('musicchange', refreshMusic);
 
-  // registra Service Worker (PWA)
+  // registra Service Worker (PWA) e garante reload em nova versão
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
+      const hadController = !!navigator.serviceWorker.controller;
+      let reloading = false;
+      const reload = () => {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
+      };
       navigator.serviceWorker.register('sw.js').catch(() => {});
+      // Nova versão do SW assumiu o controle -> recarrega para usar os novos assets.
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (hadController) reload();
+      });
+      // O SW avisa explicitamente que uma nova versão foi ativada.
+      navigator.serviceWorker.addEventListener('message', e => {
+        if (e.data && e.data.type === 'SW_UPDATED' && hadController) reload();
+      });
     });
   }
 })();

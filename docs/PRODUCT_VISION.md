@@ -50,4 +50,4 @@ customization, deeper procedural biome variety, scoring/leaderboards, and
 additional game modes — while never breaking the core "hold to fly" promise or
 the serverless, asset-free architecture that makes it special.
 
-> Current version: **v0.1** — Insight X Lab Technologies.
+> Current version: **v0.2** — Insight X Lab Technologies.

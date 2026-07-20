@@ -1,7 +1,8 @@
 /* Motor do jogo: canvas, parallax 3 planos, física, terreno e obstáculos */
 const Game = (() => {
   let canvas, ctx, W = 0, H = 0, dpr = 1;
-  let raf = null, lastT = 0;
+  let raf = null, lastT = 0, acc = 0;
+  const FIXED_DT = 1 / 60;   // passo de simulação fixo (determinismo p/ Daily Run)
   let state = 'idle';        // idle | ready | playing | paused | over
   let onOverCb = null;
   let onStateCb = null;
@@ -173,9 +174,10 @@ const Game = (() => {
     buildWorld(seed, daily);
     setState('ready');   // começa pausado, aguardando input do jogador
     lastT = performance.now();
+    acc = 0;
   }
   function pause() { if (state === 'playing') setState('paused'); }
-  function resume() { if (state === 'paused') { setState('playing'); lastT = performance.now(); } }
+  function resume() { if (state === 'paused') { setState('playing'); lastT = performance.now(); acc = 0; } }
   function isPaused() { return state === 'paused'; }
   function stop() { setState('idle'); }
 
@@ -349,8 +351,14 @@ const Game = (() => {
     raf = requestAnimationFrame(loop);
     let dt = (t - lastT) / 1000;
     lastT = t;
-    if (dt > 0.05) dt = 0.05; // evita saltos
-    update(dt, t);
+    if (dt > 0.25) dt = 0.25;   // evita "espiral de morte" em abas inativas
+    acc += dt;
+    // Passo de simulação fixo: torna o mundo idêntico para qualquer frame rate,
+    // o que garante paridade determinística entre partidas do Daily Run.
+    while (acc >= FIXED_DT) {
+      update(FIXED_DT, t);
+      acc -= FIXED_DT;
+    }
     render(t);
   }
 
@@ -840,5 +848,17 @@ const Game = (() => {
     };
   }
 
-  return { init, start, pause, resume, isPaused, stop, getHud, get state() { return state; } };
+  return {
+    init, start, pause, resume, isPaused, stop, getHud,
+    get state() { return state; },
+    // Seam de teste/depuração (não afeta o jogo em produção)
+    _debug: {
+      get world() { return world; },
+      get obstacles() { return obstacles; },
+      get pickups() { return pickups; },
+      get ship() { return ship; },
+      tick(dt) { update(dt, performance.now()); },
+      hit: () => hit()
+    }
+  };
 })();

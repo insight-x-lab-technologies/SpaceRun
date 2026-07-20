@@ -150,5 +150,5 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 
 ## Meta
 
-- Copyright footer: *© 2025 Insight X Lab Technologies · v0.1*.
+- Copyright footer: *© 2025 Insight X Lab Technologies · v0.2*.
 - Thematic brand: cyan/magenta neon on deep-space navy.

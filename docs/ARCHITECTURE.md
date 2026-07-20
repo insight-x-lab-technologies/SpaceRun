@@ -135,6 +135,31 @@ effectively infinite and resolution-independent.
 8. **Cache new static assets.** Any new file referenced by the app must be added
    to the `ASSETS` array in `sw.js` (or it will not work offline).
 
+## Testing (dev only — não faz parte do app em produção)
+
+O projeto usa ferramentas de teste **apenas em desenvolvimento**; o app servido
+continua 100% vanilla/asset-free, sem build step no navegador.
+
+- **Unitários / por componente** — [`vitest`](https://vitest.dev) + `jsdom`.
+  Cobrem `Storage`, `I18n`, `Ships`, `Achievements`, `Audio2`, `Input`, `UI`,
+  `Share`, o motor `Game` (máquina de estados, colisão, habilidades e
+  determinismo do Daily Run) e o `main` (bootstrap + reload do SW em nova
+  versão, com e sem controller prévio). Os módulos IIFE-globals são carregados num único
+  escopo isolado via `tests/helpers/loadApp.js`, que injeta o DOM do
+  `index.html` e expõe os globais.
+  - Rodar: `npm test` (ou `npm run test:unit`).
+- **End-to-end** — [`@playwright/test`](https://playwright.dev) com Chromium.
+  Um servidor estático mínimo (`tests/e2e/server.mjs`) serve `src/` e os specs
+  exercitam o fluxo real: Home → Novo Jogo/Daily → ready → playing → Game Over
+  → Share, além de Hangar (20 naves), Conquistas (13) e Configurações.
+  - Rodar: `npm run test:e2e` (precisa de `npx playwright install chromium`).
+
+### Seams de teste (inofensivos em produção)
+- `Game._debug` expõe `world`, `obstacles`, `pickups`, `ship`, `tick(dt)` e
+  `hit()` para dirigir/inspecionar a simulação de forma determinística.
+- `Input._reset()` limpa o estado de empuxo e os ouvintes registrados pelos
+  testes (o `init` é idempotente para não duplicar listeners do `window`).
+
 ## How to extend
 
 - **Add a ship:** append an entry to `Ships.list` with `unlockAt`,

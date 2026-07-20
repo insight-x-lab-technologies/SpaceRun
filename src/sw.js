@@ -1,5 +1,6 @@
 /* Service Worker - cache offline (servless PWA, sem arquivos externos) */
-const CACHE = 'spacerun-v1';
+const CACHE = 'spacerun-v2';
+const VERSION = '0.2';
 const ASSETS = [
   '.',
   'index.html',
@@ -31,6 +32,13 @@ self.addEventListener('activate', e => {
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
+      .then(() => {
+        // Avisa todas as abas abertas de que há uma nova versão disponível,
+        // para que a página possa recarregar e usar os novos assets.
+        return self.clients.matchAll({ type: 'window' }).then(clients =>
+          clients.forEach(c => c.postMessage({ type: 'SW_UPDATED', version: VERSION }))
+        );
+      })
   );
 });
 
