@@ -40,6 +40,63 @@ const UI = (() => {
     document.body.classList.toggle('high-contrast', !!s.highContrast);
   }
 
+  /* Ícones de compartilhamento social no footer da Home */
+  function shareUrl() {
+    return location.origin + location.pathname;
+  }
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t);
+    }
+    return new Promise(res => {
+      const ta = document.createElement('textarea');
+      ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta); res();
+    });
+  }
+  function updateShare() {
+    const row = document.getElementById('share-row');
+    if (!row) return;
+    const url = shareUrl();
+    const msg = I18n.t('share.game', { url });
+    row.querySelectorAll('.share-ic').forEach(el => {
+      const net = el.dataset.share;
+      const label = I18n.t('share.net.' + net);
+      el.setAttribute('aria-label', label);
+      el.setAttribute('title', label);
+      if (net === 'whatsapp') el.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+      else if (net === 'telegram') el.href = 'https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(msg);
+      else if (net === 'x') el.href = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(msg);
+      else if (net === 'facebook') el.href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+      else { el.removeAttribute('href'); } // tiktok/instagram/copy usam handlers próprios
+    });
+  }
+  function wireShare() {
+    const row = document.getElementById('share-row');
+    if (!row || row.dataset.wired) return;
+    row.dataset.wired = '1';
+    row.addEventListener('click', e => {
+      const el = e.target.closest('.share-ic');
+      if (!el) return;
+      const net = el.dataset.share;
+      const url = shareUrl();
+      const msg = I18n.t('share.game', { url });
+      if (net === 'tiktok' || net === 'instagram') {
+        e.preventDefault();
+        if (navigator.share) {
+          navigator.share({ title: 'SpaceRun', text: msg, url }).catch(() => {});
+        } else {
+          window.open(net === 'tiktok' ? 'https://www.tiktok.com' : 'https://www.instagram.com', '_blank', 'noopener');
+        }
+      } else if (net === 'copy') {
+        e.preventDefault();
+        copyText(url).then(() => showAchievement(I18n.t('share.copied'))).catch(() => {});
+      }
+    });
+  }
+
   function renderHangar() {
     const list = document.getElementById('ship-list');
     list.innerHTML = '';
@@ -337,6 +394,7 @@ const UI = (() => {
       Audio2.uiClick();
       I18n.setLang(e.target.value);
       I18n.apply();
+      updateShare();
       document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
       renderSettings();
       ['screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard']
@@ -362,6 +420,8 @@ const UI = (() => {
     I18n.init();
     I18n.apply();
     applyAccessibility();
+    wireShare();
+    updateShare();
     document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
 
     // delegação de cliques nos botões data-action

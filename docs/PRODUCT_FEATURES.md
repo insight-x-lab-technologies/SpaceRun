@@ -118,7 +118,10 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 
 ## Screens & navigation
 
-- **Home:** New Game, Hangar, Settings, Donate, Install (when supported).
+- **Home:** New Game, Hangar, Settings, Donate, Install (when supported). The footer
+  also shows **social share icons** (WhatsApp, Telegram, X, Facebook, TikTok,
+  Instagram and copy-link) that open a localized share message with the game URL
+  (TikTok/Instagram use the native Web Share sheet; copy-link copies to clipboard).
 - **Hangar:** ship grid with locked/unlocked/selected states.
 - **Settings:** Sound, Music, Particles, **Reduce motion**, **High contrast**,
   Language (pt/en/es), Erase progress.
