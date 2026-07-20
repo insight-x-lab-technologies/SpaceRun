@@ -33,7 +33,7 @@ SpaceRun/
         ├── ships.js          # Ship definitions (stats, draw fn, unlockAt, ability)
         ├── achievements.js   # Achievement defs + check (Fase 3)
         ├── audio.js          # Audio2: SFX + procedural music (WebAudio)
-        ├── input.js          # Input: unified "thrust" + "ability" (double-tap)
+        ├── input.js          # Input: unified "thrust" + "ability" (Shift / touch button)
         ├── game.js           # Game: engine, state machine, render, physics
         ├── ui.js             # UI: screen routing, hangar, settings, gameover
         ├── share.js          # Share: procedural score-card canvas (Fase 3)
@@ -63,7 +63,7 @@ building screens. **Do not reorder or rely on `import`/`export`.**
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
 | `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setEnabled`, `setMusicEnabled`, `ensure`. |
-| `Input`  | `init()`, `isThrusting()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; double-tap emits `ability`. |
+| `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; `Shift` (desktop) and the floating touch button (`#ability-btn`) emit `ability`. |
 | `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode)`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability, abilityCd, shield, dash, slowmo), `state`. Handles ship abilities, shield/invuln, dash/slowmo world factors, crystal upgrades, achievement checks. |
 | `UI`     | `init(playCb)`, `show`, `showGameOver` (records run + leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
 | `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |

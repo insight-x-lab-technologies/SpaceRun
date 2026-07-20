@@ -1,6 +1,9 @@
-/* Service Worker - cache offline (servless PWA, sem arquivos externos) */
-const CACHE = 'spacerun-v2';
-const VERSION = '0.2';
+/* Service Worker - cache offline (servless PWA, sem arquivos externos).
+   Estratégia: sempre busca a versão mais nova quando houver rede, com fallback
+   ao cache para funcionar offline. Garante que uma atualização no servidor
+   (incl. iPhone/Safari) seja aplicada e não fique "presa" em dados antigos. */
+const CACHE = 'spacerun-v3';
+const VERSION = '0.3';
 const ASSETS = [
   '.',
   'index.html',
@@ -10,17 +13,17 @@ const ASSETS = [
   'js/storage.js',
   'js/i18n.js',
   'js/ships.js',
-  'assets/icon-192.png',
-  'assets/icon-512.png',
-  'assets/icon-maskable-512.png',
-  'assets/apple-touch-icon.png',
+  'js/achievements.js',
   'js/audio.js',
   'js/input.js',
   'js/game.js',
   'js/ui.js',
-  'js/achievements.js',
   'js/share.js',
-  'js/main.js'
+  'js/main.js',
+  'assets/icon-192.png',
+  'assets/icon-512.png',
+  'assets/icon-maskable-512.png',
+  'assets/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {
@@ -44,13 +47,33 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return; // não intercepta terceiros
+
+  // Navegações (index.html): NETWORK-FIRST para sempre usar a página mais nova.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(resp => {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => c.put('index.html', copy));
+          return resp;
+        })
+        .catch(() => caches.match('index.html').then(c => c || caches.match('.')))
+    );
+    return;
+  }
+
+  // Demais assets: STALE-WHILE-REVALIDATE (resposta instantânea do cache,
+  // atualiza em segundo plano para a próxima carga ficar atualizada).
   e.respondWith(
-    caches.match(e.request).then(cached =>
-      cached || fetch(e.request).then(resp => {
+    caches.match(e.request).then(cached => {
+      const network = fetch(e.request).then(resp => {
         const copy = resp.clone();
         caches.open(CACHE).then(c => c.put(e.request, copy));
         return resp;
-      }).catch(() => cached)
-    )
+      }).catch(() => cached);
+      return cached || network;
+    })
   );
 });

@@ -90,8 +90,9 @@ cor do espaço muda com a distância.
 Identidade e escolha, mantendo o controle "segurar para subir".
 
 - **Habilidades especiais por nave** (sem quebrar o `Input`): ativadas por um
-  gesto derivado do thrust — ex.: *double-tap* (dois `start` rápidos) ou
-  *segurar após soltar*. Habilidades: `dash` (boost horizontal), `shield`
+  **controle dedicado** — `Shift` no desktop ou um botão de toque flutuante
+  (`#ability-btn`) no mobile/tablet (não mais double-tap, que confundia o
+  gameplay). Habilidades: `dash` (boost horizontal), `shield`
   (blindagem de 1 hit), `slowmo` (desacelera o mundo 2 s). `ships.js` ganha
   `ability` e `Input` expõe um evento `ability` opcional.
 - **+10 naves novas** com perfis distintos (já incluídas 10; estender `Ships.list`).
@@ -102,7 +103,7 @@ Identidade e escolha, mantendo o controle "segurar para subir".
 
 **Pronto quando:** pelo menos 3 naves têm habilidade jogável e o jogador pode
   pintar sua nave. — **entregue** (habilidades `dash`/`shield`/`slowmo` via
-  double-tap; +10 naves; skins procedurais; upgrades com cristais).
+  botão dedicado `Shift`/toque; +10 naves; skins procedurais; upgrades com cristais).
 
 ---
 
@@ -190,7 +191,7 @@ Só depois do jogo ser divertido e completo. Nunca pay-to-win.
 - **Colecionáveis/obstáculos (F1):** `game.js` (`spawnObstacle`, novo `spawnPickup`),
   `storage.js` (`crystals`), `i18n.js` (novas chaves), `sw.js` (se novo módulo).
 - **Naves/habilidades (F2):** `ships.js` (`ability`, `+10` entradas, `getSkin`),
-  `input.js` (evento `ability` via double-tap), `storage.js` (skins, upgrades),
+  `input.js` (evento `ability` via `Shift`/botão de toque), `storage.js` (skins, upgrades),
   `game.js` (aplicação de habilidades, upgrades, escudo/invuln, dash/slowmo).
 - **Meta/social (F3):** `storage.js` (achievements, leaderboard, history,
   streak), `achievements.js` (defs + checagem), `ui.js` (telas Achievements/

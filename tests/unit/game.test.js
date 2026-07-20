@@ -86,26 +86,22 @@ describe('Game — colisão e game over', () => {
     Game.start('classic');
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
     for (let i = 0; i < 100; i++) { keepAlive(); globalThis.stepFrames(1); } // espera cooldown inicial
-    // ativa escudo via double-tap (keydown -> keyup -> keydown, rápido)
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
-    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    // ativa escudo via tecla de habilidade (Shift / botão dedicado)
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
     expect(Game.getHud().shield).toBe(true);
     Game._debug.hit();
     expect(Game.state).toBe('playing'); // escudo absorveu
   });
 });
 
-describe('Game — habilidades (double-tap)', () => {
+describe('Game — habilidades (tecla/botão dedicado)', () => {
   it('falcon (dash) ativa o dash', () => {
     Storage.unlock('falcon');
     Storage.setSelectedShip('falcon');
     startPlaying();
     for (let i = 0; i < 100; i++) { keepAlive(); globalThis.stepFrames(1); } // espera cooldown inicial
-    // double-tap (keydown -> keyup -> keydown, rápido)
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
-    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    // habilidade via tecla (Shift / botão dedicado)
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
     expect(Game.getHud().dash).toBe(true);
   });
 });

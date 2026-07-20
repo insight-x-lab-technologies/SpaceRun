@@ -86,7 +86,7 @@ const Game = (() => {
     Input.init();
     // primeiro input (espaço/toque) inicia o jogo a partir do estado "ready"
     Input.on('start', () => { if (state === 'ready') setState('playing'); });
-    // double-tap dispara a habilidade da nave (Fase 2)
+    // tecla Shift (desktop) ou botão dedicado (toque) dispara a habilidade (Fase 2)
     Input.on('ability', tryAbility);
     resize();
     window.addEventListener('resize', resize);

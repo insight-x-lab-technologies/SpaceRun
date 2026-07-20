@@ -42,6 +42,12 @@
       </div>
     </div>
 
+    <!-- Botão de habilidade (mobile/tablet touch; desktop usa Shift) -->
+    <button id="ability-btn" class="ability-btn hidden" aria-label="Ability">
+      <svg class="ab-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+      <span class="ab-label"></span>
+    </button>
+
     <!-- Popup de marco de distância -->
     <div id="milestone" class="milestone hidden"></div>
 
@@ -54,15 +60,42 @@
         <h1 class="logo">SPACE<span>RUN</span></h1>
         <p class="tagline" data-i18n="home.tagline">Sobreviva ao vazio infinito</p>
         <div class="menu">
-          <button class="btn btn-primary" data-action="play" data-i18n="menu.play">Novo Jogo</button>
-          <button class="btn" data-action="playDaily" data-i18n="menu.daily">Diário</button>
-          <button class="btn" data-action="hangar" data-i18n="menu.hangar">Hangar</button>
-          <button class="btn" data-action="achievements" data-i18n="menu.achievements">Conquistas</button>
-          <button class="btn" data-action="stats" data-i18n="menu.stats">Estatísticas</button>
-          <button class="btn" data-action="leaderboard" data-i18n="menu.leaderboard">Ranking</button>
-          <button class="btn" data-action="settings" data-i18n="menu.settings">Configurações</button>
-          <button class="btn" data-action="donate" data-i18n="menu.donate">Doar</button>
-          <button class="btn hidden" id="install-btn" data-i18n="menu.install">Install</button>
+          <button class="btn btn-primary" data-action="play">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 8-10c2 0 4 2 4 4a22 22 0 0 1-10 8z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
+            <span class="btn-label" data-i18n="menu.play">Novo Jogo</span>
+          </button>
+          <button class="btn" data-action="playDaily">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+            <span class="btn-label" data-i18n="menu.daily">Diário</span>
+          </button>
+          <button class="btn" data-action="hangar">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c3 2.5 4.5 6 4.5 10 0 2-1 3.5-2.5 4.5V20l-4 1-4-1v-3.5C7.5 15.5 6.5 14 6.5 12 6.5 8 9 4.5 12 2z"/><circle cx="12" cy="10" r="2"/></svg></span>
+            <span class="btn-label" data-i18n="menu.hangar">Hangar</span>
+          </button>
+          <button class="btn" data-action="achievements">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>
+            <span class="btn-label" data-i18n="menu.achievements">Conquistas</span>
+          </button>
+          <button class="btn" data-action="stats">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 4-6"/></svg></span>
+            <span class="btn-label" data-i18n="menu.stats">Estatísticas</span>
+          </button>
+          <button class="btn" data-action="leaderboard">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
+            <span class="btn-label" data-i18n="menu.leaderboard">Ranking</span>
+          </button>
+          <button class="btn" data-action="settings">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 3.6V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.4 9V9a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+            <span class="btn-label" data-i18n="menu.settings">Configurações</span>
+          </button>
+          <button class="btn" data-action="donate">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+            <span class="btn-label" data-i18n="menu.donate">Doar</span>
+          </button>
+          <button class="btn hidden" id="install-btn">
+            <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg></span>
+            <span class="btn-label" data-i18n="menu.install">Install</span>
+          </button>
         </div>
         <p class="hint hidden" id="install-hint" data-i18n="home.installHint"></p>
       </div>

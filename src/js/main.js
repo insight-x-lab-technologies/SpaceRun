@@ -8,6 +8,7 @@
   const hudCombo = document.getElementById('hud-combo');
   const hudAbility = document.getElementById('hud-ability');
   const hudPause = document.getElementById('hud-pause');
+  const abilityBtn = document.getElementById('ability-btn');
 
   let hudActive = false;
 
@@ -41,6 +42,16 @@
           hudAbility.textContent = '';
         }
       }
+      if (abilityBtn) {
+        if (h.ability) {
+          const label = abilityBtn.querySelector('.ab-label');
+          if (label) label.textContent = I18n.t('ability.' + h.ability);
+          abilityBtn.classList.remove('hidden');
+          abilityBtn.classList.toggle('ready', h.abilityCd <= 0);
+        } else {
+          abilityBtn.classList.add('hidden');
+        }
+      }
       requestAnimationFrame(hudLoop);
     } else {
       hudActive = false;
@@ -69,13 +80,23 @@
   window.addEventListener('pointerdown', unlockAudioOnce);
   window.addEventListener('keydown', unlockAudioOnce);
 
+  // botão de habilidade (toque): dispara a habilidade da nave selecionada
+  if (abilityBtn) {
+    abilityBtn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      Audio2.ensure();
+      Input.triggerAbility();
+    });
+  }
+
   Game.init(canvas, result => {
     // game over
     hud.classList.add('hidden');
     UI.showGameOver(result);
     refreshMusic();   // volta para a música do menu
-  }, s => {
+   }, s => {
     // mudança de estado
+    if (s !== 'playing' && s !== 'paused' && abilityBtn) abilityBtn.classList.add('hidden');
     if (s === 'ready') {
       UI.showReady(); UI.hidePause();
       hud.classList.add('hidden');

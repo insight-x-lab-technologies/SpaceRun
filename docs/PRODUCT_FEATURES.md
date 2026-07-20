@@ -35,6 +35,12 @@ ranking local e compartilhamento) estão implementadas.
 - DPR-aware rendering for crisp visuals on retina/mobile.
 - Thruster particle trail and explosion effects (toggleable).
 - Procedurally drawn ships (no sprites).
+- **Wide-orientation layout (desktop / tablet & mobile landscape):** the Home
+  panel is 50% wider with inline SVG icons on every menu button and the
+  secondary actions (Hangar, Achievements, Statistics, Leaderboard, Settings,
+  Donate) laid out in a 2-column grid (New Game + Daily span the full width).
+  The Hangar also widens 50% and shows ships in a 2-column grid. Portrait
+  (mobile/tablet) keeps the original single-column layout.
 
 ## Game feel & feedback
 
@@ -83,9 +89,10 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
     Cosmos (3M), Eclipse (5M).
 - Ships are **unlocked by total accumulated meters** (across all runs), not per
   run. Each ship has stats: `agility`, `size` (hitbox), `thrust`.
-- **Special abilities** (Fase 2) triggered by a quick **double-tap** (two thrust
-  presses in a row): `dash` (burst of speed), `shield` (absorbs one hit),
-  `slowmo` (bullet-time for ~2 s). Several ships have a playable ability.
+- **Special abilities** (Fase 2) triggered by a **dedicated ability control** —
+  `Shift` on desktop or a floating touch button on the right-center (mobile/tablet):
+  `dash` (burst of speed), `shield` (absorbs one hit), `slowmo` (bullet-time for
+  ~2 s). The button glows when the power is ready and dims while recharging.
 - **Procedural ship skins** (Fase 2): the player can repaint any unlocked ship
   (body + accent colors) in the Hangar; the choice is saved in `Storage`.
 - **Crystal upgrades** (Fase 2): spend accumulated crystals on permanent
@@ -146,7 +153,10 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Install button** on Home that appears only when installation is supported
   (`beforeinstallprompt`). On iOS (not supported), a manual-install hint is shown
   instead.
-- **Service Worker** (`sw.js`) caches the app for full offline play.
+- **Service Worker** (`sw.js`) caches the app for full offline play, using a
+  **network-first** strategy for navigations and **stale-while-revalidate** for
+  assets so a new server version (incl. iPhone/Safari) is always picked up while
+  staying offline-capable.
 
 ## Meta
 

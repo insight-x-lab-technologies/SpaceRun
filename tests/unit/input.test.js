@@ -6,7 +6,7 @@ loadApp();
 const { Input } = globalThis;
 Input.init(); // uma vez (idempotente); listeners do window anexados uma só vez
 
-describe('Input — empuxo unificado (teclado/toque) e double-tap', () => {
+describe('Input — empuxo unificado (teclado/toque) e habilidade (Shift)', () => {
   beforeEach(() => {
     Input._reset(); // limpa estado/thrust e ouvintes registrados pelos testes
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
@@ -43,28 +43,25 @@ describe('Input — empuxo unificado (teclado/toque) e double-tap', () => {
     expect(Input.isThrusting()).toBe(false);
   });
 
-  it('double-tap (soltar e pressionar rápido) emite "ability"', () => {
+  it('tecla Shift emite "ability"', () => {
     let abilities = 0;
     Input.on('ability', () => abilities++);
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
-    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' })); // rápido -> ability
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
     expect(abilities).toBe(1);
   });
 
-  it('dois toques lentos NÃO emitem ability', () => {
+  it('Espaço (empuxo) NÃO emite ability; Shift repetido conta uma vez', () => {
     let abilities = 0;
     Input.on('ability', () => abilities++);
-    const realNow = performance.now;
-    // keydown + keyup com now controlado para fixar lastEnd no passado
-    performance.now = () => 1;
+    // Espaço (sobe/desce) não dispara habilidade
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
-    performance.now = () => 2;
-    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' })); // lastEnd = 2
-    // keydown "lento": now muito distante de lastEnd (>280ms)
-    performance.now = () => 2000;
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
     expect(abilities).toBe(0);
-    performance.now = realNow;
+    // autorepeat (repeat=true) não deve reemitir
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft', repeat: true }));
+    expect(abilities).toBe(0);
+    // nova pressão (sem repeat) emite
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ShiftLeft' }));
+    expect(abilities).toBe(1);
   });
 });
