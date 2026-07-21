@@ -42,7 +42,7 @@ Estas regras vêm de `ARCHITECTURE.md` e **não podem ser violadas**:
 
 1. Leia na ordem: `PRODUCT_VISION.md` → `PRODUCT_FEATURES.md` →
    `ARCHITECTURE.md` → `ROADMAP.md`.
-2. Identifique a qual **Fase do Roadmap** a feature pertence (F0–F6). Isso
+2. Identifique a qual **Fase do Roadmap** a feature pertence (F0–F11). Isso
    define prioridade, complexidade e onde a feature toca no código (ver
    "Onde cada fase toca no código" no `ROADMAP.md`).
 3. Confirme que a ideia respeita as premissas do item 0. Se não respeitar,
@@ -184,6 +184,10 @@ npm test                # equivale a `vitest run` (tests/unit)
 npx playwright install chromium
 npm run test:e2e        # sobe o server.mjs e roda tests/e2e
 ```
+
+> Limitação conhecida: o Playwright está configurado para reutilizar a porta
+> 4173. Antes de aceitar um resultado e2e, confirme que ela não está servindo
+> outro projeto; o workflow de GitHub Pages atual também não executa testes.
 
 - `npm run test:watch` roda o Vitest em modo watch durante o desenvolvimento.
 - Opcional: `npx vitest run --coverage` (lembre-se de que o número de linhas não

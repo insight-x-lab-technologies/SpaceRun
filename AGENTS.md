@@ -1,46 +1,77 @@
-# AGENTS.md
+# SpaceRun — Guia de sessão para Codex
 
-You are an AI agent working on **SpaceRun**, a serverless PWA endless-runner
-game built with **vanilla HTML/JavaScript** (no frameworks, no bundler, no
-backend, and no binary art/audio assets — everything is procedural).
+## Em 60 segundos
 
-## Before you change anything
+**SpaceRun** é um endless runner espacial, instalável e offline-first. É uma
+PWA estática: não há backend, framework, bundler ou etapa de build para o jogo.
+O jogador mantém `Space`/toque pressionado para subir e solta para cair; `Shift`
+ou o botão flutuante ativa a habilidade da nave. O estado do jogo é
+`idle → ready → playing → paused → over`.
 
-Read the documentation in [`docs/`](./docs) first. It defines the product scope,
-architecture, and the non-negotiable design premises you must follow:
+O código de produção está em `src/` e é servido diretamente. O desenho é feito
+em um único `<canvas>` e o áudio é sintetizado com WebAudio. Não use imagens ou
+áudio binários para gameplay; os PNGs em `src/assets/` são apenas ícones
+obrigatórios da PWA.
 
-1. **[docs/PRODUCT_VISION.md](./docs/PRODUCT_VISION.md)** — the macro vision and
-   design pillars of the game.
-2. **[docs/PRODUCT_FEATURES.md](./docs/PRODUCT_FEATURES.md)** — the full list of
-   features already implemented (gameplay, ships, i18n, audio, PWA, etc.).
-3. **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — module layout, the global
-   IIFE pattern, the game state machine, the render pipeline, and the rules that
-   **must** be respected when evolving the code (vanilla-only, asset-free,
-   i18n in 3 languages, single canvas, state transitions, SW caching).
-4. **[docs/ROADMAP.md](./docs/ROADMAP.md)** — upcoming features (currently a
-   placeholder to be filled in a future iteration).
-5. **[docs/DEVELOPMENT_GUIDE.md](./docs/DEVELOPMENT_GUIDE.md)** — the development
-   workflow contract. **Read it before implementing any change.** It prescribes
-   the step-by-step process: follow `PRODUCT_VISION`/`ARCHITECTURE`, keep
-   `PRODUCT_FEATURES`/`ROADMAP` in sync, write/update tests in the established
-   pattern, run the test suites as a quality gate, and commit/push on `main`.
+## Estado real do produto (v0.4)
 
-Keep these documents in sync when you add or change functionality. Update
-`PRODUCT_FEATURES.md` and `ARCHITECTURE.md` whenever you introduce a new feature,
-screen, ship, setting, or change the architecture. Follow the workflow defined in
-`DEVELOPMENT_GUIDE.md` for every change (including writing/updating tests and
-running the suites before committing).
+- Jogo clássico e **Daily Run** estão ativos na Home. O Daily usa a data local
+  como seed; a sequência de spawns é indexada por distância e tem testes de
+  determinismo.
+- Há 20 naves, desbloqueadas por metros acumulados, com skins, upgrades locais e
+  habilidades `dash`, `shield` ou `slowmo`.
+- Cristais, combo, marcos, biomas e obstáculos adicionais já existem.
+- Conquistas, estatísticas, histórico, Top 10 local e score card para download/
+  Web Share já existem. Não existe leaderboard diário separado, servidor,
+  sincronização entre dispositivos, ghost ou missão diária.
+- Settings: idioma `pt`/`en`/`es`, tema Neon/Retro/Aurora, som, música,
+  partículas, reduzir movimento e alto contraste.
 
-## Quick orientation
+Leia, nesta ordem, antes de alterar funcionalidade:
 
-- Source code lives in `src/` (open `src/index.html` and `src/js/*.js`).
-- Module load order in `index.html` is fixed and intentional — do not reorder.
-- All user-facing strings go through i18n (`pt`/`en`/`es`); add keys to all three.
-- Persistence is via `Storage` (localStorage). Progression unlocks are by total
-  accumulated meters.
-- The game uses a single `<canvas>` with three parallax layers + procedural
-  terrain/obstacles/ships, and a `idle → ready → playing → paused → over` state
-  machine.
+1. `docs/PRODUCT_VISION.md`
+2. `docs/PRODUCT_FEATURES.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/ROADMAP.md`
+5. `docs/DEVELOPMENT_GUIDE.md`
 
-When in doubt, prefer the simplest change that respects the existing patterns
-described in `docs/ARCHITECTURE.md`.
+## Mapa rápido do código
+
+| Área | Arquivos principais |
+|---|---|
+| Página, telas e estilo | `src/index.html`, `src/css/style.css`, `src/js/ui.js` |
+| Simulação e renderização | `src/js/game.js`, `src/js/ships.js`, `src/js/input.js` |
+| Progresso e meta | `src/js/storage.js`, `src/js/achievements.js`, `src/js/share.js` |
+| Texto, temas e som | `src/js/i18n.js`, `src/js/themes.js`, `src/js/audio.js` |
+| Bootstrap/PWA | `src/js/main.js`, `src/sw.js`, `src/manifest.json` |
+| Testes | `tests/unit/`, `tests/e2e/`, `tests/helpers/loadApp.js` |
+
+## Regras inegociáveis
+
+1. Mantenha o padrão de IIFEs globais e a ordem exata dos scripts em
+   `src/index.html`: `storage → i18n → ships → achievements → audio → themes →
+   input → game → ui → share → main`. Não introduza `import`/`export`.
+2. Toda string visível precisa de chave em `src/js/i18n.js` para **pt, en e es**.
+3. Toda persistência passa por `Storage`; não crie uma segunda fonte de progresso.
+4. Respeite a máquina de estados do `Game` e use `setState` para novas transições.
+5. Arquivo estático novo precisa entrar em `ASSETS` e requer bump de `CACHE` e
+   `VERSION` em `src/sw.js`.
+6. Atualize `PRODUCT_FEATURES.md`, `ARCHITECTURE.md` e, quando aplicável,
+   `ROADMAP.md` junto com mudanças de comportamento.
+7. Não use `innerHTML` com dados controláveis pelo jogador; construa o DOM ou use
+   `textContent`.
+
+## Verificação e entrega
+
+```bash
+npm test
+npm run test:e2e
+```
+
+Os unitários usam Vitest/jsdom. Os e2e usam Playwright e um servidor em 4173;
+antes de confiar no resultado, confirme que essa porta não está servindo outro
+projeto — a configuração atual permite reutilizar um servidor existente. Não há
+CI de testes: o workflow do GitHub Pages apenas publica `src/`.
+
+Mantenha mudanças focadas, revise `git status`/`git diff`, faça commit atômico e
+nunca faça force-push.

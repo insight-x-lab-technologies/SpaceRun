@@ -10,7 +10,8 @@ terrain and drifting asteroids for as long as possible, while the universe gets
 faster and tighter the further you travel.
 
 It is built as a **Progressive Web App (PWA)** with **vanilla HTML/JavaScript** —
-no frameworks, no build step, no backend, and **no binary art or audio assets**.
+no frameworks, no build step, no backend, and **no gameplay binary art or audio
+assets**.
 Everything you see and hear (ships, terrain, asteroids, stars, nebulae, sound
 effects, and background music) is generated **procedurally at runtime**. This
 keeps the project tiny, instantly loadable, fully offline-capable, and trivial
@@ -22,7 +23,7 @@ to host on any static file server.
   both a 30-second break and a 30-minute grind.
 - **Endless variety.** Every run is a fresh stretch of space, generated on the
   fly — no two flights are identical.
-- **A sense of progression.** A growing fleet of ships (10 in total) is unlocked
+- **A sense of progression.** A growing fleet of ships (20 in total) is unlocked
   by total distance flown, rewarding returning players.
 - **Feels native everywhere.** Runs identically on desktop widescreen, tablets,
   and phones, in both landscape and portrait, and installs to the home screen
@@ -32,8 +33,10 @@ to host on any static file server.
 
 ## Design pillars
 
-1. **Procedural by default.** The game should never depend on external image or
-   audio files. Art and sound are drawn/synthesized in code.
+1. **Procedural by default.** Gameplay art and sound are drawn/synthesized in
+   code. Generated PNG icons are retained only where the PWA platform requires
+   them; an optional theme MP3 is supported by the audio layer but none ships
+   with the current themes.
 2. **Zero friction.** No accounts, no downloads, no paywalls to play. Just open
    and fly.
 3. **Accessible controls.** A single unified "thrust" input works for keyboard

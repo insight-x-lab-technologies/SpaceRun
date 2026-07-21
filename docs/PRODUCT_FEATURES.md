@@ -1,7 +1,8 @@
 # SpaceRun — Product Features
 
-Version **0.4**. All gameplay, art, and audio are procedural; the app is a
-serverless PWA (vanilla HTML/JS, no frameworks, no binary assets). Fase 2
+Version **0.4**. Gameplay art and audio are procedural; the app is a serverless
+PWA (vanilla HTML/JS, no frameworks, no backend). Generated PNG PWA icons are
+the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
 ranking local e compartilhamento) estão implementadas.
 
@@ -62,7 +63,8 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Near-miss sparks:** cyan sparks fly off the tunnel walls when the ship grazes
   them, giving constant proximity feedback.
 - **Run stats:** each run records its flight time; `totalRuns` and `bestTime`
-  (time of the best-distance run) are tracked in `Storage` and shown on Home/Hangar.
+  (the longest flight time, independent of distance) are tracked in `Storage`
+  and shown on Home/Hangar.
 
 ## Progression & collectibles (Fase 1)
 
@@ -80,13 +82,14 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
   - *Laser gate*: a vertical energy beam with a moving safe gap that toggles on/off.
 - **Biomes by distance:** every 5,000 m the star/nebula palette and terrain glow
   shift through 5 procedural themes, keeping runs visually fresh.
-- **Daily Run / Seed:** o modo "Diário" usa a data como seed para que todos
+- **Daily Run / Seed:** o modo **Diário está ativo na Home** e usa a data local
+  como seed para que todos
   recebam o mesmo layout de obstáculos no dia (fundamento para leaderboards na
   Fase 3). A paridade determinística entre partidas do mesmo dia está **garantida**:
   o spawn de obstáculos/pickups é indexado por distância percorrida (e não por
   `dt`/framerate ou pelo fator de habilidade), de modo que o universo é idêntico
-  independente do framerate real ou do uso de dash/slowmo. Segue **temporariamente
-  desativado na UI** (ver ROADMAP F4).
+  independente do framerate real ou do uso de dash/slowmo. Ele mostra a seed no
+  Game Over e conta para a conquista diária; ainda não há ranking diário separado.
 
 ## Ships & progression
 
@@ -127,13 +130,14 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Share score card (serverless):** generate a procedural PNG "score card"
   (`share.js`, canvas only) from the Game Over screen — download or share via
   the Web Share API. No backend involved.
-- **Daily Challenge:** implemented in the engine (seeded RNG) with **deterministic
-  parity validated** (spawns indexed by distance) but **not yet exposed in the UI**
-  (see ROADMAP F4).
+- **Daily Challenge:** exposed in the Home UI and implemented with seeded RNG;
+  deterministic parity is validated by tests. Its results currently enter the
+  same local Top 10 as classic runs; there is no daily-only leaderboard.
 
 ## Screens & navigation
 
-- **Home:** New Game, Hangar, Settings, Donate, Install (when supported). The footer
+- **Home:** New Game, **Daily Run**, Hangar, Achievements, Statistics, Ranking,
+  Settings, Donate, Install (when supported). The footer
   also shows **social share icons** (WhatsApp, Telegram, X, Facebook, TikTok,
   Instagram and copy-link) that open a localized share message with the game URL
   (TikTok/Instagram use the native Web Share sheet; copy-link copies to clipboard).

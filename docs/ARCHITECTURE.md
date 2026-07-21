@@ -1,8 +1,9 @@
 # SpaceRun — Architecture
 
 Serverless PWA endless runner. **Vanilla HTML/JavaScript only** — no frameworks,
-no bundler, no backend, and **no binary art/audio assets** (everything is
-procedural). The entire game lives under `src/` and is served as static files.
+no bundler and no backend. Gameplay visuals/audio are procedural; generated PNG
+icons in `assets/` are the platform-required binary exception. The entire game
+lives under `src/` and is served as static files.
 
 ## Directory layout
 
@@ -51,11 +52,10 @@ globals and are loaded in a fixed `<script>` order in `index.html`:
 storage → i18n → ships → achievements → audio → themes → input → game → ui → share → main
 ```
 
-Load order matters: `i18n.init()` reads `Storage`, `Game.init()` registers an
-`Input` listener, `UI.init()` calls `Themes.init()` (which applies the saved
-theme's CSS vars and per-theme audio config) *before* `I18n.init()`/`I18n.apply()`
-build the screens, and `Themes.init()` calls `Audio2.setTheme(...)`. **Do not
-reorder or rely on `import`/`export`.**
+Load order matters: `Game.init()` registers an `Input` listener. During
+`UI.init()`, `I18n.init()` and `I18n.apply()` run first, then `Themes.init()`
+applies the saved CSS variables and audio configuration through
+`Audio2.setTheme(...)`. **Do not reorder or rely on `import`/`export`.**
 
 ### Module responsibilities
 
@@ -65,11 +65,11 @@ reorder or rely on `import`/`export`.**
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
-| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setTheme(t)`, `setMusicTracks({menu,game})`, `setEnabled`, `setMusicEnabled`, `ensure`. |
+| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setTheme(t)`, `setMusicTracks(menuUrl, gameUrl)`, `setEnabled`, `setMusicEnabled`, `ensure`. |
 | `Themes` | `list` (defs with `id`, `name`, `vars`, `font`, optional `audio`), `get(id)`, `currentId()`, `apply(id)`, `set(id)` (persists + applies + emits `musicchange`), `init()` (applies saved theme, sets `--font` on `<html>`, sets `data-theme`, wires `Audio2.setTheme`). |
 | `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; `Shift` (desktop) and the floating touch button (`#ability-btn`) emit `ability`. |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode)`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability, abilityCd, shield, dash, slowmo), `state`. Handles ship abilities, shield/invuln, dash/slowmo world factors, crystal upgrades, achievement checks. |
-| `UI`     | `init(playCb)`, `show`, `showGameOver` (records run + leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start('classic'|'daily')`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability, abilityCd, shield, dash, slowmo), `state`. The Game Over callback receives meters, time, crystals, seed, `daily`, ship id and combo. Handles abilities, shield/invulnerability, dash/slowmo and deterministic Daily spawns. |
+| `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
 | `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |
 | `main`   | Bootstraps everything; HUD loop (incl. ability status); music switching; install (`beforeinstallprompt`); SW registration. |
 
@@ -96,8 +96,8 @@ so the `onState` callback (wired in `main.js`) can keep UI/HUD/music in sync.
   prompt overlay; waits for the first `Input` "start" event.
 - **playing** — full gameplay (physics, spawning, collisions, HUD, game music).
 - **paused** — frozen; pause overlay; music continues.
-- **over** — explosion + flash; after a short delay `onOverCb(meters)` fires and
-  the Game Over screen is shown.
+- **over** — explosion + flash; after a short delay `onOverCb(payload)` fires
+  and the Game Over screen is shown.
 
 ## Rendering pipeline (`Game.render`, every animation frame)
 
@@ -121,13 +121,11 @@ effectively infinite and resolution-independent.
 
 1. **Vanilla only.** No frameworks, no bundlers, no `import`/`export`, no
    transpilers. Keep the IIFE-global pattern and the script load order.
-2. **Asset-free by default.** Do not introduce `.jpg/.png` (except the required
-   PWA icons) or audio files for gameplay. Keep all art/audio procedural
-   (canvas drawing + WebAudio). The PWA PNG icons in `assets/` are generated,
-   not hand-edited. **Exception (opt-in):** a theme may ship an optional `.mp3`
-   track referenced via its `audio.menuMp3`/`audio.gameMp3` keys; when absent
-   all audio stays procedural. Never make a binary asset *required* for the app
-   to run.
+2. **Procedural gameplay by default.** Do not introduce image or audio files
+   for gameplay. Keep art/audio procedural (canvas drawing + WebAudio). The
+   generated PWA PNG icons in `assets/` are the platform exception. The audio
+   API supports an optional theme MP3 (`audio.menuMp3`/`audio.gameMp3`), but no
+   current theme uses one and a binary asset must never be required to run.
 3. **i18n for every user-facing string.** Add new keys to **all three**
    dictionaries (`pt`, `en`, `es`) in `i18n.js`. Use `data-i18n` in HTML and
    `I18n.t()` in JS. Never hardcode UI text.
@@ -160,6 +158,9 @@ continua 100% vanilla/asset-free, sem build step no navegador.
   exercitam o fluxo real: Home → Novo Jogo/Daily → ready → playing → Game Over
    → Share, além de Hangar (20 naves), Conquistas (23), Temas e Configurações.
   - Rodar: `npm run test:e2e` (precisa de `npx playwright install chromium`).
+  - Atenção: a configuração atual reutiliza a porta 4173 quando ela já está
+    ocupada. Confirme que o servidor existente serve este `src/` antes de tomar
+    um resultado como válido; isso é uma limitação conhecida do harness.
 
 ### Seams de teste (inofensivos em produção)
 - `Game._debug` expõe `world`, `obstacles`, `pickups`, `ship`, `tick(dt)`,

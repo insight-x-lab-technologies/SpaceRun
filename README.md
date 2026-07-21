@@ -10,7 +10,8 @@ Hold to climb. Release to dive. That's all it takes. But don't let the simplicit
 
 - 🚀 **Pick up and play** — one button (or one thumb). Perfect for a 30-second break or a 30-minute grind.
 - 🌌 **Endless, procedural galaxies** — every run is a brand-new stretch of space, generated on the fly. No two flights are ever the same.
-- 🛰️ **Collect & master a fleet** — start with the trusty *Scout* and unlock nine more ships, from the nimble *Falcon* to the legendary *Singularity*. The further you fly, the fancier your hangar gets.
+- 🛰️ **Collect & master a fleet** — start with the trusty *Scout* and unlock 19 more ships, from the nimble *Falcon* to the legendary *Eclipse*. The further you fly, the fancier your hangar gets.
+- 📅 **Daily Run** — fly the same date-seeded challenge every day; the layout is deterministic across frame rates.
 - 💫 **Three parallax layers** — drifting stars, glowing nebulae, and a living local space that makes every jump feel cinematic.
 - 🌍 **Speaks your language** — available in English, Portuguese, and Spanish, with automatic detection.
 - ☕ **Made with love** — and if you enjoy the ride, you can fuel the next update with a coffee on Ko-Fi or Buy Me a Coffee.
