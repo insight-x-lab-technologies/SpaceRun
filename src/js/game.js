@@ -11,8 +11,8 @@ const Game = (() => {
   let ship = null;
   let stars = [], nearStars = [], nebulae = [];
   let obstacles = [], particles = [], pickups = [];
-  let spawnTimer = 0, pickupTimer = 1.5;
   let crashAnim = 0;
+  let recordSpawns = false;   // seam de teste: registra a assinatura de spawn (Daily Run)
 
   let shake = 0;          // magnitude do screen shake (decai)
   let freeze = 0;         // hitstop (congelamento micro no impacto)
@@ -42,6 +42,7 @@ const Game = (() => {
     canvas.height = Math.floor(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     buildStarfield();
+    layoutShip();   // mantém a nave proporcional/posicionada após rotação/resize
   }
 
   function buildStarfield() {
@@ -129,7 +130,8 @@ const Game = (() => {
       scroll: 0, speed: 220, meters: 0, difficulty: 0,
       crystals: 0, combo: 0, comboTimer: 0, maxCombo: 0,
       slowmoTimer: 0, wf: 1,
-      seed: seed || 0, daily: !!daily, rng: null, accent: '#4af0ff'
+      seed: seed || 0, daily: !!daily, rng: null, accent: '#4af0ff',
+      nextSpawnDist: 16, nextPickupDist: 40, spawnSig: []
     };
     if (seed) world.rng = mulberry32(seed >>> 0);
     ship = {
@@ -149,11 +151,13 @@ const Game = (() => {
     const skin = Ships.getSkin(s.id);
     ship.color = skin.color;
     ship.accent = skin.accent;
+    layoutShip();
     obstacles = [];
     particles = [];
     pickups = [];
-    spawnTimer = 0.6;
-    pickupTimer = 1.5;
+    world.nextSpawnDist = 16;
+    world.nextPickupDist = 40;
+    world.spawnSig = [];
     crashAnim = 0;
     shake = 0;
     freeze = 0;
@@ -164,6 +168,21 @@ const Game = (() => {
     biomeIdx = -1;
     world.maxCombo = 0;
     applyBiome(0);
+  }
+
+  // Reposiciona/reescala a nave conforme o viewport atual (rotação, resize).
+  // A nave escala com H para manter a proporção com o túnel (que também usa H),
+  // evitando que ela pareça "de tamanho diferente" entre portrait e landscape.
+  function layoutShip() {
+    if (!ship) return;
+    const scale = H / 600;
+    const sz = (ship.ship && ship.ship.stats.size) || 1;
+    ship.w = 46 * sz * scale;
+    ship.h = 26 * sz * scale;
+    ship.x = Math.max(80, W * 0.22);
+    const halfH = ship.h * 0.5;
+    if (ship.y < halfH) ship.y = halfH;
+    else if (ship.y > H - halfH) ship.y = H - halfH;
   }
 
   function start(mode) {
@@ -241,10 +260,14 @@ const Game = (() => {
     const diff = world.difficulty;
     const x = W + 40;
     const roll = rnd();
-    if (diff > 1.2 && roll < 0.20) return spawnBlackHole(x);
-    if (diff > 0.8 && roll < 0.40) return spawnLaser(x);
-    if (diff > 0.5 && roll < 0.55) return spawnDebris(x);
-    spawnAsteroid(x);
+    if (diff > 1.2 && roll < 0.20) spawnBlackHole(x);
+    else if (diff > 0.8 && roll < 0.40) spawnLaser(x);
+    else if (diff > 0.5 && roll < 0.55) spawnDebris(x);
+    else spawnAsteroid(x);
+    if (recordSpawns) {
+      const o = obstacles[obstacles.length - 1];
+      if (o) world.spawnSig.push({ type: o.type, y: Math.round(o.y), r: Math.round(o.r || 0), m: Math.round(world.meters) });
+    }
   }
 
   function spawnPickup() {
@@ -255,6 +278,7 @@ const Game = (() => {
     if (span <= 0) return;
     const y = t.top + margin + rnd() * span;
     pickups.push({ x, y, r: 9 + rnd() * 3, spin: rnd() * Math.PI * 2, ph: rnd() * Math.PI * 2 });
+    if (recordSpawns) world.spawnSig.push({ type: 'crystal', y: Math.round(y), m: Math.round(world.meters) });
   }
 
   function collectCrystal(p) {
@@ -485,8 +509,11 @@ const Game = (() => {
       world.comboTimer -= dt;
       if (world.comboTimer <= 0) world.combo = 0;
     }
-    pickupTimer -= dt * wf;
-    if (pickupTimer <= 0) { spawnPickup(); pickupTimer = 1.6 + rnd() * 1.8; }
+    // pickups: spawn dirigido por DISTÂNCIA (determinístico p/ Daily Run)
+    if (world.meters >= world.nextPickupDist) {
+      spawnPickup();
+      world.nextPickupDist += (1.6 + rnd() * 1.8) * world.speed * 0.12;
+    }
     for (let i = pickups.length - 1; i >= 0; i--) {
       const p = pickups[i];
       p.x -= world.speed * wf * dt;
@@ -497,11 +524,16 @@ const Game = (() => {
       if (dx * dx + dy * dy < rr * rr) { collectCrystal(p); pickups.splice(i, 1); }
     }
 
-    // obstáculos
-    spawnTimer -= dt * wf;
-    // começa com poucos obstáculos e aumenta a frequência
-    const interval = Math.max(0.5, 2.2 - world.difficulty * 0.18);
-    if (spawnTimer <= 0) { spawnObstacle(); spawnTimer = interval * (0.7 + rnd() * 0.6); }
+    // obstáculos: spawn dirigido por DISTÂNCIA (determinístico p/ Daily Run).
+    // Ao indexar pelo metros percorrido (e não por dt/acumulador), o layout do
+    // universo fica idêntico entre partidas do mesmo dia, independente do
+    // framerate real ou do uso de habilidades (dash/slowmo alteram apenas a
+    // velocidade de travessia, não a sequência de obstáculos).
+    if (world.meters >= world.nextSpawnDist) {
+      spawnObstacle();
+      const interval = Math.max(0.5, 2.2 - world.difficulty * 0.18);
+      world.nextSpawnDist += interval * world.speed * 0.12 * (0.7 + rnd() * 0.6);
+    }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
@@ -859,7 +891,9 @@ const Game = (() => {
       get pickups() { return pickups; },
       get ship() { return ship; },
       tick(dt) { update(dt, performance.now()); },
-      hit: () => hit()
+      hit: () => hit(),
+      recordSpawns(b) { recordSpawns = !!b; },
+      getSpawnSig() { return world.spawnSig ? world.spawnSig.slice() : []; }
     }
   };
 })();

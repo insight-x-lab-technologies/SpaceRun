@@ -80,10 +80,13 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
   - *Laser gate*: a vertical energy beam with a moving safe gap that toggles on/off.
 - **Biomes by distance:** every 5,000 m the star/nebula palette and terrain glow
   shift through 5 procedural themes, keeping runs visually fresh.
-- **Daily Run / Seed (pendente):** o modo "Diário" usaria a data como seed para que
-  todos recebessem o mesmo layout de obstáculos no dia (fundamento para leaderboards
-  na Fase 3). Está **temporariamente desativado** até garantir paridade 100%
-  determinística entre partidas no mesmo dia.
+- **Daily Run / Seed:** o modo "Diário" usa a data como seed para que todos
+  recebam o mesmo layout de obstáculos no dia (fundamento para leaderboards na
+  Fase 3). A paridade determinística entre partidas do mesmo dia está **garantida**:
+  o spawn de obstáculos/pickups é indexado por distância percorrida (e não por
+  `dt`/framerate ou pelo fator de habilidade), de modo que o universo é idêntico
+  independente do framerate real ou do uso de dash/slowmo. Segue **temporariamente
+  desativado na UI** (ver ROADMAP F4).
 
 ## Ships & progression
 
@@ -124,8 +127,9 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Share score card (serverless):** generate a procedural PNG "score card"
   (`share.js`, canvas only) from the Game Over screen — download or share via
   the Web Share API. No backend involved.
-- **Daily Challenge:** implemented in the engine (seeded RNG) but **not yet
-  exposed in the UI** — pending deterministic-parity validation (see ROADMAP).
+- **Daily Challenge:** implemented in the engine (seeded RNG) with **deterministic
+  parity validated** (spawns indexed by distance) but **not yet exposed in the UI**
+  (see ROADMAP F4).
 
 ## Screens & navigation
 

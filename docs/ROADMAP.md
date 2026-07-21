@@ -78,7 +78,9 @@ Dar **motivo para a próxima run** e recompensar ações durante o voo.
 - **Biomas por distância**: troca de paleta de estrelas/nebulosa a cada faixa de
   metros (ex.: nebulosa roxa → ciano → âmbar), mantendo tudo procedural.
 - **Daily Run / Seed**: um seed reproduzível por dia; mesmo "universo" para quem
-  joga no mesmo dia (base para ranking futuro em Fase 3).
+  joga no mesmo dia (base para ranking futuro em Fase 3). A paridade está
+  **garantida**: spawns indexados por distância, não por `dt`/framerate (ver
+  `game.js` — `world.nextSpawnDist`/`nextPickupDist`).
 
 **Pronto quando:** há cristais acumuláveis, pelo menos 2 obstáculos novos, e a
 cor do espaço muda com a distância.

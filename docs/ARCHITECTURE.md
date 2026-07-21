@@ -162,8 +162,10 @@ continua 100% vanilla/asset-free, sem build step no navegador.
   - Rodar: `npm run test:e2e` (precisa de `npx playwright install chromium`).
 
 ### Seams de teste (inofensivos em produção)
-- `Game._debug` expõe `world`, `obstacles`, `pickups`, `ship`, `tick(dt)` e
-  `hit()` para dirigir/inspecionar a simulação de forma determinística.
+- `Game._debug` expõe `world`, `obstacles`, `pickups`, `ship`, `tick(dt)`,
+  `hit()`, `recordSpawns(b)` e `getSpawnSig()` para dirigir/inspecionar a
+  simulação de forma determinística (as assinaturas de spawn validam a paridade
+  do Daily Run).
 - `Input._reset()` limpa o estado de empuxo e os ouvintes registrados pelos
   testes (o `init` é idempotente para não duplicar listeners do `window`).
 
