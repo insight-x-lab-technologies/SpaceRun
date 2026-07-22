@@ -9,10 +9,14 @@ Ele complementa (e tem menor autoridade que) os documentos de produto/arquitetur
 - `docs/PRODUCT_VISION.md` — visão macro e pilares de design.
 - `docs/PRODUCT_FEATURES.md` — lista oficial do que já existe.
 - `docs/ARCHITECTURE.md` — layout de módulos, padrões e regras **obrigatórias**.
+- `docs/DATA_MODEL.md` — schema, validação, backup e migrações da persistência.
+- `docs/QUALITY_GATES.md` — critérios verificáveis para mudança e publicação.
+- `docs/decisions/` — ADRs vigentes para Daily, serverless, protocolos e
+  competição.
 - `docs/ROADMAP.md` — fases de evolução (do núcleo às ambições maiores).
 
-Leia os quatro antes de começar. Este guia diz *como* evoluir o jogo; eles dizem
-*o quê* e *por quê*.
+Leia os documentos aplicáveis antes de começar. Este guia diz *como* evoluir o
+jogo; eles dizem *o quê*, *por quê* e quais contratos precisam permanecer.
 
 ---
 
@@ -35,18 +39,28 @@ Estas regras vêm de `ARCHITECTURE.md` e **não podem ser violadas**:
    `ASSETS`.
 7. **Documentação sincronizada**: a cada mudança de tela/nave/setting/módulo,
    atualize `PRODUCT_FEATURES.md` e `ARCHITECTURE.md`.
+8. **Persistência versionada**: dados seguem `DATA_MODEL.md`; migração, backup,
+   validação e fixture antiga são parte da feature.
+9. **Entrada não confiável**: localStorage, URL, clipboard, arquivo e texto do
+   jogador são validados e nunca interpolados em `innerHTML`.
+10. **Regras versionadas**: Daily, score comparável e replay carregam
+    `rulesetId` e seguem os ADRs aceitos.
 
 ---
 
 ## 1. Antes de codar — entenda o escopo
 
 1. Leia na ordem: `PRODUCT_VISION.md` → `PRODUCT_FEATURES.md` →
-   `ARCHITECTURE.md` → `ROADMAP.md`.
-2. Identifique a qual **Fase do Roadmap** a feature pertence (F0–F11). Isso
-   define prioridade, complexidade e onde a feature toca no código (ver
-   "Onde cada fase toca no código" no `ROADMAP.md`).
+   `ARCHITECTURE.md` → `DATA_MODEL.md` → ADRs aplicáveis → `ROADMAP.md` →
+   `QUALITY_GATES.md`.
+2. Identifique a qual **marco/fase do Roadmap** a tarefa pertence (`FND-*`,
+   F0–F11 e suas fatias A/B). Isso define prioridade, dependências, complexidade
+   e onde a mudança toca no código (ver "Onde cada fase toca no código").
 3. Confirme que a ideia respeita as premissas do item 0. Se não respeitar,
    repense ou discuta antes de implementar.
+4. Preencha o contrato curto de tarefa de `QUALITY_GATES.md` antes de editar.
+   Para mudança persistente, descreva a migração; para Daily/replay/social,
+   indique `rulesetId` e ADR aplicável.
 
 ---
 
@@ -74,7 +88,8 @@ Estas regras vêm de `ARCHITECTURE.md` e **não podem ser violadas**:
   use `data-i18n` no HTML. Nunca deixe uma tradução faltando.
 - **Persistência**: via `Storage` (localStorage). Desbloqueios progridem por
   metros acumulados (`Storage.recordRun`). Não introduza outro mecanismo de
-  storage sem motivo forte.
+  storage sem motivo forte. Siga `DATA_MODEL.md`: validação, migração, backup e
+  API de mutação explícita são obrigatórios.
 - **Acessibilidade/responsividade**: respeite os toggles de Settings e o
   `resize()` DPR-aware já existente.
 - **Commits atômicos de código**: mantenha a mudança focada na feature.
@@ -93,6 +108,12 @@ Estas regras vêm de `ARCHITECTURE.md` e **não podem ser violadas**:
   pendente). Se for uma ambição nova e não estiver listada, adicione como item
   à Fase apropriada. A regra de ouro do próprio Roadmap: *a cada fase, atualize
   `PRODUCT_FEATURES.md` e `ARCHITECTURE.md`.*
+- **`DATA_MODEL.md`**: atualize quando houver campo, validação, migração, limite
+  ou comportamento de backup/import/export.
+- **`QUALITY_GATES.md`**: atualize quando comandos, matriz suportada, orçamento
+  ou portão de publicação mudar.
+- **`decisions/`**: crie um ADR quando a mudança altera uma premissa durável;
+  substitua decisões aceitas com novo ADR em vez de reescrever o histórico.
 
 ---
 
@@ -220,13 +241,19 @@ teste, conforme a causa real — não deixe vermelho.
 ## 8. Checklist — Definition of Done
 
 - [ ] Li `PRODUCT_VISION`, `PRODUCT_FEATURES`, `ARCHITECTURE` e `ROADMAP`.
-- [ ] A mudança respeita as 7 premissas do item 0 (vanilla, asset-free, i18n 3
-      idiomas, single canvas, state machine, SW cache, docs sincronizadas).
+- [ ] Li `DATA_MODEL`, `QUALITY_GATES` e os ADRs aplicáveis.
+- [ ] Registrei objetivo, não objetivos, aceite, impacto de dados/ruleset/PWA e
+      testes previstos.
+- [ ] A mudança respeita as 10 premissas do item 0 (runtime, i18n, canvas,
+      estado, cache, docs, dados, segurança e ruleset).
 - [ ] `i18n.js` atualizado em `pt`/`en`/`es` (se houver strings novas).
 - [ ] Persistência via `Storage`, se aplicável.
 - [ ] `PRODUCT_FEATURES.md` atualizado.
 - [ ] `ARCHITECTURE.md` atualizado (se a arquitetura mudou).
 - [ ] `ROADMAP.md` atualizado (se é feature de uma Fase do roadmap).
+- [ ] Schema/migração/fixture atualizados, se houver persistência.
+- [ ] ADR criado ou substituído, se a mudança altera uma decisão durável.
+- [ ] Gates de segurança, acessibilidade, PWA e performance aplicáveis passaram.
 - [ ] Testes unitários/componentes escritos (e e2e, se houver fluxo de UI).
 - [ ] Testes pré-existentes atualizados, se afetados.
 - [ ] `npm test` **e** `npm run test:e2e` passam (0 falhas).

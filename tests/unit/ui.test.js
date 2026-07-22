@@ -91,7 +91,7 @@ describe('UI — telas, hangar, conquistas, game over', () => {
   });
 
   it('comprar upgrade deduz cristais e sobe o nível', () => {
-    Storage.get().crystals = 1000;
+    Storage.recordRun(0, 0, 1000);
     document.querySelector('[data-action="hangar"]').click();
     document.querySelector('[data-action="buyUpgrade"][data-stat="agility"]').click();
     expect(Storage.getUpgradeLevel('agility')).toBe(1);

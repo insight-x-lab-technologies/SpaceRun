@@ -22,7 +22,7 @@ html, body {
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  touch-action: none;
+  touch-action: manipulation;
 }
 
 #app {
@@ -110,6 +110,10 @@ h2 { font-size: clamp(22px, 6vw, 32px); margin-bottom: 6px; letter-spacing: 2px;
 }
 .btn:hover { background: rgba(74, 240, 255, 0.14); }
 .btn:active { transform: scale(0.97); }
+.btn:focus-visible, button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid var(--accent2);
+  outline-offset: 3px;
+}
 
 /* ícone dos botões do menu (visível apenas em orientação "wide") */
 .btn-ic { display: none; width: 20px; height: 20px; flex: 0 0 auto; }
@@ -128,6 +132,8 @@ h2 { font-size: clamp(22px, 6vw, 32px); margin-bottom: 6px; letter-spacing: 2px;
 .best-record span { color: var(--accent); font-weight: 700; }
 
 .footer-copy { margin-top: 4px; }
+.update-notice { margin-top: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--text); font-size: 14px; }
+.update-notice .btn { padding: 8px 10px; font-size: 13px; }
 
 /* ---------- Compartilhar (redes sociais) no footer da Home ---------- */
 .share-row {

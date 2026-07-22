@@ -6,10 +6,19 @@ const UI = (() => {
   let milestoneEl = null;
   let achievementEl = null;
   let achQueue = [], achShowing = false;
+  let updateApply = null;
+  let lastFocused = null;
 
   function show(id) {
+    if (id) lastFocused = document.activeElement;
     Object.values(screens).forEach(s => s.classList.add('hidden'));
-    if (id) screens[id].classList.remove('hidden');
+    if (id) {
+      screens[id].classList.remove('hidden');
+      const target = screens[id].querySelector('h1, h2, button, [tabindex]');
+      if (target) { target.setAttribute('tabindex', target.matches('h1,h2') ? '-1' : target.getAttribute('tabindex') || '0'); target.focus({ preventScroll: true }); }
+    } else if (lastFocused && document.contains(lastFocused) && !lastFocused.classList.contains('hidden')) {
+      lastFocused.focus({ preventScroll: true });
+    }
   }
 
   function refreshRecords() {
@@ -20,7 +29,7 @@ const UI = (() => {
     if (hb) hb.textContent = b;
     if (ab) ab.textContent = b;
 
-    const data = Storage.get();
+    const data = Storage.getSnapshot();
     const runs = data.totalRuns;
     const time = data.bestTime ? data.bestTime.toFixed(1) + 's' : '0s';
     const hr = document.getElementById('home-runs');
@@ -100,7 +109,7 @@ const UI = (() => {
   function renderHangar() {
     const list = document.getElementById('ship-list');
     list.innerHTML = '';
-    const data = Storage.get();
+    const data = Storage.getSnapshot();
     Ships.list.forEach(s => {
       const unlocked = Storage.isUnlocked(s.id);
       const selected = data.selectedShip === s.id;
@@ -213,7 +222,7 @@ const UI = (() => {
 
   /* Tela de Estatísticas (Fase 3) */
   function renderStats() {
-    const d = Storage.get();
+    const d = Storage.getSnapshot();
     const h = d.history;
     const avgDist = h.length ? Math.round(h.reduce((s, r) => s + r.m, 0) / h.length) : 0;
     const avgTime = h.length ? (h.reduce((s, r) => s + r.t, 0) / h.length).toFixed(1) : '0.0';
@@ -229,11 +238,15 @@ const UI = (() => {
     const hist = document.getElementById('stats-history');
     if (hist) {
       if (!h.length) {
-        hist.innerHTML = `<div class="stats-empty">${I18n.t('stats.empty')}</div>`;
+        hist.replaceChildren();
+        const empty = document.createElement('div'); empty.className = 'stats-empty'; empty.textContent = I18n.t('stats.empty'); hist.appendChild(empty);
       } else {
-        hist.innerHTML = h.slice().reverse().slice(0, 8).map(r =>
-          `<div class="hist-row"><span>${r.m} m</span><span>${r.t}s</span><span>◆ ${r.c}</span></div>`
-        ).join('');
+        hist.replaceChildren();
+        h.slice().reverse().slice(0, 8).forEach(r => {
+          const row = document.createElement('div'); row.className = 'hist-row';
+          [r.m + ' m', r.t + 's', '◆ ' + r.c].forEach(value => { const cell = document.createElement('span'); cell.textContent = value; row.appendChild(cell); });
+          hist.appendChild(row);
+        });
       }
     }
   }
@@ -245,17 +258,15 @@ const UI = (() => {
     const lb = Storage.getLeaderboard();
     const me = Storage.getPlayerName();
     if (!lb.length) {
-      wrap.innerHTML = `<div class="stats-empty">${I18n.t('lb.empty')}</div>`;
+      wrap.replaceChildren(); const empty = document.createElement('div'); empty.className = 'stats-empty'; empty.textContent = I18n.t('lb.empty'); wrap.appendChild(empty);
     } else {
-      wrap.innerHTML = lb.map((e, i) => {
+      wrap.replaceChildren(); lb.forEach((e, i) => {
         const isMe = me && e.name === me;
-        return `<div class="lb-row${isMe ? ' me' : ''}">
-          <span class="lb-rank">#${i + 1}</span>
-          <span class="lb-name">${e.name ? e.name : '—'}${isMe ? ' (' + I18n.t('lb.you') + ')' : ''}</span>
-          <span class="lb-m">${e.m} m</span>
-          <span class="lb-t">${e.t}s</span>
-        </div>`;
-      }).join('');
+        const row = document.createElement('div'); row.className = 'lb-row' + (isMe ? ' me' : '');
+        const values = ['#' + (i + 1), (e.name || '—') + (isMe ? ' (' + I18n.t('lb.you') + ')' : ''), e.m + ' m', e.t + 's'];
+        ['lb-rank', 'lb-name', 'lb-m', 'lb-t'].forEach((className, index) => { const cell = document.createElement('span'); cell.className = className; cell.textContent = values[index]; row.appendChild(cell); });
+        wrap.appendChild(row);
+      });
     }
     const nameInput = document.getElementById('lb-name');
     if (nameInput) nameInput.value = me;
@@ -316,18 +327,19 @@ const UI = (() => {
     lastResult = payload;
 
     // registra a partida (atualiza recordes, desbloqueios, história, streak)
-    const res = Storage.recordRun(meters, time, crystals);
+    const context = { mode: daily ? 'daily' : 'classic', seed, rulesetId: (payload && payload.rulesetId) || (daily ? 'daily-v1' : 'classic-v1'), shipId: (payload && payload.shipId) || Storage.getSnapshot().selectedShip, loadout: (payload && payload.loadout) || undefined, maxCombo: (payload && payload.maxCombo) || 0 };
+    const res = Storage.recordRun({ m: meters, t: time, c: crystals, ...context });
 
     // salva no ranking local (usa o nome opcional do jogador)
-    Storage.recordLeaderboard(meters, time);
+    Storage.recordLeaderboard({ m: meters, t: time, ...context });
 
     // conquistas dependentes de estado persistido (corridas, frota, streak, diário)
     const fctx = {
       meters, time, runCrystals: crystals, maxCombo: (payload && payload.maxCombo) || 0,
-      runs: Storage.get().totalRuns,
-      unlockedCount: Storage.get().unlocked.length,
-      maxStreak: Storage.get().maxStreak,
-      totalMeters: Storage.get().totalMeters,
+      runs: Storage.getSnapshot().totalRuns,
+      unlockedCount: Storage.getSnapshot().unlocked.length,
+      maxStreak: Storage.getSnapshot().maxStreak,
+      totalMeters: Storage.getSnapshot().totalMeters,
       daily
     };
     Achievements.check(fctx).forEach(id => { showAchievement(Achievements.getName(id)); Audio2.unlock(); });
@@ -355,6 +367,7 @@ const UI = (() => {
     }
     refreshRecords();
     show('screen-gameover');
+    if (updateApply) setUpdateAvailable(updateApply);
   }
 
   function renderSettings() {
@@ -364,6 +377,7 @@ const UI = (() => {
     document.getElementById('set-particles').checked = s.particles;
     document.getElementById('set-reduce-motion').checked = s.reduceMotion;
     document.getElementById('set-high-contrast').checked = s.highContrast;
+    const perf = document.getElementById('set-performance-mode'); if (perf) perf.checked = s.performanceMode;
     document.getElementById('set-lang').value = I18n.lang;
     const themeSel = document.getElementById('set-theme');
     if (themeSel) themeSel.value = Themes.currentId();
@@ -393,6 +407,7 @@ const UI = (() => {
       Storage.setSetting('highContrast', e.target.checked);
       applyAccessibility();
     };
+    if (perf) perf.onchange = e => { Audio2.uiClick(); Storage.setSetting('performanceMode', e.target.checked); };
     const themeSelEl = document.getElementById('set-theme');
     if (themeSelEl) themeSelEl.onchange = e => {
       Themes.set(e.target.value);
@@ -427,6 +442,8 @@ const UI = (() => {
 
     I18n.init();
     I18n.apply();
+    document.getElementById('hud-pause').setAttribute('aria-label', I18n.t('aria.pause'));
+    document.getElementById('ability-btn').setAttribute('aria-label', I18n.t('aria.ability'));
     Themes.init();
     applyAccessibility();
     wireShare();
@@ -521,8 +538,9 @@ const UI = (() => {
         break;
       }
       case 'home':
-        Game.stop(); show('screen-home'); refreshRecords();
+        Game.stop(); show('screen-home'); refreshRecords(); if (updateApply) setUpdateAvailable(updateApply);
         break;
+      case 'applyUpdate': if (updateApply) updateApply(); break;
       case 'reset':
         if (confirm(I18n.t('settings.resetConfirm'))) { Storage.reset(); renderSettings(); refreshRecords(); }
         break;
@@ -537,6 +555,18 @@ const UI = (() => {
   function showReady() { const e = document.getElementById('ready-overlay'); if (e) e.classList.remove('hidden'); }
   function hideReady() { const e = document.getElementById('ready-overlay'); if (e) e.classList.add('hidden'); }
 
-  return { init, show, showGameOver, showPause, hidePause, showReady, hideReady,
+  function setUpdateAvailable(apply) {
+    updateApply = apply;
+    const notice = document.getElementById('update-notice');
+    if (!notice) return;
+    const text = notice.querySelector('span');
+    const button = notice.querySelector('button');
+    if (text) text.textContent = I18n.t('pwa.update');
+    if (button) button.textContent = I18n.t('pwa.apply');
+    const safe = Game.state === 'idle' || document.getElementById('screen-gameover') && !document.getElementById('screen-gameover').classList.contains('hidden');
+    notice.classList.toggle('hidden', !safe);
+  }
+
+  return { init, show, showGameOver, showPause, hidePause, showReady, hideReady, setUpdateAvailable,
            refreshRecords, applyAccessibility, showMilestone, showAchievement };
 })();

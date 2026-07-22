@@ -204,4 +204,23 @@ describe('Game — Daily Run determinístico e por dia', () => {
     expect(sig(b).slice(0, a.length)).toEqual(sig(a));
     Game._debug.recordSpawns(false);
   });
+
+  it('Daily preserva assinatura lógica após espera em ready e resize', () => {
+    Game._debug.recordSpawns(true);
+    const run = (wait, width, height) => {
+      Object.defineProperty(document.getElementById('game-canvas'), 'clientWidth', { value: width, configurable: true });
+      Object.defineProperty(document.getElementById('game-canvas'), 'clientHeight', { value: height, configurable: true });
+      window.dispatchEvent(new Event('resize'));
+      Game.start('daily');
+      for (let i = 0; i < wait; i++) Game._debug.tick(1 / 60);
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+      window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
+      for (let i = 0; i < 320; i++) { keepAlive(); Game._debug.tick(1 / 60); }
+      return Game._debug.getSpawnSig().map(({ distanceIndex, entityType, normalizedY, normalizedSize, variant, rulesetId }) => ({ distanceIndex, entityType, normalizedY, normalizedSize, variant, rulesetId }));
+    };
+    const a = run(0, 800, 600);
+    const b = run(180, 320, 568);
+    expect(b).toEqual(a);
+    Game._debug.recordSpawns(false);
+  });
 });

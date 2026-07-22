@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.4**. Gameplay art and audio are procedural; the app is a serverless
+Version **0.5**. Gameplay art and audio are procedural; the app is a serverless
 PWA (vanilla HTML/JS, no frameworks, no backend). Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -71,8 +71,8 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Crystals (collectibles):** glowing pickups drift through the free space. Flying
   through one grants crystals and a short chime; collecting in a chain builds a
   **combo multiplier** (HUD shows `x{mult} · {combo}`). Crystals are a virtual
-  currency accumulated in `Storage` for future cosmetic unlocks — they never grant
-  an in-run advantage.
+  currency accumulated in `Storage`; it buys skins and permanent gameplay
+  upgrades. These upgrades are earned only in-game and are never sold.
 - **Distance milestones:** reaching 1k/2.5k/5k/10k/… meters pops a celebratory
   banner with a jingle, giving immediate progress feedback.
 - **New obstacle types** (procedural, appear gradually with distance):
@@ -83,13 +83,12 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Biomes by distance:** every 5,000 m the star/nebula palette and terrain glow
   shift through 5 procedural themes, keeping runs visually fresh.
 - **Daily Run / Seed:** o modo **Diário está ativo na Home** e usa a data local
-  como seed para que todos
-  recebam o mesmo layout de obstáculos no dia (fundamento para leaderboards na
-  Fase 3). A paridade determinística entre partidas do mesmo dia está **garantida**:
-  o spawn de obstáculos/pickups é indexado por distância percorrida (e não por
-  `dt`/framerate ou pelo fator de habilidade), de modo que o universo é idêntico
-  independente do framerate real ou do uso de dash/slowmo. Ele mostra a seed no
-  Game Over e conta para a conquista diária; ainda não há ranking diário separado.
+  como seed. Na v0.4, o spawn de obstáculos/pickups é indexado por distância
+  percorrida (não por `dt`/framerate), e os testes cobrem frame timings diferentes
+  e uso de dash/slowmo. A seed aparece no Game Over e conta para a conquista
+  diária; ainda não há ranking diário separado. Na v0.5, espera no `ready`,
+  frame pacing, DPR, resize e orientação preservam a assinatura lógica
+  normalizada e versionada pelo `rulesetId`.
 
 ## Ships & progression
 
@@ -111,7 +110,8 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Procedural ship skins** (Fase 2): the player can repaint any unlocked ship
   (body + accent colors) in the Hangar; the choice is saved in `Storage`.
 - **Crystal upgrades** (Fase 2): spend accumulated crystals on permanent
-  `+agility` / `+thrust` multipliers (cosmetic feel, not pay-to-win).
+  `+agility` / `+thrust` multipliers. They alter physics, so they are mechanical
+  progression earned by play—not cosmetics and never pay-to-win.
 - Hangar lets the player preview, customize (skin/upgrades) and select an
   unlocked ship.
 
@@ -184,8 +184,14 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
   **network-first** strategy for navigations and **stale-while-revalidate** for
   assets so a new server version (incl. iPhone/Safari) is always picked up while
   staying offline-capable.
+- **Atualização segura:** uma versão nova aguarda durante `ready`, `playing` e
+  `paused`; ela é aplicada explicitamente na Home ou no Game Over, depois de o
+  resultado ter sido salvo.
+- **Save v2 e base inclusiva:** `Storage` migra e faz backup do v1, normaliza
+  dados e expõe snapshots imutáveis. Zoom é permitido, foco é dirigido entre
+  telas, avisos têm `aria-live` e o Performance Mode reduz apenas o custo visual.
 
 ## Meta
 
-- Copyright footer: *© 2025 Insight X Lab Technologies · v0.4*.
+- Copyright footer: *© 2025 Insight X Lab Technologies · v0.5*.
 - Thematic brand: cyan/magenta neon on deep-space navy.

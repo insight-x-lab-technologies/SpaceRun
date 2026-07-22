@@ -15,7 +15,11 @@ SpaceRun/
 │   ├── PRODUCT_VISION.md
 │   ├── PRODUCT_FEATURES.md
 │   ├── ARCHITECTURE.md
-│   └── ROADMAP.md
+│   ├── DEVELOPMENT_GUIDE.md   # Fluxo de implementação e Definition of Done
+│   ├── DATA_MODEL.md          # Schema-alvo, validação e migrações do save
+│   ├── QUALITY_GATES.md       # Portões de segurança, testes e publicação
+│   ├── ROADMAP.md
+│   └── decisions/             # ADRs: decisões arquiteturais duráveis
 └── src/
     ├── index.html            # Single page; screens + canvas + script order
     ├── manifest.json         # PWA manifest (English)
@@ -139,6 +143,30 @@ effectively infinite and resolution-independent.
    "thrust" abstraction (or extend it explicitly) so desktop/touch stay in sync.
 8. **Cache new static assets.** Any new file referenced by the app must be added
    to the `ASSETS` array in `sw.js` (or it will not work offline).
+9. **Version persistent data.** Changes to saved state follow `DATA_MODEL.md`,
+   including validation, migration, backup and old-save fixtures. Consumers must
+   not mutate Storage's internal object.
+10. **Treat imported data as hostile.** Player text, localStorage, URLs, files
+    and future P2P payloads are validated and rendered with safe DOM APIs.
+11. **Version deterministic rules.** Daily runs, comparable scores and replays
+    carry `rulesetId` and follow the accepted ADRs under `docs/decisions/`.
+12. **Quality gates block release.** Follow `QUALITY_GATES.md`; the v0.5 target
+    is to automate these checks before the Pages deploy.
+
+## Structural foundation (v0.5)
+
+The next milestone intentionally precedes new gameplay systems. It adds save
+schema/migrations, safe DOM rendering, Daily logical parity, deferred PWA
+updates, baseline accessibility/performance, CI and architecture contract tests.
+The delivered baseline uses `spacerun.save.v2`, transactional `Storage` writes,
+safe rendering for player names, ruleset-tagged results, deferred SW activation,
+contract tests and the supported Playwright matrix.
+
+New domain modules remain IIFE-globals. Their dependency and insertion point
+must be documented before implementation and mirrored in `index.html`,
+`tests/helpers/loadApp.js` and `sw.js`. Likely future boundaries are
+`powerups.js`, `missions.js`, `protocol.js` and `ghost.js`; their existence is
+not authorized until the roadmap item that needs them begins.
 
 ## Testing (dev only — não faz parte do app em produção)
 

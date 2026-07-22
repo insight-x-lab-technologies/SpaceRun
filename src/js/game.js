@@ -32,7 +32,8 @@ const Game = (() => {
     { star: '#c8ffd8', accent: '#5effa0', nebula: ['#144a2e', '#021a0a'] }
   ];
 
-  let settings = { particles: true };
+  const RULESET = { classic: 'classic-v1', daily: 'daily-v1' };
+  let settings = { particles: true, performanceMode: false };
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -49,7 +50,8 @@ const Game = (() => {
     stars = [];
     nearStars = [];
     nebulae = [];
-    const starCount = Math.floor((W * H) / 6000);
+    const perf = Storage.getSettings().performanceMode;
+    const starCount = Math.floor((W * H) / (perf ? 10000 : 6000));
     for (let i = 0; i < starCount; i++) {
       stars.push({
         x: Math.random() * W, y: Math.random() * H,
@@ -58,7 +60,7 @@ const Game = (() => {
         tw: Math.random() * Math.PI * 2
       });
     }
-    const nearCount = Math.floor((W * H) / 26000);
+    const nearCount = Math.floor((W * H) / (perf ? 52000 : 26000));
     for (let i = 0; i < nearCount; i++) {
       nearStars.push({
         x: Math.random() * W, y: Math.random() * H,
@@ -67,7 +69,7 @@ const Game = (() => {
         tw: Math.random() * Math.PI * 2
       });
     }
-    const nebCount = 5;
+    const nebCount = perf ? 0 : 5;
     const palette = [['#3a1d6e', '#0a0430'], ['#08304a', '#04101f'], ['#4a1450', '#0a0320']];
     for (let i = 0; i < nebCount; i++) {
       nebulae.push({
@@ -130,7 +132,7 @@ const Game = (() => {
       scroll: 0, speed: 220, meters: 0, difficulty: 0,
       crystals: 0, combo: 0, comboTimer: 0, maxCombo: 0,
       slowmoTimer: 0, wf: 1,
-      seed: seed || 0, daily: !!daily, rng: null, accent: '#4af0ff',
+      seed: seed || 0, daily: !!daily, rulesetId: daily ? RULESET.daily : RULESET.classic, rng: null, accent: '#4af0ff',
       nextSpawnDist: 16, nextPickupDist: 40, spawnSig: []
     };
     if (seed) world.rng = mulberry32(seed >>> 0);
@@ -187,6 +189,7 @@ const Game = (() => {
 
   function start(mode) {
     settings.particles = Storage.getSettings().particles;
+    settings.performanceMode = Storage.getSettings().performanceMode;
     let seed = 0, daily = false;
     if (mode === 'daily') { daily = true; seed = dailySeed(); }
     else { seed = (Math.random() * 0xffffffff) >>> 0; }
@@ -218,6 +221,12 @@ const Game = (() => {
   }
 
   function spawnAsteroid(x) {
+    if (world.daily) {
+      const r = H * (0.020 + rnd() * 0.030 + world.difficulty * 0.0005);
+      const y = H * (0.20 + rnd() * 0.60);
+      obstacles.push({ type: 'asteroid', x, y, r, rot: rnd() * Math.PI * 2, spin: (rnd() - 0.5) * 2, seed: rnd() * 1000 });
+      return;
+    }
     const t = terrain(x + world.scroll);
     const r = 12 + rnd() * 18 + world.difficulty * 0.3;
     const minY = t.top + r + 6;
@@ -229,6 +238,14 @@ const Game = (() => {
   }
 
   function spawnDebris(x) {
+    if (world.daily) {
+      const n = 3 + Math.floor(rnd() * 3); const base = 0.22 + rnd() * 0.56;
+      for (let i = 0; i < n; i++) {
+        const r = H * (0.010 + rnd() * 0.012); const y = H * Math.max(0.14, Math.min(0.86, base + (i - n / 2) * (0.04 + rnd() * 0.02)));
+        obstacles.push({ type: 'asteroid', x: x + (rnd() - 0.5) * 40, y, r, rot: rnd() * Math.PI * 2, spin: (rnd() - 0.5) * 2, seed: rnd() * 1000 });
+      }
+      return;
+    }
     const t = terrain(x + world.scroll);
     const n = 3 + Math.floor(rnd() * 3);
     const base = t.top + rnd() * (t.bot - t.top);
@@ -241,6 +258,11 @@ const Game = (() => {
   }
 
   function spawnBlackHole(x) {
+    if (world.daily) {
+      const y = H * (0.22 + rnd() * 0.56); const r = H * (0.025 + rnd() * 0.014);
+      obstacles.push({ type: 'blackhole', x, y, r, pull: 1500 + world.difficulty * 30, ring: rnd() * Math.PI * 2, spin: (rnd() - 0.5) * 1.5 });
+      return;
+    }
     const t = terrain(x + world.scroll);
     const y = t.top + rnd() * (t.bot - t.top);
     const r = 15 + rnd() * 8;
@@ -249,6 +271,12 @@ const Game = (() => {
   }
 
   function spawnLaser(x) {
+    if (world.daily) {
+      const gapH = H * Math.max(0.12, 0.34 - Math.min(world.difficulty * 0.004, 0.12));
+      const gapY = H * (0.14 + gapH / H / 2 + rnd() * (0.72 - gapH / H));
+      obstacles.push({ type: 'laser', x, w: H * 0.023, gapY, gapH, on: true, onDur: 1.0 + rnd() * 0.4, offDur: 0.8 + rnd() * 0.4, timer: 1.0 + rnd() * 0.4 });
+      return;
+    }
     const t = terrain(x + world.scroll);
     const gapH = Math.max(70, (t.bot - t.top) * (0.34 - Math.min(world.difficulty * 0.004, 0.12)));
     const gapY = t.top + gapH / 2 + rnd() * (t.bot - t.top - gapH);
@@ -266,19 +294,29 @@ const Game = (() => {
     else spawnAsteroid(x);
     if (recordSpawns) {
       const o = obstacles[obstacles.length - 1];
-      if (o) world.spawnSig.push({ type: o.type, y: Math.round(o.y), r: Math.round(o.r || 0), m: Math.round(world.meters) });
+      if (o) {
+        const normalizedY = Math.round((o.y || o.gapY || 0) / H * 1000000);
+        const normalizedSize = Math.round((o.r || o.gapH || 0) / H * 1000000);
+        world.spawnSig.push({ distanceIndex: Math.round(world.meters * 10), entityType: o.type, normalizedY, normalizedSize, variant: o.type, rulesetId: world.rulesetId, type: o.type, y: normalizedY, r: normalizedSize, m: Math.round(world.meters) });
+      }
     }
   }
 
   function spawnPickup() {
     const x = W + 30;
+    if (world.daily) {
+      const y = H * (0.22 + rnd() * 0.56); const r = H * (0.015 + rnd() * 0.005);
+      pickups.push({ x, y, r, spin: rnd() * Math.PI * 2, ph: rnd() * Math.PI * 2 });
+      if (recordSpawns) world.spawnSig.push({ distanceIndex: Math.round(world.meters * 10), entityType: 'crystal', normalizedY: Math.round(y / H * 1000000), normalizedSize: Math.round(r / H * 1000000), variant: 'crystal', rulesetId: world.rulesetId, type: 'crystal', y: Math.round(y / H * 1000000), m: Math.round(world.meters) });
+      return;
+    }
     const t = terrain(x + world.scroll);
     const margin = 44;
     const span = (t.bot - t.top) - margin * 2;
     if (span <= 0) return;
     const y = t.top + margin + rnd() * span;
     pickups.push({ x, y, r: 9 + rnd() * 3, spin: rnd() * Math.PI * 2, ph: rnd() * Math.PI * 2 });
-    if (recordSpawns) world.spawnSig.push({ type: 'crystal', y: Math.round(y), m: Math.round(world.meters) });
+    if (recordSpawns) world.spawnSig.push({ distanceIndex: Math.round(world.meters * 10), entityType: 'crystal', normalizedY: Math.round(y / H * 1000000), normalizedSize: Math.round(pickups[pickups.length - 1].r / H * 1000000), variant: 'crystal', rulesetId: world.rulesetId, type: 'crystal', y: Math.round(y / H * 1000000), m: Math.round(world.meters) });
   }
 
   function collectCrystal(p) {
@@ -396,7 +434,8 @@ const Game = (() => {
     }
     // velocidade do scroll (parallax) - devagar no menu, rápido no jogo
     const scrollSpeed = (state === 'playing') ? world.speed * (world.wf || 1) : 60;
-    world.scroll += scrollSpeed * dt;
+    // O ready só anima o cenário visual; não consome coordenada lógica do Daily.
+    if (state === 'playing') world.scroll += scrollSpeed * dt;
 
     // parallax sempre anima
     for (const s of stars) {
@@ -594,7 +633,8 @@ const Game = (() => {
     const meters = Math.floor(world.meters);
     const time = runTime;
     const payload = { meters, time, crystals: world.crystals, seed: world.seed, daily: world.daily,
-                      shipId: ship.ship.id, maxCombo: world.maxCombo };
+                      rulesetId: world.rulesetId, shipId: ship.ship.id,
+                      loadout: { agility: Storage.getUpgradeLevel('agility'), thrust: Storage.getUpgradeLevel('thrust') }, maxCombo: world.maxCombo };
     setTimeout(() => { if (onOverCb) onOverCb(payload); }, 700);
   }
 

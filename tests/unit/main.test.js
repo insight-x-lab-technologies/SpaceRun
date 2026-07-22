@@ -84,7 +84,7 @@ describe('main.js — bootstrap e reload do Service Worker', () => {
     }
   });
 
-  it('recarrega quando há controller anterior e o SW assume (controllerchange)', () => {
+  it('não recarrega quando há controller anterior e o SW assume', () => {
     const cleanup = isolateWindow();
     try {
       const sw = makeFakeSW(true);
@@ -93,13 +93,13 @@ describe('main.js — bootstrap e reload do Service Worker', () => {
       bootstrap();
 
       sw._emit('controllerchange');
-      expect(reload).toHaveBeenCalledTimes(1);
+      expect(reload).not.toHaveBeenCalled();
     } finally {
       cleanup();
     }
   });
 
-  it('recarrega ao receber mensagem SW_UPDATED com controller anterior', () => {
+  it('oferece atualização explícita ao receber SW_UPDATED', () => {
     const cleanup = isolateWindow();
     try {
       const sw = makeFakeSW(true);
@@ -108,13 +108,17 @@ describe('main.js — bootstrap e reload do Service Worker', () => {
       bootstrap();
 
       sw._emit('message', { data: { type: 'SW_UPDATED', version: '0.2' } });
+      expect(reload).not.toHaveBeenCalled();
+      const notice = document.getElementById('update-notice');
+      expect(notice.classList.contains('hidden')).toBe(false);
+      notice.querySelector('[data-action="applyUpdate"]').click();
       expect(reload).toHaveBeenCalledTimes(1);
     } finally {
       cleanup();
     }
   });
 
-  it('não recarrega duas vezes (flag reloading)', () => {
+  it('aplica a atualização apenas uma vez', () => {
     const cleanup = isolateWindow();
     try {
       const sw = makeFakeSW(true);
@@ -122,9 +126,10 @@ describe('main.js — bootstrap e reload do Service Worker', () => {
       const reload = reloadSpy();
       bootstrap();
 
-      sw._emit('controllerchange');
-      sw._emit('controllerchange');
       sw._emit('message', { data: { type: 'SW_UPDATED', version: '0.2' } });
+      const button = document.querySelector('#update-notice [data-action="applyUpdate"]');
+      button.click();
+      button.click();
       expect(reload).toHaveBeenCalledTimes(1);
     } finally {
       cleanup();

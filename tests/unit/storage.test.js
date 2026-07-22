@@ -67,7 +67,7 @@ describe('Storage — progresso do jogador', () => {
   });
 
   it('upgrades de cristais: compra, custo e nível', () => {
-    Storage.get().crystals = 1000;
+    Storage.recordRun(0, 0, 1000);
     const lvl0 = Storage.getUpgradeLevel('agility');
     const cost = Storage.getUpgradeCost('agility');
     expect(Storage.buyUpgrade('agility')).toBe(true);
@@ -77,7 +77,6 @@ describe('Storage — progresso do jogador', () => {
   });
 
   it('upgrades não compram sem cristais suficientes', () => {
-    Storage.get().crystals = 0;
     expect(Storage.buyUpgrade('thrust')).toBe(false);
     expect(Storage.getUpgradeLevel('thrust')).toBe(0);
   });
@@ -106,5 +105,39 @@ describe('Storage — progresso do jogador', () => {
     expect(abilities.has('dash')).toBe(true);
     expect(abilities.has('shield')).toBe(true);
     expect(abilities.has('slowmo')).toBe(true);
+  });
+
+  it('migra o save v1 preservando progresso, contexto legado e backup', () => {
+    localStorage.clear();
+    localStorage.setItem('spacerun.save.v1', JSON.stringify({ best: 321, totalMeters: 999, selectedShip: 'falcon', unlocked: ['scout', 'falcon'], history: [{ m: 12, t: 3.4, c: 2, d: 10 }], leaderboard: [{ name: 'Pilot', m: 12, t: 3.4, d: 10 }] }));
+    loadApp();
+    expect(globalThis.Storage.get().schemaVersion).toBe(2);
+    expect(globalThis.Storage.get().best).toBe(321);
+    expect(globalThis.Storage.getHistory()[0]).toMatchObject({ mode: 'classic', rulesetId: 'legacy-v04', shipId: 'unknown' });
+    expect(localStorage.getItem('spacerun.save.v1.backup')).toContain('totalMeters');
+  });
+
+  it('normaliza dados hostis e expõe apenas snapshots imutáveis', () => {
+    const snapshot = Storage.getSnapshot();
+    snapshot.crystals = 999999;
+    expect(Storage.getSnapshot().crystals).not.toBe(999999);
+    const bad = JSON.stringify({ schemaVersion: 2, best: -1, totalRuns: Infinity, unlocked: ['unknown'], playerName: '<img>', shipSkins: { scout: { color: 'red', accent: '#000000' } }, settings: { sound: 'false' } });
+    expect(Storage.importSave(bad)).toBe(true);
+    const saved = Storage.getSnapshot();
+    expect(saved.best).toBe(0);
+    expect(saved.unlocked).toEqual(['scout']);
+    expect(saved.playerName).toBe('<img>');
+    expect(saved.shipSkins.scout).toBeUndefined();
+    expect(saved.settings.sound).toBe(true);
+  });
+
+  it('rejeita importações inválidas sem substituir o snapshot atual', () => {
+    Storage.recordRun(55, 1, 0);
+    const before = Storage.getSnapshot();
+    expect(Storage.importSave('{')).toBe(false);
+    expect(Storage.getLastError()).toBe('import-parse');
+    expect(Storage.getSnapshot().best).toBe(before.best);
+    expect(Storage.importSave('x'.repeat(70000))).toBe(false);
+    expect(Storage.getLastError()).toBe('import-size');
   });
 });

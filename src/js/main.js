@@ -131,24 +131,33 @@
   // (re)aplica a música quando o usuário alterna a configuração
   window.addEventListener('musicchange', refreshMusic);
 
-  // registra Service Worker (PWA) e garante reload em nova versão
+  // Atualizações PWA são adiadas até a Home/Game Over: nunca interrompem uma run.
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const hadController = !!navigator.serviceWorker.controller;
       let reloading = false;
-      const reload = () => {
+      let waitingWorker = null;
+      const applyUpdate = () => {
         if (reloading) return;
         reloading = true;
-        window.location.reload();
+        if (waitingWorker) waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+        else window.location.reload();
       };
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-      // Nova versão do SW assumiu o controle -> recarrega para usar os novos assets.
+      const announce = worker => { waitingWorker = worker || waitingWorker; UI.setUpdateAvailable(applyUpdate); };
+      navigator.serviceWorker.register('sw.js').then(registration => {
+        if (registration.waiting) announce(registration.waiting);
+        registration.addEventListener('updatefound', () => {
+          const installing = registration.installing;
+          if (!installing) return;
+          installing.addEventListener('statechange', () => {
+            if (installing.state === 'installed' && navigator.serviceWorker.controller) announce(registration.waiting || installing);
+          });
+        });
+      }).catch(() => {});
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (hadController) reload();
+        if (reloading) window.location.reload();
       });
-      // O SW avisa explicitamente que uma nova versão foi ativada.
       navigator.serviceWorker.addEventListener('message', e => {
-        if (e.data && e.data.type === 'SW_UPDATED' && hadController) reload();
+        if (e.data && e.data.type === 'SW_UPDATED') announce(e.source || null);
       });
     });
   }

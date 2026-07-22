@@ -13,7 +13,7 @@ em um único `<canvas>` e o áudio é sintetizado com WebAudio. Não use imagens
 áudio binários para gameplay; os PNGs em `src/assets/` são apenas ícones
 obrigatórios da PWA.
 
-## Estado real do produto (v0.4)
+## Estado real do produto (v0.4; v0.5 estrutural é o próximo marco)
 
 - Jogo clássico e **Daily Run** estão ativos na Home. O Daily usa a data local
   como seed; a sequência de spawns é indexada por distância e tem testes de
@@ -32,8 +32,11 @@ Leia, nesta ordem, antes de alterar funcionalidade:
 1. `docs/PRODUCT_VISION.md`
 2. `docs/PRODUCT_FEATURES.md`
 3. `docs/ARCHITECTURE.md`
-4. `docs/ROADMAP.md`
-5. `docs/DEVELOPMENT_GUIDE.md`
+4. `docs/DATA_MODEL.md`
+5. `docs/decisions/README.md` e os ADRs aplicáveis
+6. `docs/ROADMAP.md`
+7. `docs/QUALITY_GATES.md`
+8. `docs/DEVELOPMENT_GUIDE.md`
 
 ## Mapa rápido do código
 
@@ -48,9 +51,12 @@ Leia, nesta ordem, antes de alterar funcionalidade:
 
 ## Regras inegociáveis
 
-1. Mantenha o padrão de IIFEs globais e a ordem exata dos scripts em
+1. Mantenha o padrão de IIFEs globais e a ordem relativa exata dos scripts
+   existentes em
    `src/index.html`: `storage → i18n → ships → achievements → audio → themes →
-   input → game → ui → share → main`. Não introduza `import`/`export`.
+   input → game → ui → share → main`. Módulo novo exige posição/dependências
+   documentadas e atualização do helper de testes e SW. Não introduza
+   `import`/`export`.
 2. Toda string visível precisa de chave em `src/js/i18n.js` para **pt, en e es**.
 3. Toda persistência passa por `Storage`; não crie uma segunda fonte de progresso.
 4. Respeite a máquina de estados do `Game` e use `setState` para novas transições.
@@ -60,6 +66,12 @@ Leia, nesta ordem, antes de alterar funcionalidade:
    `ROADMAP.md` junto com mudanças de comportamento.
 7. Não use `innerHTML` com dados controláveis pelo jogador; construa o DOM ou use
    `textContent`.
+8. Trate `localStorage`, URL, clipboard, arquivo e payload importado como dados
+   não confiáveis. Valide formato, faixa e tamanho antes de usar.
+9. Mudança persistente segue `DATA_MODEL.md`; não altere schema sem migração,
+   backup e testes de fixture antiga.
+10. Daily, score comparável ou replay seguem `rulesetId` e os ADRs em
+    `docs/decisions/`.
 
 ## Verificação e entrega
 
@@ -72,6 +84,9 @@ Os unitários usam Vitest/jsdom. Os e2e usam Playwright e um servidor em 4173;
 antes de confiar no resultado, confirme que essa porta não está servindo outro
 projeto — a configuração atual permite reutilizar um servidor existente. Não há
 CI de testes: o workflow do GitHub Pages apenas publica `src/`.
+
+Até a v0.5 automatizar os gates, siga manualmente `docs/QUALITY_GATES.md` e
+registre na entrega os itens que ainda não puderem ser verificados.
 
 Mantenha mudanças focadas, revise `git status`/`git diff`, faça commit atômico e
 nunca faça force-push.

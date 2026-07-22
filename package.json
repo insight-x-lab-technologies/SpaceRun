@@ -1,6 +1,6 @@
 {
   "name": "spacerun",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "**Survive the infinite void. How far can you fly?** — serverless procedural PWA endless runner.",
   "type": "module",
   "directories": {
@@ -10,7 +10,9 @@
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:contracts": "vitest run tests/unit/contracts.test.js",
+    "test:performance": "playwright test --config tests/performance/playwright.config.mjs"
   },
   "repository": {
     "type": "git",
