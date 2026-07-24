@@ -6,6 +6,15 @@ the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
 ranking local e compartilhamento) estão implementadas.
 
+## Fundação estrutural v0.5
+
+A base de código da v0.5 está entregue: save v2 com migração e validação,
+renderização segura de dados locais, Daily Run com assinatura lógica e
+`rulesetId`, atualização PWA adiada durante partidas, recursos essenciais de
+acessibilidade, testes de contrato e validação no CI antes do deploy. Os gates
+operacionais de baseline de performance e playtest humano continuam pendentes;
+por isso a Fase 4A ainda não está autorizada.
+
 ## Core gameplay
 
 - **Endless runner, left-to-right scroll.** The world scrolls toward the player;

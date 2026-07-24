@@ -13,7 +13,7 @@ em um único `<canvas>` e o áudio é sintetizado com WebAudio. Não use imagens
 áudio binários para gameplay; os PNGs em `src/assets/` são apenas ícones
 obrigatórios da PWA.
 
-## Estado real do produto (v0.4; v0.5 estrutural é o próximo marco)
+## Estado real do produto (v0.5; validação operacional da fundação em andamento)
 
 - Jogo clássico e **Daily Run** estão ativos na Home. O Daily usa a data local
   como seed; a sequência de spawns é indexada por distância e tem testes de
@@ -26,6 +26,10 @@ obrigatórios da PWA.
   sincronização entre dispositivos, ghost ou missão diária.
 - Settings: idioma `pt`/`en`/`es`, tema Neon/Retro/Aurora, som, música,
   partículas, reduzir movimento e alto contraste.
+- A base estrutural v0.5 já está no código: save v2 com migração, renderização
+  segura, paridade lógica do Daily, atualização PWA diferida, acessibilidade
+  essencial, CI e testes de contrato. Ainda faltam os registros operacionais de
+  baseline de performance e de playtest humano antes de liberar a F4A.
 
 Leia, nesta ordem, antes de alterar funcionalidade:
 
@@ -85,8 +89,9 @@ antes de confiar no resultado, confirme que essa porta não está servindo outro
 projeto — a configuração atual permite reutilizar um servidor existente. Não há
 CI de testes: o workflow do GitHub Pages apenas publica `src/`.
 
-Até a v0.5 automatizar os gates, siga manualmente `docs/QUALITY_GATES.md` e
-registre na entrega os itens que ainda não puderem ser verificados.
+Os contratos, unitários e a matriz E2E já rodam no CI. Siga
+`docs/QUALITY_GATES.md` e registre na entrega os gates que continuam manuais
+(offline real, contraste em aparelho, performance e playtest).
 
 Mantenha mudanças focadas, revise `git status`/`git diff`, faça commit atômico e
 nunca faça force-push.

@@ -35,8 +35,8 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 1 | Progressão & Colecionáveis | P1 | ✅ entregue | Recompensa durante a run |
 | 2 | Naves & Customização | P1/P2 | ✅ entregue | Escolha, progressão e identidade |
 | 3 | Meta & Social local | P2 | ✅ entregue | Conquistas, estatísticas e compartilhamento |
-| **v0.5** | **Fundação estrutural** | **P0** | **próximo; bloqueia 4/5/9+** | Evoluir sem perder saves, segurança, paridade ou qualidade |
-| 4A | Power-ups em run | P1 | após v0.5 | Mais decisões e variedade no loop principal |
+| **v0.5** | **Fundação estrutural** | **P0** | **base de código entregue; validação operacional pendente** | Evoluir sem perder saves, segurança, paridade ou qualidade |
+| 4A | Power-ups em run | P1 | após concluir os gates operacionais da v0.5 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | após 4A/8A | Identidade visual sem alterar competição |
 | 9 | Modos de Jogo | P2 | após regras de modo/ruleset | Rejogabilidade por objetivos |
@@ -49,7 +49,8 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 
 ## Ordem recomendada de execução
 
-1. Concluir integralmente o marco **v0.5 — Fundação estrutural**.
+1. Registrar o baseline de performance e o playtest humano restantes da
+   **v0.5 — Fundação estrutural**.
 2. Entregar **F4A — Power-ups** sem login, missões ou XP.
 3. Concluir o restante de **F8A**, se algum item essencial não couber na v0.5.
 4. Entregar uma fatia cosmética pequena da **F7**.
@@ -61,30 +62,31 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 
 ---
 
-## Marco v0.5 — Fundação estrutural  ·  P0  ·  bloqueador  ·  ⬜ pendente
+## Marco v0.5 — Fundação estrutural  ·  P0  ·  base de código entregue; validação operacional pendente
 
 Objetivo: tornar a base segura e verificável antes de adicionar mais estado,
 regras de competição ou módulos. A v0.5 não é uma fase de conteúdo. Ela corrige
 contratos existentes e cria portões automáticos para que futuras alterações
 possam ser executadas com segurança por pessoas ou agentes.
 
-As tarefas abaixo devem ser implementadas na ordem indicada. Cada item deve ter
-commit focado, testes próprios e atualização documental quando alterar um
-contrato.
+As tarefas foram executadas na ordem indicada. As seções abaixo preservam o
+escopo e os critérios de aceite históricos; a tabela registra o estado atual.
+Itens parciais ou pendentes dependem de registro operacional, e não de uma
+lacuna conhecida no runtime. A F4A permanece bloqueada até sua conclusão.
 
 | Item | Status | Dependências mínimas |
 |------|--------|----------------------|
-| FND-01 | ⬜ pendente | nenhuma |
-| FND-02 | ⬜ pendente | FND-01 |
-| FND-03 | ⬜ pendente | FND-02 |
-| FND-04 | ⬜ pendente | FND-01 |
-| FND-05 | ⬜ pendente | FND-01 |
-| FND-06 | ⬜ pendente | suíte atual verde |
-| FND-07 | ⬜ pendente | FND-02 e FND-06 |
-| FND-08 | ⬜ pendente | FND-03 a FND-06 |
-| FND-09 | ⬜ pendente | FND-03 e FND-08 |
-| FND-10 | ⬜ pendente | FND-02, FND-06 e FND-07 |
-| FND-11 | ⬜ pendente | FND-05, FND-08 e FND-09 |
+| FND-01 | ✅ entregue | nenhuma |
+| FND-02 | ✅ entregue | FND-01 |
+| FND-03 | ✅ entregue | FND-02 |
+| FND-04 | ✅ entregue | FND-01 |
+| FND-05 | ✅ entregue | FND-01 |
+| FND-06 | ✅ entregue | suíte atual verde |
+| FND-07 | ✅ entregue | FND-02 e FND-06 |
+| FND-08 | ◐ parcial — matriz automatizada entregue; offline real ainda é gate manual | FND-03 a FND-06 |
+| FND-09 | ◐ parcial — Performance Mode entregue; baseline/harness pendente | FND-03 e FND-08 |
+| FND-10 | ✅ entregue | FND-02, FND-06 e FND-07 |
+| FND-11 | ⬜ pendente — requer cinco sessões de playtest registradas | FND-05, FND-08 e FND-09 |
 
 ### FND-01 — Segurança do DOM e dados não confiáveis
 
@@ -343,9 +345,9 @@ decisão explícita de seguir para F4A ou corrigir o core loop primeiro.
 
 ### Critério de saída da v0.5
 
-A v0.5 só está concluída quando FND-01 a FND-11 estiverem entregues, os gates de
-`QUALITY_GATES.md` estiverem automatizados onde indicado, a migração de save for
-validada com fixture realista e a matriz E2E estiver verde. Nenhuma mudança pode
+A base de código v0.5 está entregue. O marco operacional só será encerrado
+quando o offline real, o baseline de performance e as cinco sessões de playtest
+forem registrados, além dos gates automatizados já verdes. Nenhuma mudança pode
 apagar progresso existente silenciosamente.
 
 ---

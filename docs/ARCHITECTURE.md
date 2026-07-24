@@ -150,17 +150,20 @@ effectively infinite and resolution-independent.
     and future P2P payloads are validated and rendered with safe DOM APIs.
 11. **Version deterministic rules.** Daily runs, comparable scores and replays
     carry `rulesetId` and follow the accepted ADRs under `docs/decisions/`.
-12. **Quality gates block release.** Follow `QUALITY_GATES.md`; the v0.5 target
-    is to automate these checks before the Pages deploy.
+12. **Quality gates block release.** Follow `QUALITY_GATES.md`; contract,
+    unit and E2E checks run before the Pages deploy. Offline validation on a
+    real device, contrast checks, the performance baseline and human playtests
+    remain recorded manual gates.
 
 ## Structural foundation (v0.5)
 
-The next milestone intentionally precedes new gameplay systems. It adds save
+The v0.5 structural foundation preceded new gameplay systems. It delivered save
 schema/migrations, safe DOM rendering, Daily logical parity, deferred PWA
-updates, baseline accessibility/performance, CI and architecture contract tests.
-The delivered baseline uses `spacerun.save.v2`, transactional `Storage` writes,
-safe rendering for player names, ruleset-tagged results, deferred SW activation,
-contract tests and the supported Playwright matrix.
+updates, essential accessibility, CI and architecture contract tests. The code
+baseline uses `spacerun.save.v2`, transactional `Storage` writes, safe rendering
+for player names, ruleset-tagged results, deferred SW activation, contract tests
+and the supported Playwright matrix. Performance measurement and human playtest
+records remain operational release gates, not unfinished runtime architecture.
 
 New domain modules remain IIFE-globals. Their dependency and insertion point
 must be documented before implementation and mirrored in `index.html`,
