@@ -29,6 +29,23 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await page.keyboard.up('Space');
   });
 
+  test('rotação mantém o buffer do canvas alinhado ao viewport', async ({ page }) => {
+    await page.goto('/');
+    await page.click(`${HOME} [data-action="play"]`);
+    await page.keyboard.press('Space');
+
+    for (const viewport of [{ width: 320, height: 568 }, { width: 568, height: 320 }, { width: 320, height: 568 }]) {
+      await page.setViewportSize(viewport);
+      await page.waitForTimeout(350);
+      const size = await page.locator('#game-canvas').evaluate(canvas => {
+        const rect = canvas.getBoundingClientRect();
+        return { width: canvas.width, height: canvas.height, cssWidth: rect.width, cssHeight: rect.height, dpr: window.devicePixelRatio };
+      });
+      expect(size.width).toBe(Math.floor(size.cssWidth * Math.min(size.dpr, 2)));
+      expect(size.height).toBe(Math.floor(size.cssHeight * Math.min(size.dpr, 2)));
+    }
+  });
+
   test('Daily Run: botão inicia partida diária', async ({ page }) => {
     await page.goto('/');
     await page.click(`${HOME} [data-action="playDaily"]`);

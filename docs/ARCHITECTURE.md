@@ -105,7 +105,10 @@ so the `onState` callback (wired in `main.js`) can keep UI/HUD/music in sync.
 
 ## Rendering pipeline (`Game.render`, every animation frame)
 
-Single `<canvas>` resized to the viewport with DPR scaling in `resize()`.
+Single `<canvas>` resized to the viewport with DPR scaling in `resize()`. Resize,
+orientation, visual-viewport and observed layout changes schedule a stabilized
+second measurement, preventing a stale portrait backing buffer from stretching
+on Safari/iOS after rotation.
 
 1. `drawSpaceBg` — base gradient.
 2. `drawNebulae` — parallax layer 2 (slow).

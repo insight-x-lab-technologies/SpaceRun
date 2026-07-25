@@ -1,6 +1,7 @@
 /* Motor do jogo: canvas, parallax 3 planos, física, terreno e obstáculos */
 const Game = (() => {
   let canvas, ctx, W = 0, H = 0, dpr = 1;
+  let resizeFrame = null, resizeTimer = null, resizeObserver = null;
   let raf = null, lastT = 0, acc = 0;
   const FIXED_DT = 1 / 60;   // passo de simulação fixo (determinismo p/ Daily Run)
   let state = 'idle';        // idle | ready | playing | paused | over
@@ -36,14 +37,44 @@ const Game = (() => {
   let settings = { particles: true, performanceMode: false };
 
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = canvas.clientWidth;
-    H = canvas.clientHeight;
-    canvas.width = Math.floor(W * dpr);
-    canvas.height = Math.floor(H * dpr);
+    // No Safari/iOS, `orientationchange` pode ocorrer antes de o layout final
+    // estar disponível. Ler o retângulo renderizado (em vez dos atributos do
+    // canvas) impede que um buffer de portrait seja esticado em landscape.
+    const rect = canvas.getBoundingClientRect();
+    const nextW = Math.round(rect.width || canvas.clientWidth || window.innerWidth || 0);
+    const nextH = Math.round(rect.height || canvas.clientHeight || window.innerHeight || 0);
+    if (nextW <= 0 || nextH <= 0) return;
+    const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const backingW = Math.floor(nextW * nextDpr);
+    const backingH = Math.floor(nextH * nextDpr);
+    const changed = W !== nextW || H !== nextH || dpr !== nextDpr;
+    W = nextW;
+    H = nextH;
+    dpr = nextDpr;
+    if (!changed) return;
+    canvas.width = backingW;
+    canvas.height = backingH;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     buildStarfield();
     layoutShip();   // mantém a nave proporcional/posicionada após rotação/resize
+  }
+
+  // Releitura imediata + duas frames + pequeno atraso cobre a janela em que o
+  // Safari atualiza a viewport depois de emitir `orientationchange`.
+  function scheduleResize() {
+    resize();
+    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+    if (resizeTimer !== null) window.clearTimeout(resizeTimer);
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = null;
+        resize();
+      });
+    });
+    resizeTimer = window.setTimeout(() => {
+      resizeTimer = null;
+      resize();
+    }, 250);
   }
 
   function buildStarfield() {
@@ -92,7 +123,13 @@ const Game = (() => {
     // tecla Shift (desktop) ou botão dedicado (toque) dispara a habilidade (Fase 2)
     Input.on('ability', tryAbility);
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', scheduleResize);
+    window.addEventListener('orientationchange', scheduleResize);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleResize);
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(scheduleResize);
+      resizeObserver.observe(canvas);
+    }
     lastT = performance.now();
     loop(lastT);
   }

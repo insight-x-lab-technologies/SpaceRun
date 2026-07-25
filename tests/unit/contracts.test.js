@@ -25,9 +25,9 @@ describe('v0.5 — contratos arquiteturais', () => {
 
   it('mantém versões coerentes para a release', () => {
     const pkg = JSON.parse(read('package.json'));
-    expect(pkg.version).toBe('0.5.0');
-    expect(read('src/sw.js')).toContain("const VERSION = '0.5'");
-    expect(read('src/js/i18n.js')).toContain('v0.5');
+    expect(pkg.version).toBe('0.5.1');
+    expect(read('src/sw.js')).toContain("const VERSION = '0.5.1'");
+    expect(read('src/js/i18n.js')).toContain('v0.5.1');
   });
 
   it('não volta a interpolar o nome do ranking como HTML', () => {

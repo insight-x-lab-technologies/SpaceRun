@@ -83,7 +83,7 @@ lacuna conhecida no runtime. A F4A permanece bloqueada até sua conclusão.
 | FND-05 | ✅ entregue | FND-01 |
 | FND-06 | ✅ entregue | suíte atual verde |
 | FND-07 | ✅ entregue | FND-02 e FND-06 |
-| FND-08 | ◐ parcial — matriz automatizada entregue; offline real ainda é gate manual | FND-03 a FND-06 |
+| FND-08 | ◐ parcial — matriz automatizada e offline real validados; correção de rotação implementada na v0.5.1 e aguarda reteste em dispositivo | FND-03 a FND-06 |
 | FND-09 | ◐ parcial — Performance Mode entregue; baseline/harness pendente | FND-03 e FND-08 |
 | FND-10 | ✅ entregue | FND-02, FND-06 e FND-07 |
 | FND-11 | ⬜ pendente — requer cinco sessões de playtest registradas | FND-05, FND-08 e FND-09 |
@@ -257,6 +257,14 @@ silenciosamente quando um agente adiciona arquivo, módulo, tradução ou versã
 mensagem que indique exatamente o arquivo e a regra violada.
 
 ### FND-08 — Matriz E2E, offline e regressão visual funcional
+
+**Registro operacional (2026-07-24):** a base automatizada foi executada com
+sucesso e o app foi validado offline no commit publicado `c1a1d0a`, em iPhone
+17/Safari e Windows desktop/Chrome. Todas as telas abriram e o jogo permaneceu
+funcional após a primeira visita online. A validação revelou o bug de rotação
+`V05-OFFLINE-01`; a correção foi implementada na v0.5.1 com teste unitário e
+E2E. Ver `docs/validation/v0.5-offline-2026-07-24.md`; o reteste no iPhone
+publicado ainda é necessário para encerrar o item.
 
 **Implementar:**
 

@@ -1,8 +1,11 @@
 # SpaceRun — Portões de qualidade
 
 Status: **baseline v0.5**. Contratos, unitários e matriz E2E são automatizados;
-offline real, contraste em aparelho e playtest humano continuam sendo registros
-manuais de release.
+offline real foi validado no registro operacional de 2026-07-24. Contraste em
+aparelho, baseline de performance e playtest humano continuam sendo registros
+manuais de release. A correção da regressão de rotação `V05-OFFLINE-01` está
+na v0.5.1 e precisa de reteste no dispositivo publicado antes do encerramento
+da fundação.
 
 Este documento define o mínimo necessário para alterar e publicar o SpaceRun.
 Ferramentas de desenvolvimento são permitidas; o app em produção continua

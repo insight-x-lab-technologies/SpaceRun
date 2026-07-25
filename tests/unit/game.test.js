@@ -66,6 +66,28 @@ describe('Game — máquina de estados e ciclo de vida', () => {
     for (let i = 0; i < 120; i++) { keepAlive(); globalThis.stepFrames(1); }
     expect(Game.getHud().meters).toBeGreaterThan(0);
   });
+
+  it('recalcula o buffer do canvas após a orientação estabilizar', () => {
+    const canvas = document.getElementById('game-canvas');
+    Game.start('classic');
+    Object.defineProperty(canvas, 'clientWidth', { value: 320, configurable: true });
+    Object.defineProperty(canvas, 'clientHeight', { value: 568, configurable: true });
+    window.dispatchEvent(new Event('orientationchange'));
+
+    // Simula o Safari: o evento chega antes de o layout trocar para landscape.
+    Object.defineProperty(canvas, 'clientWidth', { value: 568, configurable: true });
+    Object.defineProperty(canvas, 'clientHeight', { value: 320, configurable: true });
+    globalThis.stepFrames(2);
+
+    expect(canvas.width).toBe(568);
+    expect(canvas.height).toBe(320);
+    expect(Game._debug.ship.x).toBeCloseTo(568 * 0.22);
+
+    Object.defineProperty(canvas, 'clientWidth', { value: 800, configurable: true });
+    Object.defineProperty(canvas, 'clientHeight', { value: 600, configurable: true });
+    window.dispatchEvent(new Event('resize'));
+    globalThis.stepFrames(2);
+  });
 });
 
 describe('Game — colisão e game over', () => {

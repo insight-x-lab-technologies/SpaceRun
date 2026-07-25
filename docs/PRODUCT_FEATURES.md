@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.5**. Gameplay art and audio are procedural; the app is a serverless
+Version **0.5.1**. Gameplay art and audio are procedural; the app is a serverless
 PWA (vanilla HTML/JS, no frameworks, no backend). Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -43,6 +43,9 @@ por isso a Fase 4A ainda não está autorizada.
   2. Near background — faster stars + glowing nebulae.
   3. Local space — terrain, obstacles, ship, particles (the play field).
 - DPR-aware rendering for crisp visuals on retina/mobile.
+- Rotation-safe canvas resizing: the backing buffer is recalculated after the
+  viewport settles, preventing stretched gameplay after a mobile orientation
+  change.
 - Thruster particle trail and explosion effects (toggleable).
 - Procedurally drawn ships (no sprites).
 - **Wide-orientation layout (desktop / tablet & mobile landscape):** the Home
