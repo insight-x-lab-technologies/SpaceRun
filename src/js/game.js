@@ -33,7 +33,8 @@ const Game = (() => {
     { star: '#c8ffd8', accent: '#5effa0', nebula: ['#144a2e', '#021a0a'] }
   ];
 
-  const RULESET = { classic: 'classic-v1', daily: 'daily-v1' };
+  // Power-ups alteram o universo lógico; resultados v1 permanecem históricos.
+  const RULESET = { classic: 'classic-v2', daily: 'daily-v2' };
   let settings = { particles: true, performanceMode: false };
 
   function resize() {
@@ -168,9 +169,9 @@ const Game = (() => {
     world = {
       scroll: 0, speed: 220, meters: 0, difficulty: 0,
       crystals: 0, combo: 0, comboTimer: 0, maxCombo: 0,
-      slowmoTimer: 0, wf: 1,
+      slowmoTimer: 0, magnetTimer: 0, doubleCrystalsTimer: 0, wf: 1,
       seed: seed || 0, daily: !!daily, rulesetId: daily ? RULESET.daily : RULESET.classic, rng: null, accent: '#4af0ff',
-      nextSpawnDist: 16, nextPickupDist: 40, spawnSig: []
+      nextSpawnDist: 16, nextPickupDist: 40, nextPowerupDist: 120, powerupsUsed: [], spawnSig: []
     };
     if (seed) world.rng = mulberry32(seed >>> 0);
     ship = {
@@ -196,6 +197,8 @@ const Game = (() => {
     pickups = [];
     world.nextSpawnDist = 16;
     world.nextPickupDist = 40;
+    world.nextPowerupDist = 120;
+    world.powerupsUsed = [];
     world.spawnSig = [];
     crashAnim = 0;
     shake = 0;
@@ -343,7 +346,7 @@ const Game = (() => {
     const x = W + 30;
     if (world.daily) {
       const y = H * (0.22 + rnd() * 0.56); const r = H * (0.015 + rnd() * 0.005);
-      pickups.push({ x, y, r, spin: rnd() * Math.PI * 2, ph: rnd() * Math.PI * 2 });
+      pickups.push({ kind: 'crystal', x, y, r, spin: Math.random() * Math.PI * 2, ph: Math.random() * Math.PI * 2 });
       if (recordSpawns) world.spawnSig.push({ distanceIndex: Math.round(world.meters * 10), entityType: 'crystal', normalizedY: Math.round(y / H * 1000000), normalizedSize: Math.round(r / H * 1000000), variant: 'crystal', rulesetId: world.rulesetId, type: 'crystal', y: Math.round(y / H * 1000000), m: Math.round(world.meters) });
       return;
     }
@@ -352,20 +355,74 @@ const Game = (() => {
     const span = (t.bot - t.top) - margin * 2;
     if (span <= 0) return;
     const y = t.top + margin + rnd() * span;
-    pickups.push({ x, y, r: 9 + rnd() * 3, spin: rnd() * Math.PI * 2, ph: rnd() * Math.PI * 2 });
+    pickups.push({ kind: 'crystal', x, y, r: 9 + rnd() * 3, spin: Math.random() * Math.PI * 2, ph: Math.random() * Math.PI * 2 });
     if (recordSpawns) world.spawnSig.push({ distanceIndex: Math.round(world.meters * 10), entityType: 'crystal', normalizedY: Math.round(y / H * 1000000), normalizedSize: Math.round(pickups[pickups.length - 1].r / H * 1000000), variant: 'crystal', rulesetId: world.rulesetId, type: 'crystal', y: Math.round(y / H * 1000000), m: Math.round(world.meters) });
+  }
+
+  function recordPowerupSpawn(p) {
+    if (!recordSpawns) return;
+    world.spawnSig.push({ distanceIndex: Math.round(world.meters * 10), entityType: 'powerup',
+      normalizedY: Math.round(p.y / H * 1000000), normalizedSize: Math.round(p.r / H * 1000000),
+      variant: p.powerup, rulesetId: world.rulesetId, type: 'powerup', y: Math.round(p.y / H * 1000000),
+      m: Math.round(world.meters) });
+  }
+
+  function spawnPowerup(type, x, y) {
+    const def = PowerUps.get(type || PowerUps.pick(rnd).id);
+    if (!def) return null;
+    const px = Number.isFinite(x) ? x : W + 38;
+    let py = y;
+    let r;
+    if (world.daily) {
+      if (!Number.isFinite(py)) py = H * (0.22 + rnd() * 0.56);
+      r = H * 0.020;
+    } else {
+      const terrainInfo = terrain(px + world.scroll);
+      if (!Number.isFinite(py)) py = terrainInfo.top + 42 + rnd() * Math.max(1, terrainInfo.bot - terrainInfo.top - 84);
+      r = 13;
+    }
+    const powerup = { kind: 'powerup', powerup: def.id, x: px, y: py, r, spin: Math.random() * Math.PI * 2 };
+    pickups.push(powerup);
+    recordPowerupSpawn(powerup);
+    return powerup;
   }
 
   function collectCrystal(p) {
     world.combo += 1;
     world.comboTimer = 3;
     const mult = 1 + Math.floor((world.combo - 1) / 5);
-    world.crystals += mult;
+    world.crystals += mult * (world.doubleCrystalsTimer > 0 ? 2 : 1);
     Audio2.pickup();
     for (let i = 0; i < 8; i++) {
       const a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * 120;
       addParticle(p.x, p.y, Math.cos(a) * sp, Math.sin(a) * sp,
         0.3 + Math.random() * 0.3, '#ffd84a', 2 + Math.random() * 2);
+    }
+  }
+
+  function collectPowerup(p) {
+    const def = PowerUps.get(p.powerup);
+    if (!def) return;
+    let applied = false;
+    if (def.id === 'magnet') {
+      world.magnetTimer = def.duration;
+      applied = true;
+    } else if (def.id === 'doubleCrystals') {
+      world.doubleCrystalsTimer = def.duration;
+      applied = true;
+    } else if (def.id === 'shield' && !ship.shield) {
+      // Nave e pickup compartilham um único escudo: nunca acumulam cargas.
+      ship.shield = true;
+      applied = true;
+    }
+    if (!applied) return;
+    if (!world.powerupsUsed.includes(def.id)) world.powerupsUsed.push(def.id);
+    Audio2.pickup();
+    for (let i = 0; i < 12; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 70 + Math.random() * 110;
+      addParticle(p.x, p.y, Math.cos(angle) * speed, Math.sin(angle) * speed,
+        0.35 + Math.random() * 0.25, def.color, 2 + Math.random() * 2);
     }
   }
 
@@ -516,6 +573,8 @@ const Game = (() => {
     world.wf = wf;
     if (ship.dashTimer > 0) ship.dashTimer -= dt;
     if (world.slowmoTimer > 0) world.slowmoTimer -= dt;
+    if (world.magnetTimer > 0) world.magnetTimer -= dt;
+    if (world.doubleCrystalsTimer > 0) world.doubleCrystalsTimer -= dt;
     if (ship.abilityCd > 0) ship.abilityCd -= dt;
     if (ship.invuln > 0) ship.invuln -= dt;
     world.meters += world.speed * wf * dt * 0.12;
@@ -590,14 +649,33 @@ const Game = (() => {
       spawnPickup();
       world.nextPickupDist += (1.6 + rnd() * 1.8) * world.speed * 0.12;
     }
+    if (world.meters >= world.nextPowerupDist) {
+      spawnPowerup();
+      // Índice por distância: dash/slowmo mudam o tempo de chegada, não a ordem.
+      world.nextPowerupDist += (8 + rnd() * 5) * world.speed * 0.12;
+    }
     for (let i = pickups.length - 1; i >= 0; i--) {
       const p = pickups[i];
       p.x -= world.speed * wf * dt;
       p.spin += dt * 3;
       if (p.x + p.r < -20) { pickups.splice(i, 1); continue; }
+      if (p.kind === 'crystal' && world.magnetTimer > 0) {
+        const dx = ship.x - p.x, dy = ship.y - p.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const radius = Math.max(150, H * 0.32);
+        if (dist < radius) {
+          const pull = (1 - dist / radius) * 900;
+          p.x += (dx / dist) * pull * dt;
+          p.y += (dy / dist) * pull * dt;
+        }
+      }
       const dx = p.x - ship.x, dy = p.y - ship.y;
       const rr = p.r + ship.w * 0.3;
-      if (dx * dx + dy * dy < rr * rr) { collectCrystal(p); pickups.splice(i, 1); }
+      if (dx * dx + dy * dy < rr * rr) {
+        if (p.kind === 'powerup') collectPowerup(p);
+        else collectCrystal(p);
+        pickups.splice(i, 1);
+      }
     }
 
     // obstáculos: spawn dirigido por DISTÂNCIA (determinístico p/ Daily Run).
@@ -671,7 +749,8 @@ const Game = (() => {
     const time = runTime;
     const payload = { meters, time, crystals: world.crystals, seed: world.seed, daily: world.daily,
                       rulesetId: world.rulesetId, shipId: ship.ship.id,
-                      loadout: { agility: Storage.getUpgradeLevel('agility'), thrust: Storage.getUpgradeLevel('thrust') }, maxCombo: world.maxCombo };
+                      loadout: { agility: Storage.getUpgradeLevel('agility'), thrust: Storage.getUpgradeLevel('thrust') },
+                      maxCombo: world.maxCombo, powerups: world.powerupsUsed.slice() };
     setTimeout(() => { if (onOverCb) onOverCb(payload); }, 700);
   }
 
@@ -877,6 +956,28 @@ const Game = (() => {
 
   function drawPickups() {
     for (const p of pickups) {
+      if (p.kind === 'powerup') {
+        const def = PowerUps.get(p.powerup);
+        if (!def) continue;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.spin);
+        ctx.shadowColor = def.color;
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = def.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.rotate(-p.spin);
+        ctx.fillStyle = '#08101e';
+        ctx.font = 'bold ' + Math.max(10, p.r * 0.95) + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(def.symbol, 0, 1);
+        ctx.restore();
+        continue;
+      }
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.spin);
@@ -954,7 +1055,11 @@ const Game = (() => {
       abilityCd: ship ? Math.max(0, ship.abilityCd) : 0,
       shield: ship ? ship.shield : false,
       dash: ship ? ship.dashTimer > 0 : false,
-      slowmo: world.slowmoTimer > 0
+      slowmo: world.slowmoTimer > 0,
+      powerups: [
+        ...(world.magnetTimer > 0 ? [{ id: 'magnet', remaining: world.magnetTimer }] : []),
+        ...(world.doubleCrystalsTimer > 0 ? [{ id: 'doubleCrystals', remaining: world.doubleCrystalsTimer }] : [])
+      ]
     };
   }
 
@@ -969,6 +1074,8 @@ const Game = (() => {
       get ship() { return ship; },
       tick(dt) { update(dt, performance.now()); },
       hit: () => hit(),
+      spawnPowerup(type, x, y) { return spawnPowerup(type, x, y); },
+      spawnCrystal(x, y) { const crystal = { kind: 'crystal', x, y, r: 10, spin: 0, ph: 0 }; pickups.push(crystal); return crystal; },
       recordSpawns(b) { recordSpawns = !!b; },
       getSpawnSig() { return world.spawnSig ? world.spawnSig.slice() : []; }
     }

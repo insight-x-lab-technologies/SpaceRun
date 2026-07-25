@@ -14,6 +14,7 @@ const Storage = (() => {
   const SHIP_IDS = ['scout', 'falcon', 'tank', 'phantom', 'nova', 'vortex', 'quasar', 'pulsar', 'nebula', 'singularity', 'comet', 'aurora', 'raptor', 'helix', 'titan', 'spectre', 'ember', 'zephyr', 'cosmos', 'eclipse'];
   const THEMES = ['neon', 'retro', 'aurora'];
   const MODES = ['classic', 'daily'];
+  const POWERUP_IDS = ['magnet', 'doubleCrystals', 'shield'];
   const ACHIEVEMENT_IDS = ['first_flight', 'dist_5k', 'dist_10k', 'dist_25k', 'dist_100k', 'crystals_25', 'crystals_100', 'combo_10', 'time_2min', 'time_5min', 'fleet', 'streak_3', 'daily_first', 'dist_50k', 'dist_250k', 'dist_500k', 'crystals_250', 'combo_25', 'combo_50', 'time_10min', 'streak_5', 'streak_10', 'total_1m'];
   let lastError = null;
 
@@ -58,6 +59,7 @@ const Storage = (() => {
     v = object(v) ? v : {};
     return { agility: int(v.agility, 0, UPGRADE_MAX), thrust: int(v.thrust, 0, UPGRADE_MAX) };
   }
+  function powerups(v) { return uniqueIds(v, POWERUP_IDS, [], POWERUP_IDS.length); }
   function timestamp(v) { return int(v, now(), 4102444800000); }
   function randomId(prefix) { return prefix + '-' + now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); }
   function normalizeRun(v, legacy) {
@@ -67,9 +69,9 @@ const Storage = (() => {
       id: typeof v.id === 'string' && v.id.length <= 64 ? v.id : randomId('run'),
       m: int(v.m, 0, Number.MAX_SAFE_INTEGER), t: seconds(v.t, 0), c: int(v.c, 0, Number.MAX_SAFE_INTEGER),
       d: timestamp(v.d), mode, seed: int(v.seed, 0, 0xffffffff),
-      rulesetId: typeof v.rulesetId === 'string' && v.rulesetId.length <= 32 ? v.rulesetId : (legacy ? 'legacy-v04' : mode + '-v1'),
+      rulesetId: typeof v.rulesetId === 'string' && v.rulesetId.length <= 32 ? v.rulesetId : (legacy ? 'legacy-v04' : mode + '-v2'),
       shipId: id(v.shipId, SHIP_IDS, legacy ? 'unknown' : 'scout'), loadout: loadout(v.loadout),
-      maxCombo: int(v.maxCombo, 0, 1000000)
+      maxCombo: int(v.maxCombo, 0, 1000000), powerups: powerups(v.powerups)
     };
   }
   function normalizeScore(v, legacy) {
@@ -79,7 +81,7 @@ const Storage = (() => {
       id: typeof v.id === 'string' && v.id.length <= 64 ? v.id : randomId('score'), name: name(v.name),
       m: int(v.m, 0, Number.MAX_SAFE_INTEGER), t: seconds(v.t, 0), d: timestamp(v.d), mode,
       seed: int(v.seed, 0, 0xffffffff),
-      rulesetId: typeof v.rulesetId === 'string' && v.rulesetId.length <= 32 ? v.rulesetId : (legacy ? 'legacy-v04' : mode + '-v1'),
+      rulesetId: typeof v.rulesetId === 'string' && v.rulesetId.length <= 32 ? v.rulesetId : (legacy ? 'legacy-v04' : mode + '-v2'),
       shipId: id(v.shipId, SHIP_IDS, legacy ? 'unknown' : 'scout'), loadout: loadout(v.loadout),
       source: v.source === 'imported' ? 'imported' : 'local'
     };

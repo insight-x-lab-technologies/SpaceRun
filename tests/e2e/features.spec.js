@@ -54,6 +54,17 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await expect(page.locator('#hud')).toBeVisible();
   });
 
+  test('Power-up coletado aparece no HUD da run', async ({ page }) => {
+    await page.goto('/');
+    await page.click(`${HOME} [data-action="play"]`);
+    await page.keyboard.press('Space');
+    await page.evaluate(() => {
+      const ship = Game._debug.ship;
+      Game._debug.spawnPowerup('magnet', ship.x, ship.y);
+    });
+    await expect(page.locator('#hud-powerup')).not.toBeEmpty();
+  });
+
   test('Hangar lista 20 naves e permite selecionar', async ({ page }) => {
     await page.goto('/');
     await page.click(`${HOME} [data-action="hangar"]`);

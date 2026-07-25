@@ -28,6 +28,12 @@ describe('Storage — progresso do jogador', () => {
     expect(Storage.get().totalRuns).toBe(1);
     expect(Storage.get().crystals).toBe(5);
     expect(Storage.get().bestTime).toBe(30);
+    expect(Storage.getHistory()[0].rulesetId).toBe('classic-v2');
+  });
+
+  it('normaliza os power-ups usados no histórico da run', () => {
+    Storage.recordRun({ m: 12, t: 1, c: 0, powerups: ['magnet', 'unknown', 'magnet', 'shield'] });
+    expect(Storage.getHistory()[0].powerups).toEqual(['magnet', 'shield']);
   });
 
   it('recordRun só marca isBest quando bate o recorde', () => {

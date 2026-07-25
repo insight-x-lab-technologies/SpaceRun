@@ -10,10 +10,10 @@ describe('v0.5 — contratos arquiteturais', () => {
   it('mantém a ordem de scripts e a paridade do helper', () => {
     const html = read('src/index.html');
     const scripts = [...html.matchAll(/js\/([\w-]+)\.js/g)].map(m => m[1]);
-    const expected = ['storage', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'game', 'ui', 'share', 'main'];
+    const expected = ['storage', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'powerups', 'game', 'ui', 'share', 'main'];
     expect(scripts).toEqual(expected);
     const helper = read('tests/helpers/loadApp.js');
-    expect(helper).toContain("['storage', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'game', 'ui', 'share']");
+    expect(helper).toContain("['storage', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'powerups', 'game', 'ui', 'share']");
   });
 
   it('pré-cacheia cada recurso local servido pelo app', () => {
@@ -25,9 +25,9 @@ describe('v0.5 — contratos arquiteturais', () => {
 
   it('mantém versões coerentes para a release', () => {
     const pkg = JSON.parse(read('package.json'));
-    expect(pkg.version).toBe('0.5.1');
-    expect(read('src/sw.js')).toContain("const VERSION = '0.5.1'");
-    expect(read('src/js/i18n.js')).toContain('v0.5.1');
+    expect(pkg.version).toBe('0.5.2');
+    expect(read('src/sw.js')).toContain("const VERSION = '0.5.2'");
+    expect(read('src/js/i18n.js')).toContain('v0.5.2');
   });
 
   it('não volta a interpolar o nome do ranking como HTML', () => {
@@ -39,7 +39,7 @@ describe('v0.5 — contratos arquiteturais', () => {
 
   it('não permite zoom bloqueado e mantém regras versionadas', () => {
     expect(read('src/index.html')).not.toContain('user-scalable=no');
-    expect(read('src/js/game.js')).toContain("daily: 'daily-v1'");
+    expect(read('src/js/game.js')).toContain("daily: 'daily-v2'");
     expect(read('src/js/storage.js')).toContain("const KEY = 'spacerun.save.v2'");
   });
 });

@@ -7,6 +7,7 @@
   const hudCrystals = document.getElementById('hud-crystals');
   const hudCombo = document.getElementById('hud-combo');
   const hudAbility = document.getElementById('hud-ability');
+  const hudPowerup = document.getElementById('hud-powerup');
   const hudPause = document.getElementById('hud-pause');
   const abilityBtn = document.getElementById('ability-btn');
 
@@ -41,6 +42,10 @@
         } else {
           hudAbility.textContent = '';
         }
+      }
+      if (hudPowerup) {
+        const active = h.powerups || [];
+        hudPowerup.textContent = active.map(p => I18n.t('powerup.' + p.id) + ' ' + Math.ceil(p.remaining) + 's').join(' · ');
       }
       if (abilityBtn) {
         if (h.ability) {

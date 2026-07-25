@@ -327,7 +327,7 @@ const UI = (() => {
     lastResult = payload;
 
     // registra a partida (atualiza recordes, desbloqueios, história, streak)
-    const context = { mode: daily ? 'daily' : 'classic', seed, rulesetId: (payload && payload.rulesetId) || (daily ? 'daily-v1' : 'classic-v1'), shipId: (payload && payload.shipId) || Storage.getSnapshot().selectedShip, loadout: (payload && payload.loadout) || undefined, maxCombo: (payload && payload.maxCombo) || 0 };
+    const context = { mode: daily ? 'daily' : 'classic', seed, rulesetId: (payload && payload.rulesetId) || (daily ? 'daily-v2' : 'classic-v2'), shipId: (payload && payload.shipId) || Storage.getSnapshot().selectedShip, loadout: (payload && payload.loadout) || undefined, maxCombo: (payload && payload.maxCombo) || 0, powerups: (payload && payload.powerups) || [] };
     const res = Storage.recordRun({ m: meters, t: time, c: crystals, ...context });
 
     // salva no ranking local (usa o nome opcional do jogador)

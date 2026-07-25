@@ -128,6 +128,35 @@ describe('Game — habilidades (tecla/botão dedicado)', () => {
   });
 });
 
+describe('Game — power-ups durante a run', () => {
+  it('2× Cristais dobra a coleta e expõe a duração no HUD', () => {
+    startPlaying();
+    const ship = Game._debug.ship;
+    Game._debug.spawnPowerup('doubleCrystals', ship.x, ship.y);
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(Game.getHud().powerups).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'doubleCrystals' })]));
+    Game._debug.spawnCrystal(ship.x, ship.y);
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(Game.getHud().crystals).toBe(2);
+  });
+
+  it('Magnet e Shield pickup aplicam efeitos sem acumular escudos', () => {
+    startPlaying();
+    const ship = Game._debug.ship;
+    Game._debug.spawnPowerup('magnet', ship.x, ship.y);
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(Game.getHud().powerups).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'magnet' })]));
+    Game._debug.spawnPowerup('shield', ship.x, ship.y);
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(Game.getHud().shield).toBe(true);
+    Game._debug.spawnPowerup('shield', ship.x, ship.y);
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(Game.getHud().shield).toBe(true);
+    Game._debug.hit();
+    expect(Game.state).toBe('playing');
+  });
+});
+
 describe('Game — Daily Run determinístico e por dia', () => {
   function captureDaily() {
     Game.start('daily');

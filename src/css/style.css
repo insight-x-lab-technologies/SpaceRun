@@ -393,6 +393,12 @@ body.high-contrast .btn {
   text-shadow: 0 0 10px rgba(255, 74, 216, 0.5);
 }
 .hud-ability.cd { opacity: 0.55; text-shadow: none; }
+.hud-powerup {
+  color: #ffe27a;
+  font-size: clamp(13px, 3.2vw, 16px);
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255, 216, 74, 0.55);
+}
 
 /* ---------- Toast de conquista ---------- */
 .achievement {

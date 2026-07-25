@@ -1,11 +1,11 @@
 # SpaceRun — Portões de qualidade
 
-Status: **baseline v0.5**. Contratos, unitários e matriz E2E são automatizados;
-offline real foi validado no registro operacional de 2026-07-24. Contraste em
-aparelho, baseline de performance e playtest humano continuam sendo registros
-manuais de release. A correção da regressão de rotação `V05-OFFLINE-01` está
-na v0.5.1 e precisa de reteste no dispositivo publicado antes do encerramento
-da fundação.
+Status: **baseline v0.5.1**. Contratos, unitários e matriz E2E são
+automatizados; offline real e o reteste da regressão de rotação
+`V05-OFFLINE-01` foram aprovados em iPhone/Safari. Por decisão de produto de
+2026-07-25, contraste em aparelho, baseline de performance e playtest humano
+permanecem registros manuais exigidos no encerramento do projeto, mas não
+bloqueiam a F4A.
 
 Este documento define o mínimo necessário para alterar e publicar o SpaceRun.
 Ferramentas de desenvolvimento são permitidas; o app em produção continua
@@ -51,7 +51,7 @@ independentemente.
 Um teste de contrato deve falhar quando houver divergência em qualquer item:
 
 - Ordem de scripts: `storage → i18n → ships → achievements → audio → themes →
-  input → game → ui → share → main`, com posições novas explicitamente
+  input → powerups → game → ui → share → main`, com posições novas explicitamente
   documentadas.
 - `tests/helpers/loadApp.js` carrega os mesmos módulos, na mesma ordem, exceto
   `main.js`, testado separadamente.
@@ -249,7 +249,9 @@ Confirmar também:
 ## Gate 13 — Validação de produto
 
 Antes de iniciar uma nova camada de retenção, competição ou monetização, executar
-um playtest curto sem explicar previamente os controles.
+um playtest curto sem explicar previamente os controles. Exceção vigente: a
+decisão de produto de 2026-07-25 adia este registro, o contraste manual e o
+baseline de performance para o encerramento do projeto; ela autoriza a F4A.
 
 Roteiro mínimo:
 

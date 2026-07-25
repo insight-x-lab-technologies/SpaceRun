@@ -35,8 +35,8 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 1 | Progressão & Colecionáveis | P1 | ✅ entregue | Recompensa durante a run |
 | 2 | Naves & Customização | P1/P2 | ✅ entregue | Escolha, progressão e identidade |
 | 3 | Meta & Social local | P2 | ✅ entregue | Conquistas, estatísticas e compartilhamento |
-| **v0.5** | **Fundação estrutural** | **P0** | **base de código entregue; validação operacional pendente** | Evoluir sem perder saves, segurança, paridade ou qualidade |
-| 4A | Power-ups em run | P1 | após concluir os gates operacionais da v0.5 | Mais decisões e variedade no loop principal |
+| **v0.5** | **Fundação estrutural** | **P0** | **base de código entregue; registros manuais finais adiados por decisão de produto** | Evoluir sem perder saves, segurança, paridade ou qualidade |
+| 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | após 4A/8A | Identidade visual sem alterar competição |
 | 9 | Modos de Jogo | P2 | após regras de modo/ruleset | Rejogabilidade por objetivos |
@@ -49,9 +49,9 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 
 ## Ordem recomendada de execução
 
-1. Registrar o baseline de performance e o playtest humano restantes da
-   **v0.5 — Fundação estrutural**.
-2. Entregar **F4A — Power-ups** sem login, missões ou XP.
+1. Entregar **F4A — Power-ups** sem login, missões ou XP.
+2. Antes do encerramento do projeto, registrar o baseline de performance, o
+   contraste manual e o playtest humano restantes da **v0.5 — Fundação estrutural**.
 3. Concluir o restante de **F8A**, se algum item essencial não couber na v0.5.
 4. Entregar uma fatia cosmética pequena da **F7**.
 5. Implementar 2–3 modos simples da **F9**, todos com `rulesetId` explícito.
@@ -72,7 +72,9 @@ possam ser executadas com segurança por pessoas ou agentes.
 As tarefas foram executadas na ordem indicada. As seções abaixo preservam o
 escopo e os critérios de aceite históricos; a tabela registra o estado atual.
 Itens parciais ou pendentes dependem de registro operacional, e não de uma
-lacuna conhecida no runtime. A F4A permanece bloqueada até sua conclusão.
+lacuna conhecida no runtime. A decisão de produto de 2026-07-25 aprovou o
+reteste de rotação e adiou os registros manuais restantes para o encerramento
+do projeto; a F4A está liberada.
 
 | Item | Status | Dependências mínimas |
 |------|--------|----------------------|
@@ -83,10 +85,10 @@ lacuna conhecida no runtime. A F4A permanece bloqueada até sua conclusão.
 | FND-05 | ✅ entregue | FND-01 |
 | FND-06 | ✅ entregue | suíte atual verde |
 | FND-07 | ✅ entregue | FND-02 e FND-06 |
-| FND-08 | ◐ parcial — matriz automatizada e offline real validados; correção de rotação implementada na v0.5.1 e aguarda reteste em dispositivo | FND-03 a FND-06 |
-| FND-09 | ◐ parcial — Performance Mode entregue; baseline/harness pendente | FND-03 e FND-08 |
+| FND-08 | ✅ entregue — matriz automatizada, offline real e reteste de rotação v0.5.1 aprovados | FND-03 a FND-06 |
+| FND-09 | ◐ parcial — Performance Mode entregue; baseline/harness adiado para o encerramento do projeto | FND-03 e FND-08 |
 | FND-10 | ✅ entregue | FND-02, FND-06 e FND-07 |
-| FND-11 | ⬜ pendente — requer cinco sessões de playtest registradas | FND-05, FND-08 e FND-09 |
+| FND-11 | ◐ adiado por decisão de produto — cinco sessões de playtest serão registradas no encerramento do projeto | FND-05, FND-08 e FND-09 |
 
 ### FND-01 — Segurança do DOM e dados não confiáveis
 
@@ -258,13 +260,13 @@ mensagem que indique exatamente o arquivo e a regra violada.
 
 ### FND-08 — Matriz E2E, offline e regressão visual funcional
 
-**Registro operacional (2026-07-24):** a base automatizada foi executada com
+**Registro operacional (2026-07-24, reteste aprovado em 2026-07-25):** a base automatizada foi executada com
 sucesso e o app foi validado offline no commit publicado `c1a1d0a`, em iPhone
 17/Safari e Windows desktop/Chrome. Todas as telas abriram e o jogo permaneceu
 funcional após a primeira visita online. A validação revelou o bug de rotação
 `V05-OFFLINE-01`; a correção foi implementada na v0.5.1 com teste unitário e
-E2E. Ver `docs/validation/v0.5-offline-2026-07-24.md`; o reteste no iPhone
-publicado ainda é necessário para encerrar o item.
+E2E. Ver `docs/validation/v0.5-offline-2026-07-24.md`; o reteste publicado no
+iPhone/Safari foi aprovado e encerra o item.
 
 **Implementar:**
 
@@ -353,10 +355,11 @@ decisão explícita de seguir para F4A ou corrigir o core loop primeiro.
 
 ### Critério de saída da v0.5
 
-A base de código v0.5 está entregue. O marco operacional só será encerrado
-quando o offline real, o baseline de performance e as cinco sessões de playtest
-forem registrados, além dos gates automatizados já verdes. Nenhuma mudança pode
-apagar progresso existente silenciosamente.
+A base de código v0.5 está entregue e a F4A está autorizada. O registro
+operacional final será encerrado no fim do projeto, quando baseline de
+performance, contraste manual e cinco sessões de playtest forem documentados,
+além dos gates automatizados já verdes. Nenhuma mudança pode apagar progresso
+existente silenciosamente.
 
 ---
 
@@ -465,6 +468,10 @@ com nome opcional; score card em canvas via `share.js` com download/Web Share).
 ---
 
 ## Fase 4A — Power-ups durante a run  ·  P1  ·  complexidade média
+
+**Status: ✅ entregue na v0.5.2.** Magnet, 2× Crystals e Shield pickup foram
+implementados no módulo `powerups.js`, com spawn indexado por distância,
+feedback no HUD, i18n, persistência limitada do uso e testes de determinismo.
 
 Primeira fatia após a v0.5. Power-ups tornam cada run mais dinâmica sem criar de
 imediato perfil, calendário, missões e uma nova economia.

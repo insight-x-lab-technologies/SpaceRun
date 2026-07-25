@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.5.1**. Gameplay art and audio are procedural; the app is a serverless
+Version **0.5.2**. Gameplay art and audio are procedural; the app is a serverless
 PWA (vanilla HTML/JS, no frameworks, no backend). Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -11,9 +11,10 @@ ranking local e compartilhamento) estão implementadas.
 A base de código da v0.5 está entregue: save v2 com migração e validação,
 renderização segura de dados locais, Daily Run com assinatura lógica e
 `rulesetId`, atualização PWA adiada durante partidas, recursos essenciais de
-acessibilidade, testes de contrato e validação no CI antes do deploy. Os gates
-operacionais de baseline de performance e playtest humano continuam pendentes;
-por isso a Fase 4A ainda não está autorizada.
+acessibilidade, testes de contrato e validação no CI antes do deploy. O reteste
+de rotação da v0.5.1 foi aprovado no iPhone/Safari. Por decisão de produto de
+2026-07-25, baseline de performance, contraste manual e playtest humano ficam
+para o encerramento do projeto; a Fase 4A está autorizada.
 
 ## Core gameplay
 
@@ -94,6 +95,11 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
   - *Laser gate*: a vertical energy beam with a moving safe gap that toggles on/off.
 - **Biomes by distance:** every 5,000 m the star/nebula palette and terrain glow
   shift through 5 procedural themes, keeping runs visually fresh.
+- **Power-ups during a run (F4A):** three procedural pickups spawn by distance:
+  *Magnet* attracts crystals for 5 s, *2× Crystals* doubles crystal gains for
+  8 s, and *Shield pickup* grants one shared shield charge. Timed effects refresh
+  instead of stacking; the shield does not stack with the ship ability. Their
+  use is bounded in the run history, and their logical spawns use ruleset v2.
 - **Daily Run / Seed:** o modo **Diário está ativo na Home** e usa a data local
   como seed. Na v0.4, o spawn de obstáculos/pickups é indexado por distância
   percorrida (não por `dt`/framerate), e os testes cobrem frame timings diferentes

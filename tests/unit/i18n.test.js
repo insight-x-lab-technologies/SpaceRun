@@ -57,4 +57,13 @@ describe('I18n — internacionalização pt/en/es', () => {
       }
     }
   });
+
+  it('traduz os power-ups da F4A nos três idiomas', () => {
+    for (const lang of ['pt', 'en', 'es']) {
+      I18n.setLang(lang);
+      expect(I18n.t('powerup.magnet').length).toBeGreaterThan(0);
+      expect(I18n.t('powerup.doubleCrystals').length).toBeGreaterThan(0);
+      expect(I18n.t('powerup.shield').length).toBeGreaterThan(0);
+    }
+  });
 });

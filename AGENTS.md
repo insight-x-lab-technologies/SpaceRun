@@ -13,7 +13,7 @@ em um único `<canvas>` e o áudio é sintetizado com WebAudio. Não use imagens
 áudio binários para gameplay; os PNGs em `src/assets/` são apenas ícones
 obrigatórios da PWA.
 
-## Estado real do produto (v0.5; validação operacional da fundação em andamento)
+## Estado real do produto (v0.5.2; F4A entregue)
 
 - Jogo clássico e **Daily Run** estão ativos na Home. O Daily usa a data local
   como seed; a sequência de spawns é indexada por distância e tem testes de
@@ -21,6 +21,8 @@ obrigatórios da PWA.
 - Há 20 naves, desbloqueadas por metros acumulados, com skins, upgrades locais e
   habilidades `dash`, `shield` ou `slowmo`.
 - Cristais, combo, marcos, biomas e obstáculos adicionais já existem.
+- A F4A adiciona power-ups procedurais durante a run: Magnet (5 s), 2× Cristais
+  (8 s) e Shield pickup (uma carga, compartilhada com o escudo da nave).
 - Conquistas, estatísticas, histórico, Top 10 local e score card para download/
   Web Share já existem. Não existe leaderboard diário separado, servidor,
   sincronização entre dispositivos, ghost ou missão diária.
@@ -28,8 +30,9 @@ obrigatórios da PWA.
   partículas, reduzir movimento e alto contraste.
 - A base estrutural v0.5 já está no código: save v2 com migração, renderização
   segura, paridade lógica do Daily, atualização PWA diferida, acessibilidade
-  essencial, CI e testes de contrato. Ainda faltam os registros operacionais de
-  baseline de performance e de playtest humano antes de liberar a F4A.
+  essencial, CI e testes de contrato. O reteste de rotação no iPhone/Safari foi
+  aprovado. Baseline de performance, contraste manual e playtest humano foram
+  deliberadamente adiados para o encerramento do projeto e não bloqueiam a F4A.
 
 Leia, nesta ordem, antes de alterar funcionalidade:
 
@@ -47,7 +50,7 @@ Leia, nesta ordem, antes de alterar funcionalidade:
 | Área | Arquivos principais |
 |---|---|
 | Página, telas e estilo | `src/index.html`, `src/css/style.css`, `src/js/ui.js` |
-| Simulação e renderização | `src/js/game.js`, `src/js/ships.js`, `src/js/input.js` |
+| Simulação e renderização | `src/js/game.js`, `src/js/ships.js`, `src/js/input.js`, `src/js/powerups.js` |
 | Progresso e meta | `src/js/storage.js`, `src/js/achievements.js`, `src/js/share.js` |
 | Texto, temas e som | `src/js/i18n.js`, `src/js/themes.js`, `src/js/audio.js` |
 | Bootstrap/PWA | `src/js/main.js`, `src/sw.js`, `src/manifest.json` |
@@ -58,7 +61,7 @@ Leia, nesta ordem, antes de alterar funcionalidade:
 1. Mantenha o padrão de IIFEs globais e a ordem relativa exata dos scripts
    existentes em
    `src/index.html`: `storage → i18n → ships → achievements → audio → themes →
-   input → game → ui → share → main`. Módulo novo exige posição/dependências
+   input → powerups → game → ui → share → main`. Módulo novo exige posição/dependências
    documentadas e atualização do helper de testes e SW. Não introduza
    `import`/`export`.
 2. Toda string visível precisa de chave em `src/js/i18n.js` para **pt, en e es**.
@@ -86,12 +89,14 @@ npm run test:e2e
 
 Os unitários usam Vitest/jsdom. Os e2e usam Playwright e um servidor em 4173;
 antes de confiar no resultado, confirme que essa porta não está servindo outro
-projeto — a configuração atual permite reutilizar um servidor existente. Não há
-CI de testes: o workflow do GitHub Pages apenas publica `src/`.
+projeto — a configuração atual permite reutilizar um servidor existente. O
+workflow do GitHub Pages executa contratos, testes unitários e E2E antes de
+publicar `src/`; o deploy só ocorre após a validação passar.
 
 Os contratos, unitários e a matriz E2E já rodam no CI. Siga
 `docs/QUALITY_GATES.md` e registre na entrega os gates que continuam manuais
-(offline real, contraste em aparelho, performance e playtest).
+(contraste em aparelho, performance e playtest). Por decisão de produto de
+2026-07-25, esses registros ficam para o encerramento do projeto.
 
 Mantenha mudanças focadas, revise `git status`/`git diff`, faça commit atômico e
 nunca faça force-push.

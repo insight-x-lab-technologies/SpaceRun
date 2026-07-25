@@ -26,7 +26,7 @@ const I18n = (() => {
       'ready.title': 'Pronto?',
       'ready.msg': 'Pressione ESPAÇO ou toque a tela para iniciar',
       'milestone.reach': '{n} m!',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.5.1',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.5.2',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Escolha sua aeronave',
@@ -151,6 +151,9 @@ const I18n = (() => {
       'share.ship': 'Nave',
 
       'hud.recharging': 'Recarregando',
+      'powerup.magnet': 'Ímã',
+      'powerup.doubleCrystals': 'Cristais 2×',
+      'powerup.shield': 'Escudo',
 
       'ship.scout.desc': 'Equilibrada e confiável.',
       'ship.falcon.desc': 'Ágil, sobe e desce rápido.',
@@ -198,7 +201,7 @@ const I18n = (() => {
       'ready.title': 'Ready?',
       'ready.msg': 'Press SPACE or tap the screen to start',
       'milestone.reach': '{n} m!',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.5.1',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.5.2',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Choose your ship',
@@ -323,6 +326,9 @@ const I18n = (() => {
       'share.ship': 'Ship',
 
       'hud.recharging': 'Recharging',
+      'powerup.magnet': 'Magnet',
+      'powerup.doubleCrystals': 'Crystals 2×',
+      'powerup.shield': 'Shield',
 
       'ship.scout.desc': 'Balanced and reliable.',
       'ship.falcon.desc': 'Agile, rises and falls fast.',
@@ -370,7 +376,7 @@ const I18n = (() => {
       'ready.title': '¿Listo?',
       'ready.msg': 'Pulsa ESPACIO o toca la pantalla para empezar',
       'milestone.reach': '¡{n} m!',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.5.1',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.5.2',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Elige tu nave',
@@ -495,6 +501,9 @@ const I18n = (() => {
       'share.ship': 'Nave',
 
       'hud.recharging': 'Recargando',
+      'powerup.magnet': 'Imán',
+      'powerup.doubleCrystals': 'Cristales 2×',
+      'powerup.shield': 'Escudo',
 
       'ship.scout.desc': 'Equilibrada y confiable.',
       'ship.falcon.desc': 'Ágil, sube y baja rápido.',

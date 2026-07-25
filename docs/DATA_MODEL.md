@@ -91,10 +91,11 @@ campo nunca pode ser interpretada diretamente como erro fatal.
   d: 1784600000000,           // timestamp local em ms
   mode: "classic",           // classic | daily | ids futuros conhecidos
   seed: 1234567890,           // uint32; 0 quando não aplicável
-  rulesetId: "classic-v1",
+  rulesetId: "classic-v2",
   shipId: "scout",
   loadout: { agility: 0, thrust: 0 },
-  maxCombo: 7
+  maxCombo: 7,
+  powerups: ["magnet", "shield"] // tipos únicos, máximo de 3
 }
 ```
 
@@ -103,6 +104,9 @@ Regras:
 - `rulesetId` identifica física, colisão, dificuldade e geração lógica.
 - `loadout` é um snapshot; não consultar upgrades atuais para reinterpretar run
   antiga.
+- `powerups` registra apenas os tipos efetivamente aplicados (`magnet`,
+  `doubleCrystals`, `shield`) para depuração/replay; valores desconhecidos,
+  duplicados ou excessivos são descartados.
 - Um campo desconhecido é ignorado na leitura, nunca executado ou renderizado
   como HTML.
 - Modo/ruleset desconhecido pode ser exibido como incompatível, mas não entra em
@@ -122,7 +126,7 @@ com desempate documentado.
   d: 1784600000000,
   mode: "classic",
   seed: 0,
-  rulesetId: "classic-v1",
+  rulesetId: "classic-v2",
   shipId: "scout",
   loadout: { agility: 0, thrust: 0 },
   source: "local"             // local | imported

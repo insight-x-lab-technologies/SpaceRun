@@ -40,6 +40,7 @@ SpaceRun/
         ├── audio.js          # Audio2: SFX + procedural music + optional MP3 (WebAudio)
         ├── themes.js         # Themes: list + apply/set/init of CSS vars + audio (cosmetic)
         ├── input.js          # Input: unified "thrust" + "ability" (Shift / touch button)
+        ├── powerups.js       # PowerUps: declarative F4A pickup types/durations
         ├── game.js           # Game: engine, state machine, render, physics
         ├── ui.js             # UI: screen routing, hangar, settings, gameover
         ├── share.js          # Share: procedural score-card canvas (Fase 3)
@@ -53,7 +54,7 @@ Each `js/*.js` file is an **IIFE that exposes a single global object**. There is
 globals and are loaded in a fixed `<script>` order in `index.html`:
 
 ```
-storage → i18n → ships → achievements → audio → themes → input → game → ui → share → main
+storage → i18n → ships → achievements → audio → themes → input → powerups → game → ui → share → main
 ```
 
 Load order matters: `Game.init()` registers an `Input` listener. During
@@ -72,7 +73,8 @@ applies the saved CSS variables and audio configuration through
 | `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setTheme(t)`, `setMusicTracks(menuUrl, gameUrl)`, `setEnabled`, `setMusicEnabled`, `ensure`. |
 | `Themes` | `list` (defs with `id`, `name`, `vars`, `font`, optional `audio`), `get(id)`, `currentId()`, `apply(id)`, `set(id)` (persists + applies + emits `musicchange`), `init()` (applies saved theme, sets `--font` on `<html>`, sets `data-theme`, wires `Audio2.setTheme`). |
 | `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; `Shift` (desktop) and the floating touch button (`#ability-btn`) emit `ability`. |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start('classic'|'daily')`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability, abilityCd, shield, dash, slowmo), `state`. The Game Over callback receives meters, time, crystals, seed, `daily`, ship id and combo. Handles abilities, shield/invulnerability, dash/slowmo and deterministic Daily spawns. |
+| `PowerUps` | Declarative F4A pickup definitions (`magnet`, `doubleCrystals`, `shield`), their durations and deterministic type selection. It has no DOM or persistence dependency. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start('classic'|'daily')`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability and active power-ups), `state`. The Game Over callback receives run context plus bounded power-up use. Handles abilities, shared shield/invulnerability, dash/slowmo and deterministic Daily spawns. |
 | `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
 | `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |
 | `main`   | Bootstraps everything; HUD loop (incl. ability status); music switching; install (`beforeinstallprompt`); SW registration. |
@@ -156,7 +158,9 @@ effectively infinite and resolution-independent.
 12. **Quality gates block release.** Follow `QUALITY_GATES.md`; contract,
     unit and E2E checks run before the Pages deploy. Offline validation on a
     real device, contrast checks, the performance baseline and human playtests
-    remain recorded manual gates.
+    remain recorded manual gates for project closeout; the v0.5.1 rotation
+    retest is approved and the remaining manual records do not block F4A by
+    product decision dated 2026-07-25.
 
 ## Structural foundation (v0.5)
 
@@ -165,8 +169,9 @@ schema/migrations, safe DOM rendering, Daily logical parity, deferred PWA
 updates, essential accessibility, CI and architecture contract tests. The code
 baseline uses `spacerun.save.v2`, transactional `Storage` writes, safe rendering
 for player names, ruleset-tagged results, deferred SW activation, contract tests
-and the supported Playwright matrix. Performance measurement and human playtest
-records remain operational release gates, not unfinished runtime architecture.
+and the supported Playwright matrix. Performance measurement, contrast checks
+and human playtest records remain final-release gates, not unfinished runtime
+architecture or blockers for F4A.
 
 New domain modules remain IIFE-globals. Their dependency and insertion point
 must be documented before implementation and mirrored in `index.html`,
