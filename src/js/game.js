@@ -11,7 +11,7 @@ const Game = (() => {
   let world = { scroll: 0, speed: 60, meters: 0, difficulty: 0 };
   let ship = null;
   let stars = [], nearStars = [], nebulae = [];
-  let obstacles = [], particles = [], pickups = [];
+  let obstacles = [], particles = [], pickups = [], boss = null;
   let crashAnim = 0;
   let recordSpawns = false;   // seam de teste: registra a assinatura de spawn (Daily Run)
 
@@ -34,13 +34,16 @@ const Game = (() => {
   ];
 
   // Power-ups alteram o universo lógico; resultados v1 permanecem históricos.
-  const RULESET = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1' };
+  const RULESET = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1', marathon: 'marathon-v1', timeattack: 'timeattack-v1', bossrush: 'bossrush-v1' };
   const MODE = {
     classic: { id: 'classic', rulesetId: RULESET.classic },
     daily: { id: 'daily', rulesetId: RULESET.daily, daily: true },
     zen: { id: 'zen', rulesetId: RULESET.zen, noCollision: true, wideTerrain: true, calmMusic: true },
     sprint: { id: 'sprint', rulesetId: RULESET.sprint, duration: 60 },
-    hardcore: { id: 'hardcore', rulesetId: RULESET.hardcore, noPowerups: true, narrowTerrain: true, oneLife: true }
+    hardcore: { id: 'hardcore', rulesetId: RULESET.hardcore, noPowerups: true, narrowTerrain: true, oneLife: true },
+    marathon: { id: 'marathon', rulesetId: RULESET.marathon, targetMeters: 10000 },
+    timeattack: { id: 'timeattack', rulesetId: RULESET.timeattack, targetMeters: 3000, duration: 90 },
+    bossrush: { id: 'bossrush', rulesetId: RULESET.bossrush, bossRush: true }
   };
   let settings = { particles: true, performanceMode: false, haptics: false, reduceMotion: false };
   let cosmetics = { trail: 'ion', explosion: 'nova', title: 'cadet' };
@@ -182,7 +185,7 @@ const Game = (() => {
       seed: seed || 0, mode: modeDef.id, daily: !!modeDef.daily, rulesetId: modeDef.rulesetId, rng: null, accent: '#4af0ff',
       noCollision: !!modeDef.noCollision, noPowerups: !!modeDef.noPowerups, wideTerrain: !!modeDef.wideTerrain,
       narrowTerrain: !!modeDef.narrowTerrain, oneLife: !!modeDef.oneLife, calmMusic: !!modeDef.calmMusic,
-      remaining: modeDef.duration || 0,
+      remaining: modeDef.duration || 0, targetMeters: modeDef.targetMeters || 0, bossRush: !!modeDef.bossRush, nextBossDist: 2000,
       nextSpawnDist: 16, nextPickupDist: 40, nextPowerupDist: 120, powerupsUsed: [], spawnSig: []
     };
     if (seed) world.rng = mulberry32(seed >>> 0);
@@ -208,6 +211,7 @@ const Game = (() => {
     obstacles = [];
     particles = [];
     pickups = [];
+    boss = null;
     world.nextSpawnDist = 16;
     world.nextPickupDist = 40;
     world.nextPowerupDist = 120;
@@ -243,7 +247,7 @@ const Game = (() => {
   function start(mode) {
     settings = Storage.getSettings();
     cosmetics = Storage.getCosmetics();
-    const selectedMode = MODE[mode] ? mode : 'classic';
+    const selectedMode = MODE[mode] && Storage.isModeUnlocked(mode) ? mode : 'classic';
     const seed = selectedMode === 'daily' ? dailySeed() : (Math.random() * 0xffffffff) >>> 0;
     buildWorld(seed, selectedMode);
     setState('ready');   // começa pausado, aguardando input do jogador
@@ -640,6 +644,10 @@ const Game = (() => {
       nextMilestone = MILESTONES[milestoneIdx] || (nextMilestone + 50000);
     }
 
+    // Marathon e Time Attack terminam por objetivo, não por colisão. O modo
+    // Time Attack ainda pode falhar quando o cronômetro expira no fim do tick.
+    if (world.targetMeters && world.meters >= world.targetMeters) return gameOver('target-complete');
+
     // física da nave
     const st = ship.ship.stats;
     const gravity = 1150;
@@ -766,13 +774,42 @@ const Game = (() => {
       if (o.x < -margin) obstacles.splice(i, 1);
     }
 
+    updateBoss(dt);
+
     if (world.remaining > 0) {
       world.remaining = Math.max(0, world.remaining - dt);
-      if (world.remaining === 0) return gameOver('sprint-complete');
+      if (world.remaining === 0) return gameOver(world.mode === 'sprint' ? 'sprint-complete' : 'timeattack-failed');
     }
 
     notifyAchievements();
     updateParticles(dt);
+  }
+
+  // Boss Rush não adiciona um sistema de tiro à nave: cada mini-boss ocupa a
+  // borda do túnel e lança uma sequência procedural de asteroides por 12 s.
+  // Sobreviver à sequência derrota o boss e concede cristais.
+  function updateBoss(dt) {
+    if (!world.bossRush) return;
+    if (!boss && world.meters >= world.nextBossDist) {
+      boss = { x: W + 110, y: H * 0.5, r: Math.max(34, H * 0.075), phase: Math.random() * Math.PI * 2, remaining: 12, shotIn: 0.65 };
+      world.nextBossDist += 2000;
+    }
+    if (!boss) return;
+    boss.x += (W * 0.76 - boss.x) * Math.min(1, dt * 2.6);
+    boss.y = H * 0.5 + Math.sin(performance.now() * 0.002 + boss.phase) * H * 0.22;
+    boss.remaining -= dt;
+    boss.shotIn -= dt;
+    if (boss.shotIn <= 0) {
+      const shotY = Math.max(boss.r, Math.min(H - boss.r, boss.y + Math.sin(boss.remaining * 2.3 + boss.phase) * H * 0.16));
+      obstacles.push({ type: 'asteroid', x: boss.x - boss.r * 0.7, y: shotY, r: Math.max(11, H * 0.024), rot: 0, spin: 2.2, seed: Math.random() * 1000 });
+      boss.shotIn = 0.72;
+    }
+    if (boss.remaining <= 0) {
+      world.crystals += 25;
+      UI.showMilestone(I18n.t('boss.defeated', { n: 25 }));
+      Audio2.unlock();
+      boss = null;
+    }
   }
 
   function updateParticles(dt) {
@@ -787,7 +824,7 @@ const Game = (() => {
 
   function gameOver(reason) {
     if (state === 'over') return;
-    const completed = reason === 'sprint-complete';
+    const completed = reason === 'sprint-complete' || reason === 'target-complete';
     setState('over');
     crashAnim = 0;
     if (!completed) {
@@ -828,6 +865,7 @@ const Game = (() => {
       ctx.translate(sx, sy);
       drawTerrain();
       drawObstacles();
+      drawBoss();
       drawPickups();
       drawShip(t);
       drawParticles();
@@ -942,6 +980,23 @@ const Game = (() => {
       else if (o.type === 'laser') drawLaser(o);
       else drawAsteroid(o);
     }
+  }
+
+  function drawBoss() {
+    if (!boss) return;
+    ctx.save();
+    ctx.translate(boss.x, boss.y);
+    ctx.shadowColor = '#ff4ad8'; ctx.shadowBlur = 22;
+    ctx.fillStyle = '#28104b';
+    ctx.beginPath(); ctx.arc(0, 0, boss.r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ff4ad8'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, boss.r, 0, Math.PI * 2); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#4af0ff';
+    [-0.34, 0.34].forEach(offset => { ctx.beginPath(); ctx.arc(offset * boss.r, -boss.r * 0.12, boss.r * 0.12, 0, Math.PI * 2); ctx.fill(); });
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, boss.r * 0.68, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
   }
 
   function drawAsteroid(o) {
@@ -1123,6 +1178,9 @@ const Game = (() => {
       speed: Math.floor(world.speed),
       mode: world.mode,
       remaining: world.remaining,
+      targetMeters: world.targetMeters,
+      boss: boss ? { remaining: Math.max(0, boss.remaining) } : null,
+      bossDistance: world.bossRush ? Math.max(0, Math.ceil(world.nextBossDist - world.meters)) : 0,
       crystals: world.crystals,
       combo: world.combo,
       ability: ship ? ship.ability : null,
@@ -1145,6 +1203,7 @@ const Game = (() => {
       get world() { return world; },
       get obstacles() { return obstacles; },
       get pickups() { return pickups; },
+      get boss() { return boss; },
       get ship() { return ship; },
       tick(dt) { update(dt, performance.now()); },
       hit: () => hit(),

@@ -70,7 +70,7 @@ describe('I18n — internacionalização pt/en/es', () => {
   it('traduz os modos da Fase 9 nos três idiomas', () => {
     for (const lang of ['pt', 'en', 'es']) {
       I18n.setLang(lang);
-      ['classic', 'daily', 'zen', 'sprint', 'hardcore'].forEach(mode => {
+      ['classic', 'daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush'].forEach(mode => {
         expect(I18n.t('mode.' + mode)).not.toBe('mode.' + mode);
         expect(I18n.t('mode.' + mode + '.desc')).not.toBe('mode.' + mode + '.desc');
       });

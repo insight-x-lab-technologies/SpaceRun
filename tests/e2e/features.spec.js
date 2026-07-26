@@ -7,9 +7,8 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await page.goto('/');
     await expect(page.locator('.logo')).toContainText('SPACERUN');
     await expect(page.locator(HOME)).toBeVisible();
-    await expect(page.locator('#mode-select')).toBeVisible();
     await expect(page.locator(`${HOME} [data-action="play"]`)).toBeVisible();
-    await expect(page.locator(`${HOME} [data-action="playDaily"]`)).toBeVisible();
+    await expect(page.locator(`${HOME} [data-action="customGame"]`)).toBeVisible();
     await expect(page.locator(`${HOME} [data-action="hangar"]`)).toBeVisible();
   });
 
@@ -47,19 +46,25 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     }
   });
 
-  test('Daily Run: botão inicia partida diária', async ({ page }) => {
+  test('Custom Game desbloqueia Daily Run e inicia partida diária', async ({ page }) => {
     await page.goto('/');
-    await page.click(`${HOME} [data-action="playDaily"]`);
+    await page.click(`${HOME} [data-action="customGame"]`);
+    await expect(page.locator('#screen-custom-game')).toBeVisible();
+    await expect(page.locator('[data-action="playMode"][data-mode="daily"]')).toBeDisabled();
+    await page.evaluate(() => Storage.recordRun(10000, 0, 0));
+    await page.click('#screen-custom-game [data-action="home"]');
+    await page.click(`${HOME} [data-action="customGame"]`);
+    await page.click('[data-action="playMode"][data-mode="daily"]');
     await expect(page.locator('#ready-overlay')).toBeVisible();
     await page.keyboard.press('Space');
     await expect(page.locator('#hud')).toBeVisible();
   });
 
-  test('Sprint é selecionável na Home e mostra cronômetro no HUD', async ({ page }) => {
+  test('Sprint é selecionável no Custom Game e mostra cronômetro no HUD', async ({ page }) => {
     await page.goto('/');
-    await page.selectOption('#mode-select', 'sprint');
-    await expect(page.locator('#mode-description')).toContainText('60 seconds');
-    await page.click(`${HOME} [data-action="play"]`);
+    await page.evaluate(() => Storage.recordRun(50000, 0, 0));
+    await page.click(`${HOME} [data-action="customGame"]`);
+    await page.click('[data-action="playMode"][data-mode="sprint"]');
     await page.keyboard.press('Space');
     await expect(page.locator('#hud-objective')).toContainText('SPRINT');
   });

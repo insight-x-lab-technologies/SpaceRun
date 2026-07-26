@@ -30,6 +30,18 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(document.getElementById('ach-list').children.length).toBe(23);
   });
 
+  it('abre o hub Custom Game e exibe os sete marcos de desbloqueio', () => {
+    document.querySelector('[data-action="customGame"]').click();
+    expect(document.getElementById('screen-custom-game').classList.contains('hidden')).toBe(false);
+    expect(document.querySelectorAll('#custom-mode-list .custom-mode-card')).toHaveLength(7);
+    const daily = document.querySelector('[data-action="playMode"][data-mode="daily"]');
+    expect(daily.disabled).toBe(true);
+    Storage.recordRun(10000, 0, 0);
+    document.querySelector('[data-action="customGame"]').click();
+    expect(document.querySelector('[data-action="playMode"][data-mode="daily"]').disabled).toBe(false);
+    expect(document.querySelector('[data-action="playMode"][data-mode="bossrush"]').disabled).toBe(true);
+  });
+
   it('abre missões e coleta apenas uma recompensa diária', () => {
     document.querySelector('[data-action="missions"]').click();
     expect(document.getElementById('screen-missions').classList.contains('hidden')).toBe(false);

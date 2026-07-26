@@ -92,6 +92,7 @@ describe('Game — máquina de estados e ciclo de vida', () => {
 
 describe('Game — modos da Fase 9', () => {
   it('inicia Zen, Sprint e Hardcore com rulesets e objetivos próprios', () => {
+    Storage.recordRun(100000, 0, 0);
     Game.start('zen');
     expect(Game.getHud()).toMatchObject({ mode: 'zen', remaining: 0 });
     expect(Game._debug.world).toMatchObject({ rulesetId: 'zen-v1', noCollision: true, wideTerrain: true });
@@ -107,6 +108,7 @@ describe('Game — modos da Fase 9', () => {
   });
 
   it('Zen ignora colisões e Hardcore não permite pickups de poder ou escudo', () => {
+    Storage.recordRun(100000, 0, 0);
     Game.start('zen');
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
     Game._debug.hit();
@@ -121,6 +123,7 @@ describe('Game — modos da Fase 9', () => {
   });
 
   it('encerra Sprint quando o cronômetro chega a zero', () => {
+    Storage.recordRun(50000, 0, 0);
     Game.start('sprint');
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
     Game._debug.world.remaining = 1 / 60;
@@ -128,6 +131,44 @@ describe('Game — modos da Fase 9', () => {
     Game._debug.tick(1 / 60);
     expect(Game.state).toBe('over');
     expect(Game.getHud().remaining).toBe(0);
+  });
+
+  it('protege os modos bloqueados e configura Marathon, Time Attack e Boss Rush', () => {
+    Game.start('marathon');
+    expect(Game.getHud().mode).toBe('classic');
+
+    Storage.recordRun(1000000, 0, 0);
+    Game.start('marathon');
+    expect(Game.getHud()).toMatchObject({ mode: 'marathon', targetMeters: 10000 });
+    Game.start('timeattack');
+    expect(Game.getHud()).toMatchObject({ mode: 'timeattack', targetMeters: 3000, remaining: 90 });
+    Game.start('bossrush');
+    expect(Game._debug.world).toMatchObject({ mode: 'bossrush', rulesetId: 'bossrush-v1', bossRush: true });
+  });
+
+  it('encerra Marathon ao atingir o alvo e Time Attack quando o tempo termina', () => {
+    Storage.recordRun(500000, 0, 0);
+    Game.start('marathon');
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    Game._debug.world.meters = 9999.9;
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(Game.state).toBe('over');
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
+
+    Game.start('timeattack');
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    Game._debug.world.remaining = 1 / 60;
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(Game.state).toBe('over');
+  });
+
+  it('ativa um mini-chefe do Boss Rush a cada 2.000 m', () => {
+    Storage.recordRun(1000000, 0, 0);
+    Game.start('bossrush');
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    Game._debug.world.meters = 1999.9;
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(Game._debug.boss).toMatchObject({ remaining: expect.any(Number) });
   });
 });
 
@@ -212,6 +253,9 @@ describe('Game — expressão F7', () => {
 });
 
 describe('Game — Daily Run determinístico e por dia', () => {
+  beforeEach(() => {
+    Storage.recordRun(10000, 0, 0);
+  });
   function captureDaily() {
     Game.start('daily');
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));

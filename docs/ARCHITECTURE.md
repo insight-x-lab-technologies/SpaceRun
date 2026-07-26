@@ -72,7 +72,7 @@ applies the saved CSS variables and audio configuration through
 
 | Global   | Responsibility |
 |----------|----------------|
-| `Storage`| Save/load local progress, including `retention` (login streak, XP and bounded mission progress); validates the five known mode ids and preserves a Top 10 per `{mode, rulesetId}` category. |
+| `Storage`| Save/load local progress, including `retention` (login streak, XP and bounded mission progress); validates the eight known mode ids, derives Custom Game unlocks from `totalMeters`, and preserves a Top 10 per `{mode, rulesetId}` category. |
 | `Cloud`| Optional Supabase anonymous session, profile synchronization and unverified global leaderboard. Network failures are swallowed. |
 | `Missions`| F4B daily/weekly mission projection from validated `Storage` counters. |
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |

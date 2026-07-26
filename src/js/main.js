@@ -49,9 +49,15 @@
         hudPowerup.textContent = active.map(p => I18n.t('powerup.' + p.id) + ' ' + Math.ceil(p.remaining) + 's').join(' · ');
       }
       if (hudObjective) {
-        hudObjective.textContent = h.mode === 'sprint'
-          ? I18n.t('hud.sprint', { n: Math.ceil(h.remaining) })
-          : (h.mode === 'zen' ? I18n.t('hud.zen') : (h.mode === 'hardcore' ? I18n.t('hud.hardcore') : ''));
+        if (h.mode === 'sprint') hudObjective.textContent = I18n.t('hud.sprint', { n: Math.ceil(h.remaining) });
+        else if (h.mode === 'zen') hudObjective.textContent = I18n.t('hud.zen');
+        else if (h.mode === 'hardcore') hudObjective.textContent = I18n.t('hud.hardcore');
+        else if (h.mode === 'marathon') hudObjective.textContent = I18n.t('hud.marathon', { n: Math.max(0, h.targetMeters - h.meters) });
+        else if (h.mode === 'timeattack') hudObjective.textContent = I18n.t('hud.timeattack', { m: Math.max(0, h.targetMeters - h.meters), s: Math.ceil(h.remaining) });
+        else if (h.mode === 'bossrush') hudObjective.textContent = h.boss
+          ? I18n.t('hud.boss', { n: Math.ceil(h.boss.remaining) })
+          : I18n.t('hud.bossIncoming', { n: h.bossDistance });
+        else hudObjective.textContent = '';
       }
       if (abilityBtn) {
         if (h.ability) {

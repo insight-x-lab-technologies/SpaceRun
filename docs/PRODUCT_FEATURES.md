@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.6.0**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.7.0**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -175,24 +175,30 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 
 ## Modos de jogo (Fase 9)
 
-- A Home oferece um seletor de modo antes de iniciar uma partida normal. O
-  **Daily Run** continua sendo exclusivamente a regra Normal/Daily.
+- **New Game** na Home sempre inicia o modo Classic. O botão **Custom Game**
+  abre uma tela dedicada com Daily, Zen, Sprint, Hardcore, Marathon, Time
+  Attack e Boss Rush.
+- Os sete modos alternativos são desbloqueados por distância total acumulada:
+  10k, 25k, 50k, 100k, 250k, 500k e 1M m, respectivamente. O desbloqueio é
+  derivado de `totalMeters`, portanto saves existentes o recebem sem migração.
 - **Zen:** sem colisões, túnel sempre amplo e música procedural calma para
   explorar e coletar cristais sem pressão.
 - **Sprint:** 60 segundos para alcançar a maior distância; o HUD exibe a
   contagem regressiva e o término por tempo é uma conclusão, não uma colisão.
+- **Marathon:** alcance 10.000 m; a conclusão acontece ao atingir a distância.
+- **Time Attack:** alcance 3.000 m em 90 segundos.
 - **Hardcore:** uma vida, sem pickups de power-up e com túnel mais estreito. A
   habilidade de escudo também fica indisponível para preservar a regra de uma
   vida.
-- Cada resultado persiste `mode` e um `rulesetId` próprio (`zen-v1`,
-  `sprint-v1`, `hardcore-v1`). O ranking local é filtrado por modo/regras e
-  preserva Top 10 independente por categoria; modos novos não são enviados ao
-  ranking global não verificado.
+- **Boss Rush:** a cada 2.000 m um mini-chefe procedural lança uma sequência de
+  asteroides por 12 s. Sobreviver derrota o chefe e concede 25 cristais.
+- Cada resultado persiste `mode` e `rulesetId` próprio. Os rankings local e
+  global não verificado são filtrados por `{mode, rulesetId}` e preservam Top
+  10 independente por categoria.
 
 ## Screens & navigation
 
-- **Home:** seletor de modo (Classic/Zen/Sprint/Hardcore), New Game, **Daily
-  Run**, Hangar, Achievements, Statistics, Ranking,
+- **Home:** New Game (Classic), Custom Game, Hangar, Achievements, Statistics, Ranking,
   Settings, Donate, Install (when supported). The footer
   also shows **social share icons** (WhatsApp, Telegram, X, Facebook, TikTok,
   Instagram and copy-link) that open a localized share message with the game URL

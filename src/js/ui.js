@@ -9,17 +9,8 @@ const UI = (() => {
   let updateApply = null;
   let lastFocused = null;
   let lastMode = 'classic';
-  const MODE_RULESETS = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1' };
-
-  function selectedMode() {
-    const select = document.getElementById('mode-select');
-    return select && Object.prototype.hasOwnProperty.call(MODE_RULESETS, select.value) ? select.value : 'classic';
-  }
-  function updateModeDescription() {
-    const select = document.getElementById('mode-select');
-    const desc = document.getElementById('mode-description');
-    if (select && desc) desc.textContent = I18n.t('mode.' + selectedMode() + '.desc');
-  }
+  const MODE_RULESETS = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1', marathon: 'marathon-v1', timeattack: 'timeattack-v1', bossrush: 'bossrush-v1' };
+  const CUSTOM_MODES = ['daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush'];
 
   function show(id) {
     if (id) lastFocused = document.activeElement;
@@ -52,6 +43,30 @@ const UI = (() => {
     if (ht) ht.textContent = time;
     if (ar) ar.textContent = runs;
     if (at) at.textContent = time;
+  }
+
+  function renderCustomModes() {
+    const wrap = document.getElementById('custom-mode-list');
+    if (!wrap) return;
+    wrap.replaceChildren();
+    CUSTOM_MODES.forEach(mode => {
+      const unlocked = Storage.isModeUnlocked(mode);
+      const milestone = Storage.getModeMilestone(mode);
+      const card = document.createElement('article');
+      card.className = 'custom-mode-card' + (unlocked ? '' : ' locked');
+      const copy = document.createElement('div');
+      const title = document.createElement('h3'); title.textContent = I18n.t('mode.' + mode);
+      const desc = document.createElement('p'); desc.textContent = I18n.t('mode.' + mode + '.desc');
+      const progress = document.createElement('p'); progress.className = 'custom-mode-progress';
+      progress.textContent = unlocked ? I18n.t('custom.unlocked') : I18n.t('custom.locked', { n: milestone });
+      copy.append(title, desc, progress);
+      const play = document.createElement('button');
+      play.className = 'btn small'; play.type = 'button'; play.dataset.action = 'playMode'; play.dataset.mode = mode;
+      play.disabled = !unlocked;
+      play.textContent = unlocked ? I18n.t('custom.play') : '🔒';
+      card.append(copy, play);
+      wrap.appendChild(card);
+    });
   }
 
   /* Aplica classes de acessibilidade no <body> conforme as configurações */
@@ -319,7 +334,9 @@ const UI = (() => {
     const wrap = document.getElementById('lb-global-list');
     if (!wrap || typeof Cloud === 'undefined') return;
     wrap.replaceChildren();
-    const rows = await Cloud.leaderboard();
+    const select = document.getElementById('lb-mode');
+    const mode = select && Object.prototype.hasOwnProperty.call(MODE_RULESETS, select.value) ? select.value : 'classic';
+    const rows = await Cloud.leaderboard(mode, MODE_RULESETS[mode]);
     if (!rows.length) { const empty = document.createElement('div'); empty.className = 'stats-empty'; empty.textContent = I18n.t('lb.offline'); wrap.appendChild(empty); return; }
     rows.forEach((row, i) => {
       const el = document.createElement('div'); el.className = 'lb-row';
@@ -396,7 +413,7 @@ const UI = (() => {
     // registra a partida (atualiza recordes, desbloqueios, história, streak)
     const context = { mode, seed, rulesetId: (payload && payload.rulesetId) || MODE_RULESETS[mode], shipId: (payload && payload.shipId) || Storage.getSnapshot().selectedShip, loadout: (payload && payload.loadout) || undefined, maxCombo: (payload && payload.maxCombo) || 0, powerups: (payload && payload.powerups) || [] };
     const res = Storage.recordRun({ m: meters, t: time, c: crystals, ...context });
-    if (typeof Cloud !== 'undefined') { Cloud.syncProfile(Storage.getProfile()); if (mode === 'classic' || mode === 'daily') Cloud.submitScore({ m: meters, t: time, ...context }); }
+    if (typeof Cloud !== 'undefined') { Cloud.syncProfile(Storage.getProfile()); Cloud.submitScore({ m: meters, t: time, ...context }); }
 
     // salva no ranking local (usa o nome opcional do jogador)
     Storage.recordLeaderboard({ m: meters, t: time, ...context });
@@ -490,17 +507,17 @@ const UI = (() => {
       I18n.setLang(e.target.value);
       I18n.apply();
       updateShare();
-      updateModeDescription();
       document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
       renderSettings();
-      ['screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard', 'screen-missions']
+      ['screen-custom-game', 'screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard', 'screen-missions']
         .forEach(id => { if (!screens[id].classList.contains('hidden')) rerenderScreen(id); });
       refreshRecords();
     };
   }
 
   function rerenderScreen(id) {
-    if (id === 'screen-hangar') renderHangar();
+    if (id === 'screen-custom-game') renderCustomModes();
+    else if (id === 'screen-hangar') renderHangar();
     else if (id === 'screen-achievements') renderAchievements();
     else if (id === 'screen-stats') renderStats();
     else if (id === 'screen-leaderboard') renderLeaderboard();
@@ -509,7 +526,7 @@ const UI = (() => {
 
   function init(playCb) {
     onPlay = playCb;
-    ['screen-home', 'screen-hangar', 'screen-settings', 'screen-donate',
+    ['screen-home', 'screen-custom-game', 'screen-hangar', 'screen-settings', 'screen-donate',
       'screen-gameover', 'screen-pause', 'screen-achievements',
       'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-share']
       .forEach(id => screens[id] = document.getElementById(id));
@@ -522,9 +539,6 @@ const UI = (() => {
     applyAccessibility();
     wireShare();
     updateShare();
-    updateModeDescription();
-    const modeSelect = document.getElementById('mode-select');
-    if (modeSelect) modeSelect.addEventListener('change', updateModeDescription);
     const lbMode = document.getElementById('lb-mode');
     if (lbMode) lbMode.addEventListener('change', renderLeaderboard);
     if (typeof Cloud !== 'undefined') Cloud.init().then(ok => { if (ok) Cloud.syncProfile(Storage.getProfile()); });
@@ -547,16 +561,22 @@ const UI = (() => {
     switch (a) {
       case 'play':
         show(null);
-        onPlay(selectedMode());
+        onPlay('classic');
         break;
       case 'replay':
         show(null);
         onPlay(lastMode);
         break;
-      case 'playDaily':
-        show(null);
-        onPlay('daily');
+      case 'customGame':
+        renderCustomModes(); show('screen-custom-game');
         break;
+      case 'playMode': {
+        const mode = btn && btn.dataset.mode;
+        if (!Object.prototype.hasOwnProperty.call(MODE_RULESETS, mode) || !Storage.isModeUnlocked(mode)) break;
+        show(null);
+        onPlay(mode);
+        break;
+      }
       case 'hangar':
         renderHangar(); refreshRecords(); show('screen-hangar');
         break;

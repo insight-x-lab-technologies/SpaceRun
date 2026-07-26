@@ -39,7 +39,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
-| 9 | Modos de Jogo | P2 | ✅ primeira fatia entregue na v0.6.0 | Rejogabilidade por objetivos |
+| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0 | Rejogabilidade por objetivos |
 | 4B | Retenção e perfil | P2 | ✅ entregue na v0.5.4; validação de produto final ainda pendente | Motivo saudável para retornar |
 | 5 | Social & Ghost P2P | P3 | após ADRs, segurança e protocolo | Competição compartilhável não autoritativa |
 | 6 | Doação & cosméticos | P4 | parcial/contínua | Sustento sem interromper o jogo |
@@ -51,8 +51,8 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 
 1. Registrar, no encerramento do projeto, o baseline de performance, o
    contraste manual e o playtest humano restantes da **v0.5 — Fundação estrutural**.
-2. Avaliar os três modos simples da **F9** já entregues (Zen, Sprint e Hardcore)
-   antes de expandir para Marathon, Time Attack ou Boss Rush.
+2. Avaliar a **F9** completa — especialmente a curva de desbloqueio e os modos
+   Marathon, Time Attack e Boss Rush — antes de ajustar metas ou criar outro modo.
 3. Implementar **F5 — Ghost/P2P** sobre o protocolo versionado definido nos ADRs.
 4. Reavaliar F8B, F10/F11. Qualquer ranking global, entitlement pago ou meta global
    exige mudança explícita da premissa serverless.
@@ -650,32 +650,31 @@ marco e podem ser entregues separadamente.
 
 ---
 
-## Fase 9 — Modos de Jogo  ·  P2  ·  complexidade média  ·  ✅ primeira fatia entregue na v0.6.0
+## Fase 9 — Modos de Jogo  ·  P2  ·  complexidade média  ·  ✅ entregue na v0.7.0
 
 Rejogabilidade por objetivos, não só "vá longe".
 
 Cada modo precisa de `modeId` e `rulesetId`; resultados de regras diferentes
-não ocupam o mesmo ranking sem filtro explícito. Começar por Zen, Sprint e
-Hardcore. Boss Rush só entra após os modos simples validarem a abstração.
+não ocupam o mesmo ranking sem filtro explícito.
 
-- **Seleção de modo na Home:** um seletor antes de "Novo Jogo" expande as
-  opções; o seed do Daily Run só se aplica ao modo Normal.
+- **Navegação:** New Game da Home inicia Classic; Custom Game abre a seleção
+  dedicada. Os sete modos alternativos usam marcos de 10k a 1M metros totais,
+  derivados de `Storage.totalMeters`.
 - **Zen / Treino:** sem colisão, terreno sempre largo, música calma. Apenas para
   explorar e coletar cristais.
 - **Sprint:** 60 segundos. Máxima distância possível. Cronômetro regressivo.
 - **Marathon:** distância fixa de 10.000 m. HUD conta regressivamente.
-- **Time Attack:** alcance X metros antes do tempo; HUD com cronômetro.
+- **Time Attack:** alcance 3.000 metros antes de 90 s; HUD com cronômetro.
 - **Hardcore:** 1 vida, sem power-ups, túnel mais apertado.
 - **Boss Rush:** a cada 2.000 m um mini-boss procedural surge (padrão de
   colisão/esquiva). Derrotar = bônus de cristais.
 
-**Entregue:** seletor de modo na Home; Zen sem colisões/terreno amplo/música
-calma; Sprint de 60 segundos com cronômetro; e Hardcore de uma vida, sem
-power-ups, com túnel estreito. Cada um usa ruleset explícito e o ranking local
-filtra os resultados por modo e ruleset, mantendo Top 10 por categoria.
-
-**Pendente:** Marathon, Time Attack e Boss Rush serão avaliados como fatias
-separadas depois de playtest dos três modos base.
+**Entregue:** tela Custom Game com sete cards bloqueados/desbloqueados; Zen sem
+colisões/terreno amplo/música calma; Sprint de 60 segundos; Hardcore sem
+power-ups; Marathon de 10.000 m; Time Attack de 3.000 m em 90 s; e Boss Rush
+com sequência de asteroides de 12 s a cada 2.000 m e bônus de 25 cristais. Os
+oito modos, inclusive Classic, usam ruleset explícito. Ranking local e global
+não verificado filtram `{mode, rulesetId}`, mantendo Top 10 por categoria.
 
 ---
 

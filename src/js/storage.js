@@ -10,12 +10,25 @@ const Storage = (() => {
   const UPGRADE_BASE_COST = 30;
   const MAX_HISTORY = 50;
   const MAX_LEADERBOARD_PER_CATEGORY = 10;
-  const MAX_LEADERBOARD = 50;
+  // Há oito categorias de modo; cada uma preserva o seu próprio Top 10.
+  const MAX_LEADERBOARD = 80;
   const MAX_IMPORT_BYTES = 64 * 1024;
   const DAILY_REWARDS = [50, 75, 125, 200, 300, 400, 500];
   const SHIP_IDS = ['scout', 'falcon', 'tank', 'phantom', 'nova', 'vortex', 'quasar', 'pulsar', 'nebula', 'singularity', 'comet', 'aurora', 'raptor', 'helix', 'titan', 'spectre', 'ember', 'zephyr', 'cosmos', 'eclipse'];
   const THEMES = ['neon', 'retro', 'aurora'];
-  const MODES = ['classic', 'daily', 'zen', 'sprint', 'hardcore'];
+  const MODES = ['classic', 'daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush'];
+  // Desbloqueios são derivados do progresso já persistido, sem criar um
+  // segundo inventário de progresso nem exigir migração de schema.
+  const MODE_MILESTONES = {
+    classic: 0,
+    daily: 10000,
+    zen: 25000,
+    sprint: 50000,
+    hardcore: 100000,
+    marathon: 250000,
+    timeattack: 500000,
+    bossrush: 1000000
+  };
   const POWERUP_IDS = ['magnet', 'doubleCrystals', 'shield'];
   const COSMETIC_IDS = [
     'trail:ion', 'trail:wave', 'trail:stars', 'trail:flame',
@@ -232,6 +245,8 @@ const Storage = (() => {
     get: () => clone(data), getSnapshot: () => clone(data), getBest: () => data.best,
     getSettings: () => clone(data.settings), getHistory: () => clone(data.history),
     getLeaderboard: (filter) => clone(filter ? data.leaderboard.filter(filter) : data.leaderboard),
+    getModeMilestone: mode => Object.prototype.hasOwnProperty.call(MODE_MILESTONES, mode) ? MODE_MILESTONES[mode] : null,
+    isModeUnlocked: mode => Object.prototype.hasOwnProperty.call(MODE_MILESTONES, mode) && data.totalMeters >= MODE_MILESTONES[mode],
     getLastError: () => lastError,
     getRetention: () => clone(data.retention),
     getProfile: () => ({ name: data.playerName, xp: data.retention.xp, level: Math.floor(data.retention.xp / 100) + 1 }),

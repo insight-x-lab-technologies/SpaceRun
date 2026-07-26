@@ -19,12 +19,18 @@ create table if not exists spacerun.scores (
   user_id uuid not null references auth.users(id) on delete cascade,
   distance integer not null check (distance between 0 and 1000000000),
   duration numeric(12,1) not null check (duration between 0 and 1000000000),
-  mode text not null check (mode in ('classic', 'daily')),
+  mode text not null check (mode in ('classic', 'daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush')),
   ruleset_id text not null check (char_length(ruleset_id) between 1 and 32),
   ship_id text not null check (char_length(ship_id) between 1 and 32),
   created_at timestamptz not null default now()
 );
 create index if not exists scores_global_order on spacerun.scores (distance desc, duration asc, created_at asc);
+create index if not exists scores_mode_ruleset_order on spacerun.scores (mode, ruleset_id, distance desc, duration asc, created_at asc);
+
+-- Bancos já provisionados pela v0.6.0 possuem a restrição antiga (classic /
+-- daily). A alteração é idempotente e preserva os scores existentes.
+alter table spacerun.scores drop constraint if exists scores_mode_check;
+alter table spacerun.scores add constraint scores_mode_check check (mode in ('classic', 'daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush'));
 
 alter table spacerun.profiles enable row level security;
 alter table spacerun.scores enable row level security;
@@ -54,10 +60,9 @@ grant execute on function spacerun.submit_score(integer, numeric, text, text, te
 -- Não use `security_invoker` aqui, pois a tabela deliberadamente não concede
 -- SELECT direto a usuários autenticados.
 create or replace view spacerun.global_leaderboard as
-select coalesce(nullif(p.display_name, ''), 'Pilot') as display_name, s.distance, s.duration, s.mode, s.ship_id
+select coalesce(nullif(p.display_name, ''), 'Pilot') as display_name, s.distance, s.duration, s.mode, s.ruleset_id, s.ship_id
 from spacerun.scores s left join spacerun.profiles p on p.user_id = s.user_id
-order by s.distance desc, s.duration asc, s.created_at asc
-limit 10;
+order by s.mode, s.ruleset_id, s.distance desc, s.duration asc, s.created_at asc;
 grant select on spacerun.global_leaderboard to authenticated;
 
 -- IMPORTANTE: este ranking é global mas não verificado. Sem replay assinado e

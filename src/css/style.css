@@ -84,20 +84,19 @@ html, body {
 }
 .logo span { color: var(--accent2); -webkit-text-fill-color: var(--accent2); }
 .tagline { color: var(--muted); margin: 8px 0 26px; letter-spacing: 1px; }
-.mode-selector {
-  margin: -8px 0 18px;
-  padding: 12px;
-  text-align: left;
-  border: 1px solid rgba(74, 240, 255, 0.22);
-  border-radius: 12px;
-  background: linear-gradient(110deg, rgba(74, 240, 255, 0.10), rgba(255, 74, 216, 0.06));
-}
-.mode-selector label, .lb-filter label { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-.mode-selector select, .lb-filter select {
+.lb-filter label { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+.lb-filter select {
   width: 100%; margin-top: 7px; padding: 9px 10px; border-radius: 8px;
   border: 1px solid rgba(74, 240, 255, 0.35); background: rgba(4, 3, 15, 0.7); color: var(--text); font: inherit;
 }
-.mode-description { min-height: 18px; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.custom-mode-list { display: grid; gap: 10px; margin: 16px 0; text-align: left; }
+.custom-mode-card { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px; border: 1px solid rgba(74, 240, 255, 0.28); border-radius: 13px; background: linear-gradient(110deg, rgba(74,240,255,.09), rgba(255,74,216,.035)); }
+.custom-mode-card h3 { margin: 0; color: var(--accent); font-size: 16px; letter-spacing: .7px; }
+.custom-mode-card p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.custom-mode-card .custom-mode-progress { color: var(--accent2); font-weight: 700; }
+.custom-mode-card.locked { opacity: .68; background: rgba(255,255,255,.025); }
+.custom-mode-card .btn { flex: 0 0 auto; min-width: 78px; }
+.custom-mode-card .btn:disabled { cursor: not-allowed; opacity: .58; filter: grayscale(.5); }
 
 h2 { font-size: clamp(22px, 6vw, 32px); margin-bottom: 6px; letter-spacing: 2px; }
 .subtitle { color: var(--muted); margin-bottom: 20px; }
@@ -621,7 +620,7 @@ body.high-contrast .btn {
     grid-template-columns: 1fr 1fr;
   }
   #screen-home [data-action="play"],
-  #screen-home [data-action="playDaily"] { grid-column: 1 / -1; }
+  #screen-home [data-action="customGame"] { grid-column: 1 / -1; }
   .btn-ic { display: inline-flex; }
 
   /* Hangar: painel 50% mais largo + naves em 2 colunas */
@@ -636,4 +635,6 @@ body.high-contrast .btn {
   #screen-achievements .ach-list {
     grid-template-columns: 1fr 1fr 1fr;
   }
+  #screen-custom-game .panel { width: min(780px, 94vw); }
+  .custom-mode-list { grid-template-columns: 1fr 1fr; }
 }

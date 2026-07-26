@@ -39,9 +39,20 @@ describe('Storage — progresso do jogador', () => {
   });
 
   it('aceita apenas ids de modo conhecidos ao registrar uma run', () => {
-    Storage.recordRun({ m: 12, t: 1, c: 0, mode: 'sprint', rulesetId: 'sprint-v1' });
+    Storage.recordRun({ m: 12, t: 1, c: 0, mode: 'timeattack', rulesetId: 'timeattack-v1' });
     Storage.recordRun({ m: 12, t: 1, c: 0, mode: 'desconhecido' });
-    expect(Storage.getHistory().map(run => run.mode)).toEqual(['sprint', 'classic']);
+    expect(Storage.getHistory().map(run => run.mode)).toEqual(['timeattack', 'classic']);
+  });
+
+  it('deriva os sete desbloqueios de modo a partir dos metros totais', () => {
+    expect(Storage.isModeUnlocked('daily')).toBe(false);
+    expect(Storage.getModeMilestone('bossrush')).toBe(1000000);
+    Storage.recordRun(10000, 0, 0);
+    expect(Storage.isModeUnlocked('daily')).toBe(true);
+    expect(Storage.isModeUnlocked('zen')).toBe(false);
+    Storage.recordRun(990000, 0, 0);
+    expect(Storage.isModeUnlocked('bossrush')).toBe(true);
+    expect(Storage.isModeUnlocked('unknown')).toBe(false);
   });
 
   it('recordRun só marca isBest quando bate o recorde', () => {
@@ -91,6 +102,16 @@ describe('Storage — progresso do jogador', () => {
     expect(sprint).toHaveLength(10);
     expect(classic[0].m).toBe(11);
     expect(sprint[0].m).toBe(11);
+  });
+
+  it('mantém categorias dos modos novos sem descartar os Top 10 existentes', () => {
+    ['marathon', 'timeattack', 'bossrush'].forEach(mode => {
+      for (let i = 0; i < 11; i++) Storage.recordLeaderboard({ m: i, t: 1, mode, rulesetId: mode + '-v1' });
+    });
+    ['marathon', 'timeattack', 'bossrush'].forEach(mode => {
+      expect(Storage.getLeaderboard(x => x.mode === mode && x.rulesetId === mode + '-v1')).toHaveLength(10);
+    });
+    expect(Storage.getLeaderboard()).toHaveLength(30);
   });
 
   it('upgrades de cristais: compra, custo e nível', () => {

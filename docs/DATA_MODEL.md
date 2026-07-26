@@ -111,7 +111,7 @@ XP é uma projeção do progresso local e não é usado para autorizar gameplay.
   t: 42.3,                    // segundos, uma casa decimal
   c: 18,                      // cristais obtidos na run
   d: 1784600000000,           // timestamp local em ms
-  mode: "classic",           // classic | daily | zen | sprint | hardcore
+  mode: "classic",           // classic | daily | zen | sprint | hardcore | marathon | timeattack | bossrush
   seed: 1234567890,           // uint32; 0 quando não aplicável
   rulesetId: "classic-v2",
   shipId: "scout",
@@ -137,7 +137,8 @@ Regras:
 ### ScoreRecord
 
 `leaderboard` contém no máximo 10 registros por categoria `{mode, rulesetId}`
-(até 50 no save atual), ordenados por distância e com desempate documentado.
+(até 80 no save atual, para as oito categorias conhecidas), ordenados por
+distância e com desempate documentado.
 
 ```js
 {
@@ -146,7 +147,7 @@ Regras:
   m: 1234,
   t: 42.3,
   d: 1784600000000,
-  mode: "classic",           // classic | daily | zen | sprint | hardcore
+  mode: "classic",           // classic | daily | zen | sprint | hardcore | marathon | timeattack | bossrush
   seed: 0,
   rulesetId: "classic-v2",
   shipId: "scout",
@@ -157,6 +158,14 @@ Regras:
 
 Scores só são diretamente comparáveis quando modo, ruleset e categoria de
 loadout forem compatíveis. `source: imported` nunca significa verificado.
+
+### Desbloqueio de modos
+
+Não há campo persistido adicional para os modos F9. `Storage.isModeUnlocked`
+deriva o acesso exclusivamente de `totalMeters`: Classic (0), Daily (10.000),
+Zen (25.000), Sprint (50.000), Hardcore (100.000), Marathon (250.000), Time
+Attack (500.000) e Boss Rush (1.000.000). Assim o cálculo é retrocompatível e
+um save v2 existente ganha os acessos correspondentes sem migração.
 
 ### Skins e upgrades
 
@@ -204,7 +213,7 @@ Todo valor importado ou carregado deve passar por estas regras:
 | Nome | string Unicode, trim, máximo de 16 grafemas; render via `textContent` |
 | Arrays de ids | lista única, apenas ids conhecidos, com limite por domínio |
 | Histórico | máximo 50 |
-| Leaderboard local | máximo 10 por `{mode, rulesetId}`; 50 no total |
+| Leaderboard local | máximo 10 por `{mode, rulesetId}`; 80 no total |
 | Payload importado | limite de bytes definido pelo protocolo antes do parse |
 
 Valores inválidos são substituídos pelo default do campo, não pelo reset do save
