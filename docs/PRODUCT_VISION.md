@@ -2,7 +2,7 @@
 
 ## What SpaceRun is
 
-SpaceRun is a **serverless, installable endless runner** set in deep space. The
+SpaceRun is an **offline-first, installable endless runner** set in deep space. The
 player pilots a ship that auto-scrolls from left to right through procedurally
 generated galaxies. The only control is **thrust**: hold to climb, release to
 fall. The challenge is to thread the ship through a twisting tunnel of cosmic
@@ -10,12 +10,15 @@ terrain and drifting asteroids for as long as possible, while the universe gets
 faster and tighter the further you travel.
 
 It is built as a **Progressive Web App (PWA)** with **vanilla HTML/JavaScript** —
-no frameworks, no build step, no backend, and **no gameplay binary art or audio
-assets**.
+no frameworks, no build step, and **no gameplay binary art or audio assets**.
 Everything you see and hear (ships, terrain, asteroids, stars, nebulae, sound
 effects, and background music) is generated **procedurally at runtime**. This
 keeps the project tiny, instantly loadable, fully offline-capable, and trivial
 to host on any static file server.
+
+Gameplay and local progress remain offline-first. An optional Supabase service
+synchronizes an anonymous profile and exposes an explicitly unverified global
+leaderboard; it never gates a run.
 
 ## Target experience
 
@@ -53,4 +56,4 @@ customization, deeper procedural biome variety, scoring/leaderboards, and
 additional game modes — while never breaking the core "hold to fly" promise or
 the serverless, asset-free architecture that makes it special.
 
-> Current version: **v0.5.3** — Insight X Lab Technologies.
+> Current version: **v0.5.4** — Insight X Lab Technologies.

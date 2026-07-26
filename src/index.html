@@ -85,6 +85,7 @@
             <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
             <span class="btn-label" data-i18n="menu.leaderboard">Ranking</span>
           </button>
+          <button class="btn" data-action="missions"><span class="btn-label" data-i18n="menu.missions">Missões</span></button>
           <button class="btn" data-action="settings">
             <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 3.6V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.4 9V9a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
             <span class="btn-label" data-i18n="menu.settings">Configurações</span>
@@ -107,7 +108,7 @@
         </div>
         <div id="update-notice" class="update-notice hidden" role="status" aria-live="polite"><span></span><button class="btn small" data-action="applyUpdate"></button></div>
         <div class="footer">
-          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.5.3</div>
+          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.5.4</div>
           <div class="share-row" id="share-row">
             <a class="share-ic" data-share="whatsapp" href="#" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5z"/><path d="M9 9c0 4 3 7 7 7M9 9l2 1 1-1M16 16l-1-2-1 1"/></svg>
@@ -132,6 +133,18 @@
             </button>
           </div>
         </div>
+    </section>
+
+    <section id="screen-missions" class="screen hidden">
+      <div class="panel">
+        <h2 data-i18n="missions.title">Missões</h2>
+        <p class="subtitle" id="profile-summary"></p>
+        <div id="daily-reward" class="mission-reward"></div>
+        <button class="btn small" data-action="claimDaily" data-i18n="missions.claim">Coletar recompensa diária</button>
+        <h3 data-i18n="missions.daily">Missões diárias</h3><div id="missions-daily" class="mission-list"></div>
+        <h3 data-i18n="missions.weekly">Missões semanais</h3><div id="missions-weekly" class="mission-list"></div>
+        <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
+      </div>
     </section>
 
     <!-- Tela Hangar -->
@@ -187,6 +200,10 @@
         <h2 data-i18n="lb.title">Ranking</h2>
         <p class="subtitle" data-i18n="lb.subtitle">Top 10 local</p>
         <div id="lb-list" class="lb-list"></div>
+        <h3 data-i18n="lb.global">Top 10 global</h3>
+        <p class="hint" data-i18n="lb.unverified">Pontuações globais não verificadas.</p>
+        <div id="lb-global-list" class="lb-list"></div>
+        <button class="btn small" data-action="refreshGlobal" data-i18n="lb.refresh">Atualizar ranking global</button>
         <div class="name-row">
           <label for="lb-name" data-i18n="lb.setname">Seu nome</label>
           <input type="text" id="lb-name" maxlength="16" placeholder="">
@@ -310,6 +327,7 @@
   </div>
 
   <script src="js/storage.js"></script>
+  <script src="js/cloud.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/ships.js"></script>
   <script src="js/achievements.js"></script>
@@ -317,6 +335,7 @@
   <script src="js/themes.js"></script>
   <script src="js/input.js"></script>
   <script src="js/powerups.js"></script>
+  <script src="js/missions.js"></script>
   <script src="js/game.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/share.js"></script>

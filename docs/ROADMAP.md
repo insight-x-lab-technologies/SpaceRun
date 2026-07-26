@@ -40,7 +40,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
 | 9 | Modos de Jogo | P2 | após regras de modo/ruleset | Rejogabilidade por objetivos |
-| 4B | Retenção e perfil | P2 | só após validar 4A | Motivo saudável para retornar |
+| 4B | Retenção e perfil | P2 | ✅ entregue na v0.5.4; validação de produto final ainda pendente | Motivo saudável para retornar |
 | 5 | Social & Ghost P2P | P3 | após ADRs, segurança e protocolo | Competição compartilhável não autoritativa |
 | 6 | Doação & cosméticos | P4 | parcial/contínua | Sustento sem interromper o jogo |
 | 8B | Qualidade de vida avançada | P3 | após 8A | Novos controles e conforto |
@@ -54,7 +54,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
    contraste manual e o playtest humano restantes da **v0.5 — Fundação estrutural**.
 3. Concluir o restante de **F8A**, se algum item essencial não couber na v0.5.
 4. Implementar 2–3 modos simples da **F9**, todos com `rulesetId` explícito.
-5. Avaliar playtests e só então autorizar **F4B — Retenção e perfil**.
+5. Registrar os playtests/baseline finais e avaliar a F4B entregue.
 6. Implementar **F5 — Ghost/P2P** sobre o protocolo versionado definido nos ADRs.
 7. Reavaliar F10/F11. Qualquer ranking global, entitlement pago ou meta global
    exige mudança explícita da premissa serverless.
@@ -502,6 +502,11 @@ power-up diretamente ao monólito de UI.
 ---
 
 ## Fase 4B — Retenção diária e perfil  ·  P2  ·  complexidade alta  ·  condicional
+
+**Status: ✅ entregue na v0.5.4.** A fatia inclui recompensa diária opcional,
+três missões diárias, cinco semanais, XP/perfil local e sincronização Supabase
+opcional. O ranking remoto é global, mas não verificado; o SQL/RLS e o setup
+operacional estão em `docs/supabase/spacerun.sql` e ADR 0005.
 
 Esta fase não começa automaticamente após 4A. Ela exige evidência de playtests
 de que o loop principal sustenta retorno e de que as recompensas não pressionam

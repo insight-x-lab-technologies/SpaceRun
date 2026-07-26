@@ -10,10 +10,10 @@ describe('v0.5 — contratos arquiteturais', () => {
   it('mantém a ordem de scripts e a paridade do helper', () => {
     const html = read('src/index.html');
     const scripts = [...html.matchAll(/js\/([\w-]+)\.js/g)].map(m => m[1]);
-    const expected = ['storage', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'powerups', 'game', 'ui', 'share', 'main'];
+    const expected = ['storage', 'cloud', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'powerups', 'missions', 'game', 'ui', 'share', 'main'];
     expect(scripts).toEqual(expected);
     const helper = read('tests/helpers/loadApp.js');
-    expect(helper).toContain("['storage', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'powerups', 'game', 'ui', 'share']");
+    expect(helper).toContain("['storage', 'cloud', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'powerups', 'missions', 'game', 'ui', 'share']");
   });
 
   it('pré-cacheia cada recurso local servido pelo app', () => {
@@ -25,9 +25,9 @@ describe('v0.5 — contratos arquiteturais', () => {
 
   it('mantém versões coerentes para a release', () => {
     const pkg = JSON.parse(read('package.json'));
-    expect(pkg.version).toBe('0.5.3');
-    expect(read('src/sw.js')).toContain("const VERSION = '0.5.3'");
-    expect(read('src/js/i18n.js')).toContain('v0.5.3');
+    expect(pkg.version).toBe('0.5.4');
+    expect(read('src/sw.js')).toContain("const VERSION = '0.5.4'");
+    expect(read('src/js/i18n.js')).toContain('v0.5.4');
   });
 
   it('não volta a interpolar o nome do ranking como HTML', () => {

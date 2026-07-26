@@ -1,9 +1,13 @@
 # SpaceRun — Architecture
 
-Serverless PWA endless runner. **Vanilla HTML/JavaScript only** — no frameworks,
-no bundler and no backend. Gameplay visuals/audio are procedural; generated PNG
+Offline-first PWA endless runner. **Vanilla HTML/JavaScript only** — no frameworks
+or bundler. Gameplay visuals/audio are procedural; generated PNG
 icons in `assets/` are the platform-required binary exception. The entire game
 lives under `src/` and is served as static files.
+
+The optional Supabase Data API is the only remote integration. It is called
+through `cloud.js` with a publishable key, anonymous auth and schema-scoped RLS;
+the local `Storage` save remains functional when it is unavailable.
 
 ## Directory layout
 
@@ -34,6 +38,7 @@ SpaceRun/
     │   └── style.css
     └── js/
         ├── storage.js        # localStorage persistence (progress, settings)
+        ├── cloud.js          # Supabase Auth anônimo + perfil/placar remoto opcional
         ├── i18n.js           # Translations (pt/en/es) + apply/t/setLang
         ├── ships.js          # Ship definitions (stats, draw fn, unlockAt, ability)
         ├── achievements.js   # Achievement defs + check (Fase 3)
@@ -41,6 +46,7 @@ SpaceRun/
         ├── themes.js         # Themes: list + apply/set/init of CSS vars + audio (cosmetic)
         ├── input.js          # Input: unified "thrust" + "ability" (Shift / touch button)
         ├── powerups.js       # PowerUps: declarative F4A pickup types/durations
+        ├── missions.js       # F4B: projeção de missões/perfil a partir de Storage
         ├── game.js           # Game: engine, state machine, render, physics
         ├── ui.js             # UI: screen routing, hangar, settings, gameover
         ├── share.js          # Share: procedural score-card canvas (Fase 3)
@@ -54,7 +60,7 @@ Each `js/*.js` file is an **IIFE that exposes a single global object**. There is
 globals and are loaded in a fixed `<script>` order in `index.html`:
 
 ```
-storage → i18n → ships → achievements → audio → themes → input → powerups → game → ui → share → main
+storage → cloud → i18n → ships → achievements → audio → themes → input → powerups → missions → game → ui → share → main
 ```
 
 Load order matters: `Game.init()` registers an `Input` listener. During
@@ -66,7 +72,9 @@ applies the saved CSS variables and audio configuration through
 
 | Global   | Responsibility |
 |----------|----------------|
-| `Storage`| Save/load progress (`best`, `totalMeters`, `totalRuns`, `bestTime`, `crystals`, `unlocked`, `settings`, `achievements`, `history`, `streak`/`maxStreak`, `leaderboard`, `playerName`, `shipSkins`, `upgrades`, `cosmetics`); `recordRun(m, time, crystals)`, `recordLeaderboard`, skin/upgrade/cosmetic helpers, `reset()`. |
+| `Storage`| Save/load local progress, including `retention` (login streak, XP and bounded mission progress); remains authoritative during a run. |
+| `Cloud`| Optional Supabase anonymous session, profile synchronization and unverified global leaderboard. Network failures are swallowed. |
+| `Missions`| F4B daily/weekly mission projection from validated `Storage` counters. |
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |

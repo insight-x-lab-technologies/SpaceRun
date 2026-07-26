@@ -119,6 +119,22 @@ describe('Storage — progresso do jogador', () => {
     expect(Storage.get().crystals).toBe(0);
   });
 
+  it('recompensa diária não duplica ao voltar o calendário e limita a sequência', () => {
+    const day1 = new Date(2026, 6, 20, 12);
+    expect(Storage.claimDailyReward(day1)).toMatchObject({ reward: 50, streak: 1 });
+    expect(Storage.claimDailyReward(day1)).toBeNull();
+    expect(Storage.claimDailyReward(new Date(2026, 6, 19, 12))).toBeNull();
+    expect(Storage.claimDailyReward(new Date(2026, 6, 21, 12))).toMatchObject({ reward: 75, streak: 2 });
+  });
+
+  it('registra progresso limitado de retenção e XP a cada run', () => {
+    Storage.recordRun({ m: 1600, t: 50, c: 14, d: new Date(2026, 6, 20, 12).getTime(), mode: 'daily' });
+    const r = Storage.getRetention();
+    expect(r.daily.progress).toMatchObject({ runs: 1, meters: 1600, crystals: 14, seconds: 50, daily: 1 });
+    expect(r.weekly.progress.best).toBe(1600);
+    expect(Storage.getProfile()).toMatchObject({ xp: 30, level: 1 });
+  });
+
   it('Ships.list tem 20 naves com habilidades variadas', () => {
     expect(Ships.list.length).toBe(20);
     const abilities = new Set(Ships.list.map((s) => s.ability));

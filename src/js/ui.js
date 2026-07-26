@@ -298,6 +298,29 @@ const UI = (() => {
     }
     const nameInput = document.getElementById('lb-name');
     if (nameInput) nameInput.value = me;
+    renderGlobalLeaderboard();
+  }
+
+  async function renderGlobalLeaderboard() {
+    const wrap = document.getElementById('lb-global-list');
+    if (!wrap || typeof Cloud === 'undefined') return;
+    wrap.replaceChildren();
+    const rows = await Cloud.leaderboard();
+    if (!rows.length) { const empty = document.createElement('div'); empty.className = 'stats-empty'; empty.textContent = I18n.t('lb.offline'); wrap.appendChild(empty); return; }
+    rows.forEach((row, i) => {
+      const el = document.createElement('div'); el.className = 'lb-row';
+      ['#' + (i + 1), row.display_name || '—', row.distance + ' m', Number(row.duration || 0).toFixed(1) + 's'].forEach((value, index) => { const cell = document.createElement('span'); cell.className = ['lb-rank', 'lb-name', 'lb-m', 'lb-t'][index]; cell.textContent = value; el.appendChild(cell); });
+      wrap.appendChild(el);
+    });
+  }
+
+  function renderMissions() {
+    const data = Missions.snapshot(); const profile = document.getElementById('profile-summary');
+    const text = I18n.t('missions.profile', { name: data.profile.name || 'Pilot', level: data.profile.level, xp: data.profile.xp });
+    if (profile) profile.textContent = text;
+    const render = (id, items) => { const wrap = document.getElementById(id); if (!wrap) return; wrap.replaceChildren(); items.forEach(m => { const row = document.createElement('div'); row.className = 'mission-row' + (m.complete ? ' done' : ''); row.textContent = I18n.t('mission.' + m.id) + ': ' + m.value + '/' + m.target + ' · +' + m.reward + ' ◆'; wrap.appendChild(row); }); };
+    render('missions-daily', data.daily); render('missions-weekly', data.weekly);
+    const reward = document.getElementById('daily-reward'); if (reward) reward.textContent = text;
   }
 
   /* Popup de conquista (toast em fila) */
@@ -357,6 +380,7 @@ const UI = (() => {
     // registra a partida (atualiza recordes, desbloqueios, história, streak)
     const context = { mode: daily ? 'daily' : 'classic', seed, rulesetId: (payload && payload.rulesetId) || (daily ? 'daily-v2' : 'classic-v2'), shipId: (payload && payload.shipId) || Storage.getSnapshot().selectedShip, loadout: (payload && payload.loadout) || undefined, maxCombo: (payload && payload.maxCombo) || 0, powerups: (payload && payload.powerups) || [] };
     const res = Storage.recordRun({ m: meters, t: time, c: crystals, ...context });
+    if (typeof Cloud !== 'undefined') { Cloud.syncProfile(Storage.getProfile()); Cloud.submitScore({ m: meters, t: time, ...context }); }
 
     // salva no ranking local (usa o nome opcional do jogador)
     Storage.recordLeaderboard({ m: meters, t: time, ...context });
@@ -450,7 +474,7 @@ const UI = (() => {
       updateShare();
       document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
       renderSettings();
-      ['screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard']
+      ['screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard', 'screen-missions']
         .forEach(id => { if (!screens[id].classList.contains('hidden')) rerenderScreen(id); });
       refreshRecords();
     };
@@ -461,13 +485,14 @@ const UI = (() => {
     else if (id === 'screen-achievements') renderAchievements();
     else if (id === 'screen-stats') renderStats();
     else if (id === 'screen-leaderboard') renderLeaderboard();
+    else if (id === 'screen-missions') renderMissions();
   }
 
   function init(playCb) {
     onPlay = playCb;
     ['screen-home', 'screen-hangar', 'screen-settings', 'screen-donate',
       'screen-gameover', 'screen-pause', 'screen-achievements',
-      'screen-stats', 'screen-leaderboard', 'screen-share']
+      'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-share']
       .forEach(id => screens[id] = document.getElementById(id));
 
     I18n.init();
@@ -478,6 +503,7 @@ const UI = (() => {
     applyAccessibility();
     wireShare();
     updateShare();
+    if (typeof Cloud !== 'undefined') Cloud.init().then(ok => { if (ok) Cloud.syncProfile(Storage.getProfile()); });
     document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
 
     // delegação de cliques nos botões data-action
@@ -521,6 +547,15 @@ const UI = (() => {
       case 'leaderboard':
         renderLeaderboard(); show('screen-leaderboard');
         break;
+      case 'missions': renderMissions(); show('screen-missions'); break;
+      case 'claimDaily': {
+        const result = Storage.claimDailyReward(new Date());
+        const reward = document.getElementById('daily-reward');
+        if (reward) reward.textContent = result ? I18n.t('missions.claimed', { n: result.reward }) : I18n.t('missions.claimedToday');
+        if (result && typeof Cloud !== 'undefined') Cloud.syncProfile(Storage.getProfile());
+        break;
+      }
+      case 'refreshGlobal': renderGlobalLeaderboard(); break;
       case 'share':
         showShare();
         break;
@@ -574,6 +609,7 @@ const UI = (() => {
       case 'saveName': {
         const n = document.getElementById('lb-name');
         if (n) Storage.setPlayerName(n.value);
+        if (typeof Cloud !== 'undefined') Cloud.syncProfile(Storage.getProfile());
         renderLeaderboard();
         break;
       }

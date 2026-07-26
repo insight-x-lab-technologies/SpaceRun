@@ -1,7 +1,7 @@
 # SpaceRun — Product Features
 
-Version **0.5.3**. Gameplay art and audio are procedural; the app is a serverless
-PWA (vanilla HTML/JS, no frameworks, no backend). Generated PNG PWA icons are
+Version **0.5.4**. Gameplay art and audio are procedural; the app is a vanilla
+PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
 ranking local e compartilhamento) estão implementadas.
@@ -165,6 +165,13 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Daily Challenge:** exposed in the Home UI and implemented with seeded RNG;
   deterministic parity is validated by tests. Its results currently enter the
   same local Top 10 as classic runs; there is no daily-only leaderboard.
+
+## Retenção, perfil e ranking global (Fase 4B)
+
+- **Recompensa diária opcional:** sete faixas de cristais (50–500), baseada no calendário local; voltar o relógio não duplica uma data já coletada.
+- **Missões:** três missões diárias determinísticas e cinco semanais acompanham runs, metros, cristais, tempo, Daily e melhor distância. Elas não bloqueiam gameplay.
+- **Perfil local:** XP e nível são derivados do progresso, e o nome opcional continua validado por `Storage`.
+- **Supabase opcional:** perfil e placares sincronizam em segundo plano por usuário anônimo; o jogo continua offline-first. O Top 10 global é explicitamente **não verificado**, pois não há validação autoritativa de replay.
 
 ## Screens & navigation
 

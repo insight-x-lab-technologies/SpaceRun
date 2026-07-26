@@ -30,6 +30,17 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(document.getElementById('ach-list').children.length).toBe(23);
   });
 
+  it('abre missões e coleta apenas uma recompensa diária', () => {
+    document.querySelector('[data-action="missions"]').click();
+    expect(document.getElementById('screen-missions').classList.contains('hidden')).toBe(false);
+    const before = Storage.get().crystals;
+    document.querySelector('[data-action="claimDaily"]').click();
+    expect(Storage.get().crystals).toBeGreaterThan(before);
+    const once = Storage.get().crystals;
+    document.querySelector('[data-action="claimDaily"]').click();
+    expect(Storage.get().crystals).toBe(once);
+  });
+
   it('trocar o tema persiste em Storage e aplica no DOM', () => {
     document.querySelector('[data-action="settings"]').click();
     const sel = document.getElementById('set-theme');

@@ -66,6 +66,13 @@ migração. Novas grandes reorganizações exigem v3.
     title: "cadet",
     unlocked: ["trail:ion", "explosion:nova", "title:cadet"]
   },
+  retention: {
+    lastClaimDate: "2026-07-25", // YYYY-MM-DD local; nunca volta no relógio
+    loginStreak: 1,               // 1..7
+    xp: 0,
+    daily: { date: "2026-07-25", progress: {} },
+    weekly: { week: "2026-W30", progress: {} }
+  },
   settings: {
     sound: true,
     music: true,
@@ -82,6 +89,14 @@ migração. Novas grandes reorganizações exigem v3.
 
 Campos futuros só entram com default, validação, migração e teste. Ausência de
 campo nunca pode ser interpretada diretamente como erro fatal.
+
+### Retenção F4B
+
+`retention` é local, limitado e normalizado: datas aceitam somente
+`YYYY-MM-DD`/`YYYY-Www`, contadores são inteiros não negativos e o mapa contém
+no máximo 12 entradas. A recompensa só é liberada quando a data local atual é
+maior que `lastClaimDate`; assim, retroceder o relógio não duplica uma coleta.
+XP é uma projeção do progresso local e não é usado para autorizar gameplay.
 
 ## Tipos persistidos
 

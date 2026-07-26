@@ -20,6 +20,7 @@ explicam por que um contrato existe.
 | [0002](0002-serverless-trust-boundary.md) | Aceita | Limites de confiança sem backend |
 | [0003](0003-versioned-share-replay-protocol.md) | Aceita | Envelope versionado para share/ghost |
 | [0004](0004-progression-and-competition.md) | Aceita | Upgrades mecânicos e comparabilidade |
+| [0005](0005-supabase-sync-and-unverified-global-ranking.md) | Aceita | Sync Supabase opcional e ranking global não verificado |
 
 ## Template
 

@@ -11,6 +11,7 @@ const Storage = (() => {
   const MAX_HISTORY = 50;
   const MAX_LEADERBOARD = 10;
   const MAX_IMPORT_BYTES = 64 * 1024;
+  const DAILY_REWARDS = [50, 75, 125, 200, 300, 400, 500];
   const SHIP_IDS = ['scout', 'falcon', 'tank', 'phantom', 'nova', 'vortex', 'quasar', 'pulsar', 'nebula', 'singularity', 'comet', 'aurora', 'raptor', 'helix', 'titan', 'spectre', 'ember', 'zephyr', 'cosmos', 'eclipse'];
   const THEMES = ['neon', 'retro', 'aurora'];
   const MODES = ['classic', 'daily'];
@@ -40,6 +41,7 @@ const Storage = (() => {
       streak: 0, maxStreak: 0, leaderboard: [], playerName: '', shipSkins: {},
       upgrades: { agility: 0, thrust: 0 },
       cosmetics: { trail: 'ion', explosion: 'nova', title: 'cadet', unlocked: ['trail:ion', 'explosion:nova', 'title:cadet'] },
+      retention: { lastClaimDate: '', loginStreak: 0, xp: 0, daily: { date: '', progress: {} }, weekly: { week: '', progress: {} } },
       settings: { sound: true, music: true, particles: true, lang: null,
         reduceMotion: false, highContrast: false, theme: 'neon', performanceMode: false, haptics: false }
     };
@@ -84,6 +86,18 @@ const Storage = (() => {
     return Object.assign(selection, { unlocked });
   }
   function timestamp(v) { return int(v, now(), 4102444800000); }
+  function dateKey(v) { return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ''; }
+  function weekKey(v) { return typeof v === 'string' && /^\d{4}-W\d{2}$/.test(v) ? v : ''; }
+  function counterMap(v) {
+    const out = {}; if (!object(v)) return out;
+    Object.keys(v).slice(0, 12).forEach(k => { if (/^[a-z]+$/.test(k)) out[k] = int(v[k], 0, 1000000000); });
+    return out;
+  }
+  function retention(v) {
+    v = object(v) ? v : {}; const daily = object(v.daily) ? v.daily : {}; const weekly = object(v.weekly) ? v.weekly : {};
+    return { lastClaimDate: dateKey(v.lastClaimDate), loginStreak: int(v.loginStreak, 0, 3650), xp: int(v.xp, 0, Number.MAX_SAFE_INTEGER),
+      daily: { date: dateKey(daily.date), progress: counterMap(daily.progress) }, weekly: { week: weekKey(weekly.week), progress: counterMap(weekly.progress) } };
+  }
   function randomId(prefix) { return prefix + '-' + now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); }
   function normalizeRun(v, legacy) {
     v = object(v) ? v : {};
@@ -132,7 +146,7 @@ const Storage = (() => {
       achievements: uniqueIds(v.achievements, ACHIEVEMENT_IDS, [], 100),
       history, streak: int(v.streak, 0, Number.MAX_SAFE_INTEGER), maxStreak: int(v.maxStreak, 0, Number.MAX_SAFE_INTEGER),
       leaderboard: leaderboard.slice(0, MAX_LEADERBOARD), playerName: name(v.playerName), shipSkins: skins,
-      upgrades: loadout(v.upgrades), cosmetics: cosmetics(v.cosmetics), settings: {
+      upgrades: loadout(v.upgrades), cosmetics: cosmetics(v.cosmetics), retention: retention(v.retention), settings: {
         sound: typeof settings.sound === 'boolean' ? settings.sound : base.settings.sound,
         music: typeof settings.music === 'boolean' ? settings.music : base.settings.music,
         particles: typeof settings.particles === 'boolean' ? settings.particles : base.settings.particles,
@@ -180,6 +194,27 @@ const Storage = (() => {
     return normalizeScore(input, false);
   }
   function currentLoadout() { return { agility: data.upgrades.agility, thrust: data.upgrades.thrust }; }
+  function todayKey(date) {
+    const d = date instanceof Date ? date : new Date();
+    if (Number.isNaN(d.getTime())) return '';
+    return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+  }
+  function currentWeek(date) {
+    const d = date instanceof Date ? new Date(date) : new Date();
+    if (Number.isNaN(d.getTime())) return '';
+    d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+    const first = new Date(d.getFullYear(), 0, 4); const week = 1 + Math.round(((d - first) / 86400000 - 3 + ((first.getDay() + 6) % 7)) / 7);
+    return d.getFullYear() + '-W' + String(week).padStart(2, '0');
+  }
+  function progressRun(next, run) {
+    const day = todayKey(new Date(run.d)); const week = currentWeek(new Date(run.d));
+    if (day && next.retention.daily.date !== day) next.retention.daily = { date: day, progress: {} };
+    if (week && next.retention.weekly.week !== week) next.retention.weekly = { week, progress: {} };
+    const add = (map, k, n) => { map[k] = Math.min(1000000000, (map[k] || 0) + n); };
+    add(next.retention.daily.progress, 'runs', 1); add(next.retention.daily.progress, 'meters', run.m); add(next.retention.daily.progress, 'crystals', run.c); add(next.retention.daily.progress, 'seconds', Math.floor(run.t)); if (run.mode === 'daily') add(next.retention.daily.progress, 'daily', 1);
+    add(next.retention.weekly.progress, 'runs', 1); add(next.retention.weekly.progress, 'meters', run.m); add(next.retention.weekly.progress, 'crystals', run.c); if (run.mode === 'daily') add(next.retention.weekly.progress, 'daily', 1); add(next.retention.weekly.progress, 'best', run.m);
+    next.retention.xp = Math.min(Number.MAX_SAFE_INTEGER, next.retention.xp + Math.floor(run.m / 100) + run.c);
+  }
 
   return {
     UPGRADE_MAX, UPGRADE_STEP, SCHEMA_VERSION, KEY,
@@ -187,6 +222,20 @@ const Storage = (() => {
     getSettings: () => clone(data.settings), getHistory: () => clone(data.history),
     getLeaderboard: (filter) => clone(filter ? data.leaderboard.filter(filter) : data.leaderboard),
     getLastError: () => lastError,
+    getRetention: () => clone(data.retention),
+    getProfile: () => ({ name: data.playerName, xp: data.retention.xp, level: Math.floor(data.retention.xp / 100) + 1 }),
+    claimDailyReward(date) {
+      const today = todayKey(date); if (!today || data.retention.lastClaimDate >= today) return null;
+      let reward = 0;
+      const ok = commit(next => {
+        const prior = next.retention.lastClaimDate;
+        const yesterday = new Date(date instanceof Date ? date : new Date()); yesterday.setDate(yesterday.getDate() - 1);
+        next.retention.loginStreak = prior === todayKey(yesterday) ? Math.min(7, next.retention.loginStreak + 1) : 1;
+        reward = DAILY_REWARDS[next.retention.loginStreak - 1]; next.retention.lastClaimDate = today;
+        next.crystals = Math.min(Number.MAX_SAFE_INTEGER, next.crystals + reward);
+      });
+      return ok ? { reward, streak: data.retention.loginStreak } : null;
+    },
     setSetting(key, value) {
       if (!Object.prototype.hasOwnProperty.call(data.settings, key)) return false;
       return commit(next => { next.settings[key] = value; });
@@ -236,6 +285,7 @@ const Storage = (() => {
         if (run.t > next.bestTime) next.bestTime = run.t;
         next.streak = res.isBest ? next.streak + 1 : 0; next.maxStreak = Math.max(next.maxStreak, next.streak);
         next.history.push(run); if (next.history.length > MAX_HISTORY) next.history.shift();
+        progressRun(next, run);
         unlocks.forEach(ship => { if (!next.unlocked.includes(ship.id) && next.totalMeters >= ship.unlockAt) { next.unlocked.push(ship.id); res.newUnlocks.push(ship.id); } });
         [['title:voyager', 10000], ['title:legend', 100000]].forEach(([cosmetic, meters]) => {
           if (next.totalMeters >= meters && !next.cosmetics.unlocked.includes(cosmetic)) next.cosmetics.unlocked.push(cosmetic);
