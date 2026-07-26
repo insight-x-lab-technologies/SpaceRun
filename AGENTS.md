@@ -13,7 +13,7 @@ em um único `<canvas>` e o áudio é sintetizado com WebAudio. Não use imagens
 áudio binários para gameplay; os PNGs em `src/assets/` são apenas ícones
 obrigatórios da PWA.
 
-## Estado real do produto (v0.5.2; F4A entregue)
+## Estado real do produto (v0.5.3; F4A e F7 entregues)
 
 - Jogo clássico e **Daily Run** estão ativos na Home. O Daily usa a data local
   como seed; a sequência de spawns é indexada por distância e tem testes de
@@ -23,6 +23,8 @@ obrigatórios da PWA.
 - Cristais, combo, marcos, biomas e obstáculos adicionais já existem.
 - A F4A adiciona power-ups procedurais durante a run: Magnet (5 s), 2× Cristais
   (8 s) e Shield pickup (uma carga, compartilhada com o escudo da nave).
+- A F7 adiciona expressão cosmética: rastro e explosão selecionáveis, títulos
+  desbloqueados por distância e vibração tátil opcional.
 - Conquistas, estatísticas, histórico, Top 10 local e score card para download/
   Web Share já existem. Não existe leaderboard diário separado, servidor,
   sincronização entre dispositivos, ghost ou missão diária.

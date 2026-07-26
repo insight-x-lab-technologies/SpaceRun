@@ -19,6 +19,8 @@ describe('Storage — progresso do jogador', () => {
     expect(d.selectedShip).toBe('scout');
     expect(d.unlocked).toContain('scout');
     expect(d.upgrades).toEqual({ agility: 0, thrust: 0 });
+    expect(d.cosmetics).toMatchObject({ trail: 'ion', explosion: 'nova', title: 'cadet' });
+    expect(d.settings.haptics).toBe(false);
   });
 
   it('recordRun atualiza best, totalMeters e totalRuns', () => {
@@ -97,6 +99,18 @@ describe('Storage — progresso do jogador', () => {
     expect(Storage.getShipSkin('scout')).toBeNull();
   });
 
+  it('cosméticos validam compra, seleção e títulos por distância', () => {
+    Storage.recordRun(0, 0, 1000);
+    expect(Storage.buyCosmetic('trail', 'stars')).toBe(true);
+    expect(Storage.getCosmetics()).toMatchObject({ trail: 'stars' });
+    expect(Storage.setCosmetic('explosion', 'neon')).toBe(false);
+    expect(Storage.buyCosmetic('explosion', 'neon')).toBe(true);
+    expect(Storage.setCosmetic('explosion', 'neon')).toBe(true);
+    Storage.recordRun(10000, 0, 0);
+    expect(Storage.getCosmetics().unlocked).toContain('title:voyager');
+    expect(Storage.setCosmetic('title', 'voyager')).toBe(true);
+  });
+
   it('reset zera tudo', () => {
     Storage.recordRun(5000, 50, 10);
     Storage.reset();
@@ -135,6 +149,8 @@ describe('Storage — progresso do jogador', () => {
     expect(saved.playerName).toBe('<img>');
     expect(saved.shipSkins.scout).toBeUndefined();
     expect(saved.settings.sound).toBe(true);
+    expect(saved.cosmetics).toMatchObject({ trail: 'ion', explosion: 'nova', title: 'cadet' });
+    expect(saved.settings.haptics).toBe(false);
   });
 
   it('rejeita importações inválidas sem substituir o snapshot atual', () => {

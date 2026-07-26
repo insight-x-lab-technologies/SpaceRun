@@ -157,6 +157,19 @@ describe('Game — power-ups durante a run', () => {
   });
 });
 
+describe('Game — expressão F7', () => {
+  it('usa vibração tátil opt-in ao coletar um cristal', () => {
+    const vibrate = vi.fn();
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true });
+    Storage.setSetting('haptics', true);
+    startPlaying();
+    const ship = Game._debug.ship;
+    Game._debug.spawnCrystal(ship.x, ship.y);
+    keepAlive(); Game._debug.tick(1 / 60);
+    expect(vibrate).toHaveBeenCalledWith(10);
+  });
+});
+
 describe('Game — Daily Run determinístico e por dia', () => {
   function captureDaily() {
     Game.start('daily');

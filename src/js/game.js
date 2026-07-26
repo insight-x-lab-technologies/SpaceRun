@@ -35,7 +35,8 @@ const Game = (() => {
 
   // Power-ups alteram o universo lógico; resultados v1 permanecem históricos.
   const RULESET = { classic: 'classic-v2', daily: 'daily-v2' };
-  let settings = { particles: true, performanceMode: false };
+  let settings = { particles: true, performanceMode: false, haptics: false, reduceMotion: false };
+  let cosmetics = { trail: 'ion', explosion: 'nova', title: 'cadet' };
 
   function resize() {
     // No Safari/iOS, `orientationchange` pode ocorrer antes de o layout final
@@ -186,7 +187,8 @@ const Game = (() => {
       abilityCd: 1.5,          // pequeno cooldown inicial p/ evitar disparo acidental
       dashTimer: 0,
       shield: false,
-      invuln: 0
+      invuln: 0,
+      nearHapticCooldown: 0
     };
     const skin = Ships.getSkin(s.id);
     ship.color = skin.color;
@@ -228,8 +230,8 @@ const Game = (() => {
   }
 
   function start(mode) {
-    settings.particles = Storage.getSettings().particles;
-    settings.performanceMode = Storage.getSettings().performanceMode;
+    settings = Storage.getSettings();
+    cosmetics = Storage.getCosmetics();
     let seed = 0, daily = false;
     if (mode === 'daily') { daily = true; seed = dailySeed(); }
     else { seed = (Math.random() * 0xffffffff) >>> 0; }
@@ -393,6 +395,7 @@ const Game = (() => {
     const mult = 1 + Math.floor((world.combo - 1) / 5);
     world.crystals += mult * (world.doubleCrystalsTimer > 0 ? 2 : 1);
     Audio2.pickup();
+    vibrate(10);
     for (let i = 0; i < 8; i++) {
       const a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * 120;
       addParticle(p.x, p.y, Math.cos(a) * sp, Math.sin(a) * sp,
@@ -426,18 +429,41 @@ const Game = (() => {
     }
   }
 
-  function addParticle(x, y, vx, vy, life, color, size) {
-    particles.push({ x, y, vx, vy, life, max: life, color, size });
+  function addParticle(x, y, vx, vy, life, color, size, style) {
+    particles.push({ x, y, vx, vy, life, max: life, color, size, style: style || 'dot' });
   }
 
   function explode(x, y) {
+    const style = cosmetics.explosion;
+    if (style === 'wave') {
+      for (let i = 0; i < 4; i++) addParticle(x, y, 0, 0, 0.65 + i * 0.1, i % 2 ? '#ff4ad8' : '#4af0ff', 18 + i * 12, 'ring');
+      return;
+    }
     for (let i = 0; i < 40; i++) {
       const a = Math.random() * Math.PI * 2;
       const sp = 60 + Math.random() * 320;
+      const color = style === 'neon' ? (i % 2 ? '#ff4ad8' : '#4af0ff') : (style === 'particles' ? [ship.color, ship.accent, '#ffffff'][i % 3] : (Math.random() > 0.5 ? '#ff7a3c' : '#ffd84a'));
       addParticle(x, y, Math.cos(a) * sp, Math.sin(a) * sp,
-        0.5 + Math.random() * 0.6,
-        Math.random() > 0.5 ? '#ff7a3c' : '#ffd84a',
-        2 + Math.random() * 3);
+        0.5 + Math.random() * 0.6, color,
+        2 + Math.random() * 3, style === 'particles' && i % 4 === 0 ? 'star' : 'dot');
+    }
+  }
+
+  function vibrate(pattern) {
+    if (settings.haptics && !settings.reduceMotion && navigator.vibrate) navigator.vibrate(pattern);
+  }
+
+  function emitTrail() {
+    const x = ship.x - ship.w * 0.5;
+    const y = ship.y + (Math.random() - 0.5) * ship.h * 0.4;
+    if (cosmetics.trail === 'wave') {
+      addParticle(x, y, -95 - Math.random() * 80, 0, 0.34, ship.accent, 4 + Math.random() * 2, 'ring');
+    } else if (cosmetics.trail === 'stars') {
+      addParticle(x, y, -120 - Math.random() * 110, (Math.random() - 0.5) * 50, 0.42, '#ffffff', 3 + Math.random() * 2, 'star');
+    } else if (cosmetics.trail === 'flame') {
+      addParticle(x, y, -150 - Math.random() * 130, (Math.random() - 0.5) * 65, 0.38, Math.random() > 0.5 ? '#ff7a3c' : '#ffd84a', 3 + Math.random() * 2);
+    } else {
+      addParticle(x, y, -120 - Math.random() * 120, (Math.random() - 0.5) * 60, 0.3 + Math.random() * 0.3, ship.accent, 2 + Math.random() * 2);
     }
   }
 
@@ -465,6 +491,7 @@ const Game = (() => {
     } else if (ship.ability === 'slowmo') {
       world.slowmoTimer = 2; ship.abilityCd = 8;
     }
+    vibrate(12);
   }
 
   /* Colisão mortal respeitando escudo/invulnerabilidade */
@@ -475,6 +502,7 @@ const Game = (() => {
       ship.invuln = 1.0;
       Audio2.shield();
       explodeShield(ship.x, ship.y);
+      vibrate(24);
       if (Storage.getSettings().reduceMotion !== true) shake = Math.max(shake, 6);
       return;
     }
@@ -602,11 +630,7 @@ const Game = (() => {
     if (thrusting) {
       if (!wasThrusting) Audio2.thrust();   // som de empuxo no início do pulso
       ship.vy -= thrust * dt;
-      if (settings.particles && Math.random() < 0.8) {
-        addParticle(ship.x - ship.w * 0.5, ship.y + (Math.random() - 0.5) * ship.h * 0.4,
-          -120 - Math.random() * 120, (Math.random() - 0.5) * 60,
-          0.3 + Math.random() * 0.3, '#4af0ff', 2 + Math.random() * 2);
-      }
+      if (settings.particles && Math.random() < 0.8) emitTrail();
     }
     wasThrusting = thrusting;
     ship.vy += gravity * dt;
@@ -624,10 +648,11 @@ const Game = (() => {
     if (ship.y > H - halfH) ship.y = H - halfH;
 
     // faíscas de "quase-colisão" nas bordas do túnel (juiciness)
+    ship.nearHapticCooldown = Math.max(0, ship.nearHapticCooldown - dt);
+    const margin = 26;
+    const dTop = (ship.y - halfH) - tInfo.top;
+    const dBot = tInfo.bot - (ship.y + halfH);
     if (settings.particles) {
-      const margin = 26;
-      const dTop = (ship.y - halfH) - tInfo.top;
-      const dBot = tInfo.bot - (ship.y + halfH);
       if (dTop < margin || dBot < margin) {
         const edgeY = (dTop < dBot ? tInfo.top : tInfo.bot) + (Math.random() - 0.5) * 6;
         const dir = (dTop < dBot) ? 1 : -1;
@@ -638,6 +663,7 @@ const Game = (() => {
         }
       }
     }
+    if ((dTop < margin || dBot < margin) && ship.nearHapticCooldown <= 0) { vibrate(7); ship.nearHapticCooldown = 0.45; }
 
     // cristais coletáveis + combo
     if (world.comboTimer > 0) {
@@ -742,6 +768,7 @@ const Game = (() => {
     if (!rm) shake = 9;          // screen shake no impacto
     freeze = 0.07;               // hitstop micro
     explode(ship.x, ship.y);
+    vibrate([70, 35, 90]);
     Audio2.hit();                // camada de impacto
     Audio2.crash();
     Audio2.stopMusic();
@@ -1029,9 +1056,24 @@ const Game = (() => {
     for (const p of particles) {
       ctx.globalAlpha = Math.max(0, p.life / p.max);
       ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fill();
+      if (p.style === 'ring') {
+        const radius = p.size + (1 - p.life / p.max) * p.size * 4;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = Math.max(1, p.size * 0.32);
+        ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI * 2); ctx.stroke();
+      } else if (p.style === 'star') {
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate((1 - p.life / p.max) * Math.PI);
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+          const radius = i % 2 ? p.size * 0.42 : p.size;
+          const angle = -Math.PI / 2 + i * Math.PI / 4;
+          if (i === 0) ctx.moveTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+          else ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+        }
+        ctx.closePath(); ctx.fill(); ctx.restore();
+      } else {
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+      }
     }
     ctx.globalAlpha = 1;
   }

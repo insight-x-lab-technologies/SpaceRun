@@ -60,6 +60,12 @@ migração. Novas grandes reorganizações exigem v3.
   playerName: "",
   shipSkins: {},
   upgrades: { agility: 0, thrust: 0 },
+  cosmetics: {
+    trail: "ion",
+    explosion: "nova",
+    title: "cadet",
+    unlocked: ["trail:ion", "explosion:nova", "title:cadet"]
+  },
   settings: {
     sound: true,
     music: true,
@@ -68,7 +74,8 @@ migração. Novas grandes reorganizações exigem v3.
     reduceMotion: false,
     highContrast: false,
     theme: "neon",
-    performanceMode: false
+    performanceMode: false,
+    haptics: false
   }
 }
 ```
@@ -146,6 +153,18 @@ loadout forem compatíveis. `source: imported` nunca significa verificado.
   `Storage.UPGRADE_MAX`.
 - Upgrades são progressão mecânica, não cosmética.
 
+### Cosméticos de expressão
+
+- `cosmetics.trail` aceita `ion`, `wave`, `stars` ou `flame`; `explosion`
+  aceita `nova`, `neon`, `particles` ou `wave`; `title` aceita `cadet`,
+  `voyager` ou `legend`.
+- `unlocked` é uma lista única e limitada de ids conhecidos no formato
+  `tipo:valor`. As três opções-base estão sempre presentes; trilhas/efeitos
+  alternativos são comprados com cristais e títulos avançados são liberados por
+  distância total.
+- Uma seleção que não esteja em `unlocked` volta ao valor-base. Esses dados são
+  puramente cosméticos e nunca entram em regra, assinatura Daily ou score.
+
 ### Settings
 
 - Booleanos são normalizados; strings como `"false"` não viram `true`.
@@ -154,6 +173,8 @@ loadout forem compatíveis. `source: imported` nunca significa verificado.
 - Uma preferência nova deve ter default que preserve o comportamento anterior.
 - `prefers-reduced-motion` pode definir a primeira escolha, mas uma preferência
   salva pelo jogador tem precedência.
+- `haptics` é booleano e começa em `false`; a vibração é opcional e não deve
+  ocorrer quando `reduceMotion` estiver ativo.
 
 ## Limites e normalização
 

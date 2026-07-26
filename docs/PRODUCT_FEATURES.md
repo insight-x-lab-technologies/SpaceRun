@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.5.2**. Gameplay art and audio are procedural; the app is a serverless
+Version **0.5.3**. Gameplay art and audio are procedural; the app is a serverless
 PWA (vanilla HTML/JS, no frameworks, no backend). Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -132,6 +132,20 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
   progression earned by play—not cosmetics and never pay-to-win.
 - Hangar lets the player preview, customize (skin/upgrades) and select an
   unlocked ship.
+
+## Expression & feedback (Fase 7)
+
+- **Flight signature:** the Hangar lets the player select procedural thruster
+  trails (Ion, Wave, Stars or Flames) and crash effects (Nova, Neon, Particles
+  or Shockwave). The base variants are available immediately; the alternate
+  variants are permanently unlocked with crystals and do not change physics,
+  RNG, score or Daily rules.
+- **Titles:** Cadet is available immediately, Voyager unlocks at 10,000 total
+  meters and Cosmic Legend at 100,000 m. The selected title accompanies the
+  local player's name in the local leaderboard.
+- **Haptic feedback:** an opt-in Settings toggle vibrates on supported mobile
+  devices for crystal pickups, near-misses, abilities, shields and collisions.
+  It remains off by default and is suppressed when Reduce motion is enabled.
 
 ## Meta & Social (Fase 3)
 

@@ -160,12 +160,30 @@ const UI = (() => {
     const agCost = Storage.getUpgradeCost('agility');
     const thCost = Storage.getUpgradeCost('thrust');
     const crystals = Storage.get().crystals;
+    const cosmetics = Storage.getCosmetics();
 
     const upBtn = (stat, cost) => {
       if (cost == null) return `<span class="maxed">${I18n.t('hangar.maxed')}</span>`;
       const dis = crystals < cost ? 'disabled' : '';
       return `<button class="btn small" data-action="buyUpgrade" data-stat="${stat}" ${dis}>${I18n.t('hangar.cost', { n: cost })}</button>`;
     };
+    const cosmeticChoices = (type, values) => values.map(value => {
+      const key = type + ':' + value;
+      const unlocked = cosmetics.unlocked.includes(key);
+      const selected = cosmetics[type] === value;
+      const cost = Storage.getCosmeticCost(type, value);
+      const action = unlocked ? 'selectCosmetic' : 'buyCosmetic';
+      const suffix = selected ? I18n.t('hangar.unlocked') : (unlocked ? I18n.t('hangar.select') : I18n.t('hangar.cost', { n: cost }));
+      const disabled = !unlocked && crystals < cost ? 'disabled' : '';
+      return `<button class="cosmetic-chip${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}" data-action="${action}" data-type="${type}" data-value="${value}" ${disabled}><span>${I18n.t('cosmetic.' + type + '.' + value) || I18n.t('title.' + value)}</span><small>${suffix}</small></button>`;
+    }).join('');
+    const titleChoices = ['cadet', 'voyager', 'legend'].map(value => {
+      const key = 'title:' + value;
+      const unlocked = cosmetics.unlocked.includes(key);
+      const selected = cosmetics.title === value;
+      const label = unlocked ? (selected ? I18n.t('hangar.unlocked') : I18n.t('hangar.select')) : I18n.t('hangar.unlockAt', { n: value === 'voyager' ? '10.000' : '100.000' });
+      return `<button class="cosmetic-chip${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}" data-action="selectCosmetic" data-type="title" data-value="${value}" ${unlocked ? '' : 'disabled'}><span>${I18n.t('title.' + value)}</span><small>${label}</small></button>`;
+    }).join('');
 
     extra.innerHTML = `
       <div class="hangar-section">
@@ -193,6 +211,15 @@ const UI = (() => {
           ${upBtn('thrust', thCost)}
         </div>
         <div class="crystals-line">${I18n.t('hangar.crystals', { n: crystals })}</div>
+      </div>
+      <div class="hangar-section expression-section">
+        <h3>${I18n.t('hangar.expression')}</h3>
+        <div class="expression-label">${I18n.t('hangar.trail')}</div>
+        <div class="cosmetic-grid">${cosmeticChoices('trail', ['ion', 'wave', 'stars', 'flame'])}</div>
+        <div class="expression-label">${I18n.t('hangar.explosion')}</div>
+        <div class="cosmetic-grid">${cosmeticChoices('explosion', ['nova', 'neon', 'particles', 'wave'])}</div>
+        <div class="expression-label">${I18n.t('hangar.titleTag')}</div>
+        <div class="cosmetic-grid">${titleChoices}</div>
       </div>
     `;
   }
@@ -263,7 +290,8 @@ const UI = (() => {
       wrap.replaceChildren(); lb.forEach((e, i) => {
         const isMe = me && e.name === me;
         const row = document.createElement('div'); row.className = 'lb-row' + (isMe ? ' me' : '');
-        const values = ['#' + (i + 1), (e.name || '—') + (isMe ? ' (' + I18n.t('lb.you') + ')' : ''), e.m + ' m', e.t + 's'];
+        const title = isMe ? I18n.t('title.' + Storage.getCosmetics().title) + ' · ' : '';
+        const values = ['#' + (i + 1), title + (e.name || '—') + (isMe ? ' (' + I18n.t('lb.you') + ')' : ''), e.m + ' m', e.t + 's'];
         ['lb-rank', 'lb-name', 'lb-m', 'lb-t'].forEach((className, index) => { const cell = document.createElement('span'); cell.className = className; cell.textContent = values[index]; row.appendChild(cell); });
         wrap.appendChild(row);
       });
@@ -377,6 +405,7 @@ const UI = (() => {
     document.getElementById('set-particles').checked = s.particles;
     document.getElementById('set-reduce-motion').checked = s.reduceMotion;
     document.getElementById('set-high-contrast').checked = s.highContrast;
+    const haptics = document.getElementById('set-haptics'); if (haptics) haptics.checked = s.haptics;
     const perf = document.getElementById('set-performance-mode'); if (perf) perf.checked = s.performanceMode;
     document.getElementById('set-lang').value = I18n.lang;
     const themeSel = document.getElementById('set-theme');
@@ -408,6 +437,7 @@ const UI = (() => {
       applyAccessibility();
     };
     if (perf) perf.onchange = e => { Audio2.uiClick(); Storage.setSetting('performanceMode', e.target.checked); };
+    if (haptics) haptics.onchange = e => { Audio2.uiClick(); Storage.setSetting('haptics', e.target.checked); };
     const themeSelEl = document.getElementById('set-theme');
     if (themeSelEl) themeSelEl.onchange = e => {
       Themes.set(e.target.value);
@@ -528,6 +558,16 @@ const UI = (() => {
       case 'buyUpgrade': {
         const stat = btn && btn.dataset.stat;
         if (stat) Storage.buyUpgrade(stat);
+        renderHangar();
+        break;
+      }
+      case 'selectCosmetic': {
+        if (btn) Storage.setCosmetic(btn.dataset.type, btn.dataset.value);
+        renderHangar();
+        break;
+      }
+      case 'buyCosmetic': {
+        if (btn) Storage.buyCosmetic(btn.dataset.type, btn.dataset.value);
         renderHangar();
         break;
       }

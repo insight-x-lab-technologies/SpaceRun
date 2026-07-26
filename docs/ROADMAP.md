@@ -38,7 +38,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | **v0.5** | **Fundação estrutural** | **P0** | **base de código entregue; registros manuais finais adiados por decisão de produto** | Evoluir sem perder saves, segurança, paridade ou qualidade |
 | 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
-| 7 | Customização & Expressão | P2 | após 4A/8A | Identidade visual sem alterar competição |
+| 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
 | 9 | Modos de Jogo | P2 | após regras de modo/ruleset | Rejogabilidade por objetivos |
 | 4B | Retenção e perfil | P2 | só após validar 4A | Motivo saudável para retornar |
 | 5 | Social & Ghost P2P | P3 | após ADRs, segurança e protocolo | Competição compartilhável não autoritativa |
@@ -53,11 +53,10 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 2. Antes do encerramento do projeto, registrar o baseline de performance, o
    contraste manual e o playtest humano restantes da **v0.5 — Fundação estrutural**.
 3. Concluir o restante de **F8A**, se algum item essencial não couber na v0.5.
-4. Entregar uma fatia cosmética pequena da **F7**.
-5. Implementar 2–3 modos simples da **F9**, todos com `rulesetId` explícito.
-6. Avaliar playtests e só então autorizar **F4B — Retenção e perfil**.
-7. Implementar **F5 — Ghost/P2P** sobre o protocolo versionado definido nos ADRs.
-8. Reavaliar F10/F11. Qualquer ranking global, entitlement pago ou meta global
+4. Implementar 2–3 modos simples da **F9**, todos com `rulesetId` explícito.
+5. Avaliar playtests e só então autorizar **F4B — Retenção e perfil**.
+6. Implementar **F5 — Ghost/P2P** sobre o protocolo versionado definido nos ADRs.
+7. Reavaliar F10/F11. Qualquer ranking global, entitlement pago ou meta global
    exige mudança explícita da premissa serverless.
 
 ---
@@ -587,7 +586,12 @@ MP3 opcional por tema; áudio do menu/gameplay procedural por tema).
 
 ---
 
-## Fase 7 — Customização & Expressão  ·  P3  ·  complexidade baixa/média
+## Fase 7 — Customização & Expressão  ·  P2  ·  complexidade baixa/média  ·  ✅ entregue na v0.5.3
+
+**Entregue:** quatro rastros procedurais, quatro efeitos de explosão, três
+títulos locais (com marcos de distância para os dois avançados) e feedback
+háptico opcional. As opções cosméticas não afetam física, regras, RNG, score ou
+comparabilidade do Daily.
 
 Dá ao jogador identidade visual além da nave — cada run pode ter uma "assinatura".
 

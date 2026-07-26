@@ -66,7 +66,7 @@ applies the saved CSS variables and audio configuration through
 
 | Global   | Responsibility |
 |----------|----------------|
-| `Storage`| Save/load progress (`best`, `totalMeters`, `totalRuns`, `bestTime`, `crystals`, `unlocked`, `settings`, `achievements`, `history`, `streak`/`maxStreak`, `leaderboard`, `playerName`, `shipSkins`, `upgrades`); `recordRun(m, time, crystals)`, `recordLeaderboard`, skin/upgrade helpers, `reset()`. |
+| `Storage`| Save/load progress (`best`, `totalMeters`, `totalRuns`, `bestTime`, `crystals`, `unlocked`, `settings`, `achievements`, `history`, `streak`/`maxStreak`, `leaderboard`, `playerName`, `shipSkins`, `upgrades`, `cosmetics`); `recordRun(m, time, crystals)`, `recordLeaderboard`, skin/upgrade/cosmetic helpers, `reset()`. |
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
@@ -74,7 +74,7 @@ applies the saved CSS variables and audio configuration through
 | `Themes` | `list` (defs with `id`, `name`, `vars`, `font`, optional `audio`), `get(id)`, `currentId()`, `apply(id)`, `set(id)` (persists + applies + emits `musicchange`), `init()` (applies saved theme, sets `--font` on `<html>`, sets `data-theme`, wires `Audio2.setTheme`). |
 | `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; `Shift` (desktop) and the floating touch button (`#ability-btn`) emit `ability`. |
 | `PowerUps` | Declarative F4A pickup definitions (`magnet`, `doubleCrystals`, `shield`), their durations and deterministic type selection. It has no DOM or persistence dependency. |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start('classic'|'daily')`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability and active power-ups), `state`. The Game Over callback receives run context plus bounded power-up use. Handles abilities, shared shield/invulnerability, dash/slowmo and deterministic Daily spawns. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start('classic'|'daily')`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability and active power-ups), `state`. The Game Over callback receives run context plus bounded power-up use. Handles abilities, shared shield/invulnerability, dash/slowmo, cosmetic trail/crash rendering, opt-in haptics and deterministic Daily spawns. |
 | `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
 | `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |
 | `main`   | Bootstraps everything; HUD loop (incl. ability status); music switching; install (`beforeinstallprompt`); SW registration. |

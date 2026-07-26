@@ -82,6 +82,20 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(s.accent).toBe('#123456');
   });
 
+  it('personalização F7 permite comprar rastro e ativar vibração tátil', () => {
+    Storage.recordRun(0, 0, 1000);
+    document.querySelector('[data-action="hangar"]').click();
+    const buy = document.querySelector('[data-action="buyCosmetic"][data-type="trail"][data-value="wave"]');
+    expect(buy).not.toBeNull();
+    buy.click();
+    expect(Storage.getCosmetics().trail).toBe('wave');
+    document.querySelector('[data-action="settings"]').click();
+    const haptics = document.getElementById('set-haptics');
+    haptics.checked = true;
+    haptics.dispatchEvent(new Event('change'));
+    expect(Storage.getSettings().haptics).toBe(true);
+  });
+
   it('apagar progresso reseta o storage', () => {
     Storage.recordRun(5000, 50, 10);
     window.confirm = () => true;

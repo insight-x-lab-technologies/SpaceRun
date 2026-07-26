@@ -74,6 +74,16 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await page.locator('#ship-list .ship-card').first().click();
   });
 
+  test('Hangar permite desbloquear uma assinatura de voo com cristais', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => Storage.recordRun(0, 0, 1000));
+    await page.click(`${HOME} [data-action="hangar"]`);
+    const wave = page.locator('[data-action="buyCosmetic"][data-type="trail"][data-value="wave"]');
+    await expect(wave).toBeVisible();
+    await wave.click();
+    await expect(page.locator('[data-action="selectCosmetic"][data-type="trail"][data-value="wave"]')).toHaveClass(/selected/);
+  });
+
   test('Conquistas lista 23 desafios', async ({ page }) => {
     await page.goto('/');
     await page.click(`${HOME} [data-action="achievements"]`);
@@ -97,6 +107,15 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     const before = await sound.isChecked();
     await sound.click();
     expect(await sound.isChecked()).toBe(!before);
+  });
+
+  test('Configurações expõem a vibração tátil opcional', async ({ page }) => {
+    await page.goto('/');
+    await page.click(`${HOME} [data-action="settings"]`);
+    const haptics = page.locator('#set-haptics');
+    await expect(haptics).not.toBeChecked();
+    await haptics.check();
+    await expect(haptics).toBeChecked();
   });
 
   test('Footer traz ícones de compartilhamento com links corretos', async ({ page }) => {

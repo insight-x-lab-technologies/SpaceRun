@@ -15,6 +15,16 @@ const Storage = (() => {
   const THEMES = ['neon', 'retro', 'aurora'];
   const MODES = ['classic', 'daily'];
   const POWERUP_IDS = ['magnet', 'doubleCrystals', 'shield'];
+  const COSMETIC_IDS = [
+    'trail:ion', 'trail:wave', 'trail:stars', 'trail:flame',
+    'explosion:nova', 'explosion:neon', 'explosion:particles', 'explosion:wave',
+    'title:cadet', 'title:voyager', 'title:legend'
+  ];
+  const COSMETIC_DEFAULTS = { trail: 'ion', explosion: 'nova', title: 'cadet' };
+  const COSMETIC_COSTS = {
+    'trail:wave': 80, 'trail:stars': 160, 'trail:flame': 240,
+    'explosion:neon': 90, 'explosion:particles': 180, 'explosion:wave': 260
+  };
   const ACHIEVEMENT_IDS = ['first_flight', 'dist_5k', 'dist_10k', 'dist_25k', 'dist_100k', 'crystals_25', 'crystals_100', 'combo_10', 'time_2min', 'time_5min', 'fleet', 'streak_3', 'daily_first', 'dist_50k', 'dist_250k', 'dist_500k', 'crystals_250', 'combo_25', 'combo_50', 'time_10min', 'streak_5', 'streak_10', 'total_1m'];
   let lastError = null;
 
@@ -29,8 +39,9 @@ const Storage = (() => {
       selectedShip: 'scout', unlocked: ['scout'], achievements: [], history: [],
       streak: 0, maxStreak: 0, leaderboard: [], playerName: '', shipSkins: {},
       upgrades: { agility: 0, thrust: 0 },
+      cosmetics: { trail: 'ion', explosion: 'nova', title: 'cadet', unlocked: ['trail:ion', 'explosion:nova', 'title:cadet'] },
       settings: { sound: true, music: true, particles: true, lang: null,
-        reduceMotion: false, highContrast: false, theme: 'neon', performanceMode: false }
+        reduceMotion: false, highContrast: false, theme: 'neon', performanceMode: false, haptics: false }
     };
   }
   function object(v) { return v && typeof v === 'object' && !Array.isArray(v); }
@@ -60,6 +71,18 @@ const Storage = (() => {
     return { agility: int(v.agility, 0, UPGRADE_MAX), thrust: int(v.thrust, 0, UPGRADE_MAX) };
   }
   function powerups(v) { return uniqueIds(v, POWERUP_IDS, [], POWERUP_IDS.length); }
+  function cosmetics(v) {
+    v = object(v) ? v : {};
+    const baseUnlocked = ['trail:ion', 'explosion:nova', 'title:cadet'];
+    const savedUnlocked = uniqueIds(v.unlocked, COSMETIC_IDS, [], COSMETIC_IDS.length);
+    const unlocked = baseUnlocked.concat(savedUnlocked.filter(id => !baseUnlocked.includes(id))).slice(0, COSMETIC_IDS.length);
+    const selection = {};
+    Object.keys(COSMETIC_DEFAULTS).forEach(type => {
+      const value = id(v[type], COSMETIC_IDS.filter(x => x.startsWith(type + ':')).map(x => x.slice(type.length + 1)), COSMETIC_DEFAULTS[type]);
+      selection[type] = unlocked.includes(type + ':' + value) ? value : COSMETIC_DEFAULTS[type];
+    });
+    return Object.assign(selection, { unlocked });
+  }
   function timestamp(v) { return int(v, now(), 4102444800000); }
   function randomId(prefix) { return prefix + '-' + now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); }
   function normalizeRun(v, legacy) {
@@ -109,7 +132,7 @@ const Storage = (() => {
       achievements: uniqueIds(v.achievements, ACHIEVEMENT_IDS, [], 100),
       history, streak: int(v.streak, 0, Number.MAX_SAFE_INTEGER), maxStreak: int(v.maxStreak, 0, Number.MAX_SAFE_INTEGER),
       leaderboard: leaderboard.slice(0, MAX_LEADERBOARD), playerName: name(v.playerName), shipSkins: skins,
-      upgrades: loadout(v.upgrades), settings: {
+      upgrades: loadout(v.upgrades), cosmetics: cosmetics(v.cosmetics), settings: {
         sound: typeof settings.sound === 'boolean' ? settings.sound : base.settings.sound,
         music: typeof settings.music === 'boolean' ? settings.music : base.settings.music,
         particles: typeof settings.particles === 'boolean' ? settings.particles : base.settings.particles,
@@ -117,7 +140,8 @@ const Storage = (() => {
         reduceMotion: typeof settings.reduceMotion === 'boolean' ? settings.reduceMotion : base.settings.reduceMotion,
         highContrast: typeof settings.highContrast === 'boolean' ? settings.highContrast : base.settings.highContrast,
         theme: id(settings.theme, THEMES, base.settings.theme),
-        performanceMode: typeof settings.performanceMode === 'boolean' ? settings.performanceMode : base.settings.performanceMode
+        performanceMode: typeof settings.performanceMode === 'boolean' ? settings.performanceMode : base.settings.performanceMode,
+        haptics: typeof settings.haptics === 'boolean' ? settings.haptics : base.settings.haptics
       }
     };
   }
@@ -183,6 +207,19 @@ const Storage = (() => {
       const cost = this.getUpgradeCost(stat); if (cost === null || data.crystals < cost) return false;
       return commit(next => { next.crystals -= cost; next.upgrades[stat] += 1; });
     },
+    getCosmetics: () => clone(data.cosmetics),
+    getCosmeticCost(type, value) { return COSMETIC_COSTS[type + ':' + value] || null; },
+    setCosmetic(type, value) {
+      const key = type + ':' + value;
+      if (!Object.prototype.hasOwnProperty.call(COSMETIC_DEFAULTS, type) || !COSMETIC_IDS.includes(key) || !data.cosmetics.unlocked.includes(key)) return false;
+      return commit(next => { next.cosmetics[type] = value; });
+    },
+    buyCosmetic(type, value) {
+      const key = type + ':' + value;
+      const cost = COSMETIC_COSTS[key];
+      if (!cost || !COSMETIC_IDS.includes(key) || data.cosmetics.unlocked.includes(key) || data.crystals < cost) return false;
+      return commit(next => { next.crystals -= cost; next.cosmetics.unlocked.push(key); next.cosmetics[type] = value; });
+    },
     getPlayerName: () => data.playerName, setPlayerName(value) { return commit(next => { next.playerName = name(value); }); },
     recordLeaderboard(meters, time, context) {
       const entry = scoreInput(meters, time, Object.assign({ name: data.playerName, shipId: data.selectedShip, loadout: currentLoadout() }, context || {}));
@@ -200,6 +237,9 @@ const Storage = (() => {
         next.streak = res.isBest ? next.streak + 1 : 0; next.maxStreak = Math.max(next.maxStreak, next.streak);
         next.history.push(run); if (next.history.length > MAX_HISTORY) next.history.shift();
         unlocks.forEach(ship => { if (!next.unlocked.includes(ship.id) && next.totalMeters >= ship.unlockAt) { next.unlocked.push(ship.id); res.newUnlocks.push(ship.id); } });
+        [['title:voyager', 10000], ['title:legend', 100000]].forEach(([cosmetic, meters]) => {
+          if (next.totalMeters >= meters && !next.cosmetics.unlocked.includes(cosmetic)) next.cosmetics.unlocked.push(cosmetic);
+        });
       });
       return ok ? res : { isBest: false, newUnlocks: [] };
     },
