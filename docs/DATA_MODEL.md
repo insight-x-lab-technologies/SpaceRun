@@ -111,7 +111,7 @@ XP é uma projeção do progresso local e não é usado para autorizar gameplay.
   t: 42.3,                    // segundos, uma casa decimal
   c: 18,                      // cristais obtidos na run
   d: 1784600000000,           // timestamp local em ms
-  mode: "classic",           // classic | daily | ids futuros conhecidos
+  mode: "classic",           // classic | daily | zen | sprint | hardcore
   seed: 1234567890,           // uint32; 0 quando não aplicável
   rulesetId: "classic-v2",
   shipId: "scout",
@@ -136,8 +136,8 @@ Regras:
 
 ### ScoreRecord
 
-`leaderboard` contém no máximo 10 registros locais, ordenados por distância e
-com desempate documentado.
+`leaderboard` contém no máximo 10 registros por categoria `{mode, rulesetId}`
+(até 50 no save atual), ordenados por distância e com desempate documentado.
 
 ```js
 {
@@ -146,7 +146,7 @@ com desempate documentado.
   m: 1234,
   t: 42.3,
   d: 1784600000000,
-  mode: "classic",
+  mode: "classic",           // classic | daily | zen | sprint | hardcore
   seed: 0,
   rulesetId: "classic-v2",
   shipId: "scout",
@@ -204,7 +204,7 @@ Todo valor importado ou carregado deve passar por estas regras:
 | Nome | string Unicode, trim, máximo de 16 grafemas; render via `textContent` |
 | Arrays de ids | lista única, apenas ids conhecidos, com limite por domínio |
 | Histórico | máximo 50 |
-| Leaderboard local | máximo 10 por categoria suportada |
+| Leaderboard local | máximo 10 por `{mode, rulesetId}`; 50 no total |
 | Payload importado | limite de bytes definido pelo protocolo antes do parse |
 
 Valores inválidos são substituídos pelo default do campo, não pelo reset do save

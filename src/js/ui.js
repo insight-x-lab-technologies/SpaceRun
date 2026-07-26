@@ -8,6 +8,18 @@ const UI = (() => {
   let achQueue = [], achShowing = false;
   let updateApply = null;
   let lastFocused = null;
+  let lastMode = 'classic';
+  const MODE_RULESETS = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1' };
+
+  function selectedMode() {
+    const select = document.getElementById('mode-select');
+    return select && Object.prototype.hasOwnProperty.call(MODE_RULESETS, select.value) ? select.value : 'classic';
+  }
+  function updateModeDescription() {
+    const select = document.getElementById('mode-select');
+    const desc = document.getElementById('mode-description');
+    if (select && desc) desc.textContent = I18n.t('mode.' + selectedMode() + '.desc');
+  }
 
   function show(id) {
     if (id) lastFocused = document.activeElement;
@@ -282,7 +294,9 @@ const UI = (() => {
   function renderLeaderboard() {
     const wrap = document.getElementById('lb-list');
     if (!wrap) return;
-    const lb = Storage.getLeaderboard();
+    const select = document.getElementById('lb-mode');
+    const mode = select && Object.prototype.hasOwnProperty.call(MODE_RULESETS, select.value) ? select.value : 'classic';
+    const lb = Storage.getLeaderboard(entry => entry.mode === mode && entry.rulesetId === MODE_RULESETS[mode]);
     const me = Storage.getPlayerName();
     if (!lb.length) {
       wrap.replaceChildren(); const empty = document.createElement('div'); empty.className = 'stats-empty'; empty.textContent = I18n.t('lb.empty'); wrap.appendChild(empty);
@@ -375,12 +389,14 @@ const UI = (() => {
     const crystals = (payload && typeof payload === 'object') ? payload.crystals : 0;
     const seed = (payload && typeof payload === 'object') ? payload.seed : 0;
     const daily = (payload && typeof payload === 'object') ? payload.daily : false;
-    lastResult = payload;
+    const mode = payload && Object.prototype.hasOwnProperty.call(MODE_RULESETS, payload.mode) ? payload.mode : (daily ? 'daily' : 'classic');
+    lastMode = mode;
+    lastResult = Object.assign({}, payload || {}, { mode });
 
     // registra a partida (atualiza recordes, desbloqueios, história, streak)
-    const context = { mode: daily ? 'daily' : 'classic', seed, rulesetId: (payload && payload.rulesetId) || (daily ? 'daily-v2' : 'classic-v2'), shipId: (payload && payload.shipId) || Storage.getSnapshot().selectedShip, loadout: (payload && payload.loadout) || undefined, maxCombo: (payload && payload.maxCombo) || 0, powerups: (payload && payload.powerups) || [] };
+    const context = { mode, seed, rulesetId: (payload && payload.rulesetId) || MODE_RULESETS[mode], shipId: (payload && payload.shipId) || Storage.getSnapshot().selectedShip, loadout: (payload && payload.loadout) || undefined, maxCombo: (payload && payload.maxCombo) || 0, powerups: (payload && payload.powerups) || [] };
     const res = Storage.recordRun({ m: meters, t: time, c: crystals, ...context });
-    if (typeof Cloud !== 'undefined') { Cloud.syncProfile(Storage.getProfile()); Cloud.submitScore({ m: meters, t: time, ...context }); }
+    if (typeof Cloud !== 'undefined') { Cloud.syncProfile(Storage.getProfile()); if (mode === 'classic' || mode === 'daily') Cloud.submitScore({ m: meters, t: time, ...context }); }
 
     // salva no ranking local (usa o nome opcional do jogador)
     Storage.recordLeaderboard({ m: meters, t: time, ...context });
@@ -402,6 +418,8 @@ const UI = (() => {
     if (timeEl) timeEl.textContent = (time ? time.toFixed(1) : '0') + 's';
     const cryEl = document.getElementById('go-crystals');
     if (cryEl) cryEl.textContent = crystals;
+    const modeEl = document.getElementById('go-mode');
+    if (modeEl) modeEl.textContent = I18n.t('mode.' + mode);
     const seedRow = document.getElementById('go-seed-row');
     const seedEl = document.getElementById('go-seed');
     if (seedRow && seedEl) {
@@ -472,6 +490,7 @@ const UI = (() => {
       I18n.setLang(e.target.value);
       I18n.apply();
       updateShare();
+      updateModeDescription();
       document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
       renderSettings();
       ['screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard', 'screen-missions']
@@ -503,6 +522,11 @@ const UI = (() => {
     applyAccessibility();
     wireShare();
     updateShare();
+    updateModeDescription();
+    const modeSelect = document.getElementById('mode-select');
+    if (modeSelect) modeSelect.addEventListener('change', updateModeDescription);
+    const lbMode = document.getElementById('lb-mode');
+    if (lbMode) lbMode.addEventListener('change', renderLeaderboard);
     if (typeof Cloud !== 'undefined') Cloud.init().then(ok => { if (ok) Cloud.syncProfile(Storage.getProfile()); });
     document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
 
@@ -523,7 +547,11 @@ const UI = (() => {
     switch (a) {
       case 'play':
         show(null);
-        onPlay();
+        onPlay(selectedMode());
+        break;
+      case 'replay':
+        show(null);
+        onPlay(lastMode);
         break;
       case 'playDaily':
         show(null);

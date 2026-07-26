@@ -125,6 +125,7 @@ const Audio2 = (() => {
       music.master.connect(c.destination);
     }
     if (type === 'menu') startDrone(c, 110, 0.04); // pad grave
+    if (type === 'zen') startDrone(c, 82.41, 0.035);
     music.timer = setInterval(scheduler, 25);
   }
 
@@ -172,6 +173,11 @@ const Audio2 = (() => {
         const f = seq[music.step % seq.length];
         note(f, music.next, 0.42, theme.menuWave, 0.5);
         if (music.step % 4 === 0) note(f * 2, music.next, 0.3, 'sine', 0.18);
+      } else if (type === 'zen') {
+        const seq = theme.menuSeq;
+        const f = seq[music.step % seq.length] * 0.5;
+        note(f, music.next, 0.62, 'sine', 0.28);
+        if (music.step % 3 === 0) note(f * 1.5, music.next + 0.12, 0.42, 'triangle', 0.13);
       } else { // game
         const seq = theme.gameSeq;
         const f = seq[music.step % seq.length];
@@ -179,7 +185,7 @@ const Audio2 = (() => {
         if (music.step % 2 === 0) note(110, music.next, 0.15, 'triangle', 0.5);
         if (music.step % 4 === 2) note(164.81, music.next, 0.15, 'triangle', 0.3);
       }
-      music.next += (type === 'menu') ? 0.46 : 0.16;
+      music.next += type === 'menu' ? 0.46 : (type === 'zen' ? 0.58 : 0.16);
       music.step++;
     }
   }

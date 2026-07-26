@@ -71,6 +71,12 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(document.getElementById('go-seed-row').classList.contains('hidden')).toBe(true);
   });
 
+  it('registra e apresenta o modo selecionado no Game Over', () => {
+    UI.showGameOver({ meters: 60, time: 1, crystals: 0, seed: 1, mode: 'sprint', rulesetId: 'sprint-v1', shipId: 'scout' });
+    expect(document.getElementById('go-mode').textContent).toBe('Sprint');
+    expect(Storage.getHistory()[0]).toMatchObject({ mode: 'sprint', rulesetId: 'sprint-v1' });
+  });
+
   it('toggle de som atualiza Storage', () => {
     const cb = document.getElementById('set-sound');
     cb.checked = false;

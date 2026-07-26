@@ -84,6 +84,20 @@ html, body {
 }
 .logo span { color: var(--accent2); -webkit-text-fill-color: var(--accent2); }
 .tagline { color: var(--muted); margin: 8px 0 26px; letter-spacing: 1px; }
+.mode-selector {
+  margin: -8px 0 18px;
+  padding: 12px;
+  text-align: left;
+  border: 1px solid rgba(74, 240, 255, 0.22);
+  border-radius: 12px;
+  background: linear-gradient(110deg, rgba(74, 240, 255, 0.10), rgba(255, 74, 216, 0.06));
+}
+.mode-selector label, .lb-filter label { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+.mode-selector select, .lb-filter select {
+  width: 100%; margin-top: 7px; padding: 9px 10px; border-radius: 8px;
+  border: 1px solid rgba(74, 240, 255, 0.35); background: rgba(4, 3, 15, 0.7); color: var(--text); font: inherit;
+}
+.mode-description { min-height: 18px; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.35; }
 
 h2 { font-size: clamp(22px, 6vw, 32px); margin-bottom: 6px; letter-spacing: 2px; }
 .subtitle { color: var(--muted); margin-bottom: 20px; }
@@ -404,6 +418,12 @@ body.high-contrast .btn {
   font-weight: 700;
   text-shadow: 0 0 10px rgba(255, 216, 74, 0.55);
 }
+.hud-objective {
+  color: var(--accent);
+  font-size: clamp(12px, 3vw, 15px);
+  font-weight: 800;
+  letter-spacing: 0.7px;
+}
 
 /* ---------- Toast de conquista ---------- */
 .achievement {
@@ -524,6 +544,8 @@ body.high-contrast .btn {
 
 /* ---------- Ranking (Fase 3) ---------- */
 .lb-list { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+.lb-filter { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; text-align: left; }
+.lb-filter select { flex: 1; margin: 0; }
 .lb-row {
   display: flex; align-items: center; gap: 8px; font-size: 14px;
   padding: 7px 8px; border-bottom: 1px solid rgba(74,240,255,0.1);

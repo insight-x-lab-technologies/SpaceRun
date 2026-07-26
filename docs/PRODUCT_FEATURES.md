@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.5.4**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.6.0**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -173,9 +173,26 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Perfil local:** XP e nível são derivados do progresso, e o nome opcional continua validado por `Storage`.
 - **Supabase opcional:** perfil e placares sincronizam em segundo plano por usuário anônimo; o jogo continua offline-first. O Top 10 global é explicitamente **não verificado**, pois não há validação autoritativa de replay.
 
+## Modos de jogo (Fase 9)
+
+- A Home oferece um seletor de modo antes de iniciar uma partida normal. O
+  **Daily Run** continua sendo exclusivamente a regra Normal/Daily.
+- **Zen:** sem colisões, túnel sempre amplo e música procedural calma para
+  explorar e coletar cristais sem pressão.
+- **Sprint:** 60 segundos para alcançar a maior distância; o HUD exibe a
+  contagem regressiva e o término por tempo é uma conclusão, não uma colisão.
+- **Hardcore:** uma vida, sem pickups de power-up e com túnel mais estreito. A
+  habilidade de escudo também fica indisponível para preservar a regra de uma
+  vida.
+- Cada resultado persiste `mode` e um `rulesetId` próprio (`zen-v1`,
+  `sprint-v1`, `hardcore-v1`). O ranking local é filtrado por modo/regras e
+  preserva Top 10 independente por categoria; modos novos não são enviados ao
+  ranking global não verificado.
+
 ## Screens & navigation
 
-- **Home:** New Game, **Daily Run**, Hangar, Achievements, Statistics, Ranking,
+- **Home:** seletor de modo (Classic/Zen/Sprint/Hardcore), New Game, **Daily
+  Run**, Hangar, Achievements, Statistics, Ranking,
   Settings, Donate, Install (when supported). The footer
   also shows **social share icons** (WhatsApp, Telegram, X, Facebook, TikTok,
   Instagram and copy-link) that open a localized share message with the game URL

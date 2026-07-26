@@ -8,6 +8,7 @@
   const hudCombo = document.getElementById('hud-combo');
   const hudAbility = document.getElementById('hud-ability');
   const hudPowerup = document.getElementById('hud-powerup');
+  const hudObjective = document.getElementById('hud-objective');
   const hudPause = document.getElementById('hud-pause');
   const abilityBtn = document.getElementById('ability-btn');
 
@@ -47,6 +48,11 @@
         const active = h.powerups || [];
         hudPowerup.textContent = active.map(p => I18n.t('powerup.' + p.id) + ' ' + Math.ceil(p.remaining) + 's').join(' · ');
       }
+      if (hudObjective) {
+        hudObjective.textContent = h.mode === 'sprint'
+          ? I18n.t('hud.sprint', { n: Math.ceil(h.remaining) })
+          : (h.mode === 'zen' ? I18n.t('hud.zen') : (h.mode === 'hardcore' ? I18n.t('hud.hardcore') : ''));
+      }
       if (abilityBtn) {
         if (h.ability) {
           const label = abilityBtn.querySelector('.ab-label');
@@ -66,7 +72,7 @@
   /* ---------- Música (menu x gameplay) ---------- */
   function currentMusicType() {
     const st = Game.state;
-    if (st === 'ready' || st === 'playing' || st === 'paused') return 'game';
+    if (st === 'ready' || st === 'playing' || st === 'paused') return Game.getHud().mode === 'zen' ? 'zen' : 'game';
     return 'menu';
   }
 

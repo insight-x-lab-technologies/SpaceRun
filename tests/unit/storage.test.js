@@ -38,6 +38,12 @@ describe('Storage — progresso do jogador', () => {
     expect(Storage.getHistory()[0].powerups).toEqual(['magnet', 'shield']);
   });
 
+  it('aceita apenas ids de modo conhecidos ao registrar uma run', () => {
+    Storage.recordRun({ m: 12, t: 1, c: 0, mode: 'sprint', rulesetId: 'sprint-v1' });
+    Storage.recordRun({ m: 12, t: 1, c: 0, mode: 'desconhecido' });
+    expect(Storage.getHistory().map(run => run.mode)).toEqual(['sprint', 'classic']);
+  });
+
   it('recordRun só marca isBest quando bate o recorde', () => {
     const r1 = Storage.recordRun(1000, 10, 0);
     expect(r1.isBest).toBe(true);
@@ -72,6 +78,19 @@ describe('Storage — progresso do jogador', () => {
     expect(idx).toBe(0);
     for (let i = 0; i < 15; i++) Storage.recordLeaderboard(i, 1);
     expect(Storage.getLeaderboard().length).toBe(10);
+  });
+
+  it('mantém Top 10 independente por modo e ruleset', () => {
+    for (let i = 0; i < 12; i++) {
+      Storage.recordLeaderboard({ m: i, t: 1, mode: 'classic', rulesetId: 'classic-v2' });
+      Storage.recordLeaderboard({ m: i, t: 1, mode: 'sprint', rulesetId: 'sprint-v1' });
+    }
+    const classic = Storage.getLeaderboard(x => x.mode === 'classic' && x.rulesetId === 'classic-v2');
+    const sprint = Storage.getLeaderboard(x => x.mode === 'sprint' && x.rulesetId === 'sprint-v1');
+    expect(classic).toHaveLength(10);
+    expect(sprint).toHaveLength(10);
+    expect(classic[0].m).toBe(11);
+    expect(sprint[0].m).toBe(11);
   });
 
   it('upgrades de cristais: compra, custo e nível', () => {

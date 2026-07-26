@@ -7,6 +7,7 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await page.goto('/');
     await expect(page.locator('.logo')).toContainText('SPACERUN');
     await expect(page.locator(HOME)).toBeVisible();
+    await expect(page.locator('#mode-select')).toBeVisible();
     await expect(page.locator(`${HOME} [data-action="play"]`)).toBeVisible();
     await expect(page.locator(`${HOME} [data-action="playDaily"]`)).toBeVisible();
     await expect(page.locator(`${HOME} [data-action="hangar"]`)).toBeVisible();
@@ -52,6 +53,15 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await expect(page.locator('#ready-overlay')).toBeVisible();
     await page.keyboard.press('Space');
     await expect(page.locator('#hud')).toBeVisible();
+  });
+
+  test('Sprint é selecionável na Home e mostra cronômetro no HUD', async ({ page }) => {
+    await page.goto('/');
+    await page.selectOption('#mode-select', 'sprint');
+    await expect(page.locator('#mode-description')).toContainText('60 seconds');
+    await page.click(`${HOME} [data-action="play"]`);
+    await page.keyboard.press('Space');
+    await expect(page.locator('#hud-objective')).toContainText('SPRINT');
   });
 
   test('Power-up coletado aparece no HUD da run', async ({ page }) => {

@@ -72,17 +72,17 @@ applies the saved CSS variables and audio configuration through
 
 | Global   | Responsibility |
 |----------|----------------|
-| `Storage`| Save/load local progress, including `retention` (login streak, XP and bounded mission progress); remains authoritative during a run. |
+| `Storage`| Save/load local progress, including `retention` (login streak, XP and bounded mission progress); validates the five known mode ids and preserves a Top 10 per `{mode, rulesetId}` category. |
 | `Cloud`| Optional Supabase anonymous session, profile synchronization and unverified global leaderboard. Network failures are swallowed. |
 | `Missions`| F4B daily/weekly mission projection from validated `Storage` counters. |
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
-| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setTheme(t)`, `setMusicTracks(menuUrl, gameUrl)`, `setEnabled`, `setMusicEnabled`, `ensure`. |
+| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setTheme(t)`, `setMusicTracks(menuUrl, gameUrl)`, `setEnabled`, `setMusicEnabled`, `ensure`. `startMusic('zen')` uses the calm procedural variation. |
 | `Themes` | `list` (defs with `id`, `name`, `vars`, `font`, optional `audio`), `get(id)`, `currentId()`, `apply(id)`, `set(id)` (persists + applies + emits `musicchange`), `init()` (applies saved theme, sets `--font` on `<html>`, sets `data-theme`, wires `Audio2.setTheme`). |
 | `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; `Shift` (desktop) and the floating touch button (`#ability-btn`) emit `ability`. |
 | `PowerUps` | Declarative F4A pickup definitions (`magnet`, `doubleCrystals`, `shield`), their durations and deterministic type selection. It has no DOM or persistence dependency. |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start('classic'|'daily')`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, crystals, combo, ability and active power-ups), `state`. The Game Over callback receives run context plus bounded power-up use. Handles abilities, shared shield/invulnerability, dash/slowmo, cosmetic trail/crash rendering, opt-in haptics and deterministic Daily spawns. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start('classic'|'daily'|'zen'|'sprint'|'hardcore')`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, mode objective, crystals, combo, ability and active power-ups), `state`. The Game Over callback receives run context plus bounded power-up use. Zen disables collisions, Sprint has a 60-second completion timer, and Hardcore removes pickups/shields and narrows terrain; every mode uses an explicit ruleset. |
 | `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
 | `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |
 | `main`   | Bootstraps everything; HUD loop (incl. ability status); music switching; install (`beforeinstallprompt`); SW registration. |
@@ -110,8 +110,9 @@ so the `onState` callback (wired in `main.js`) can keep UI/HUD/music in sync.
   prompt overlay; waits for the first `Input` "start" event.
 - **playing** — full gameplay (physics, spawning, collisions, HUD, game music).
 - **paused** — frozen; pause overlay; music continues.
-- **over** — explosion + flash; after a short delay `onOverCb(payload)` fires
-  and the Game Over screen is shown.
+- **over** — collision shows explosion + flash; Sprint completion uses the same
+  result transition without a crash effect. After a short delay `onOverCb(payload)`
+  fires and the Game Over screen is shown.
 
 ## Rendering pipeline (`Game.render`, every animation frame)
 

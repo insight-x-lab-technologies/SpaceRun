@@ -34,7 +34,14 @@ const Game = (() => {
   ];
 
   // Power-ups alteram o universo lógico; resultados v1 permanecem históricos.
-  const RULESET = { classic: 'classic-v2', daily: 'daily-v2' };
+  const RULESET = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1' };
+  const MODE = {
+    classic: { id: 'classic', rulesetId: RULESET.classic },
+    daily: { id: 'daily', rulesetId: RULESET.daily, daily: true },
+    zen: { id: 'zen', rulesetId: RULESET.zen, noCollision: true, wideTerrain: true, calmMusic: true },
+    sprint: { id: 'sprint', rulesetId: RULESET.sprint, duration: 60 },
+    hardcore: { id: 'hardcore', rulesetId: RULESET.hardcore, noPowerups: true, narrowTerrain: true, oneLife: true }
+  };
   let settings = { particles: true, performanceMode: false, haptics: false, reduceMotion: false };
   let cosmetics = { trail: 'ion', explosion: 'nova', title: 'cadet' };
 
@@ -165,13 +172,17 @@ const Game = (() => {
     for (const n of nebulae) n.c = b.nebula;
   }
 
-  function buildWorld(seed, daily) {
+  function buildWorld(seed, mode) {
+    const modeDef = MODE[mode] || MODE.classic;
     const s = Ships.get(Storage.get().selectedShip);
     world = {
       scroll: 0, speed: 220, meters: 0, difficulty: 0,
       crystals: 0, combo: 0, comboTimer: 0, maxCombo: 0,
       slowmoTimer: 0, magnetTimer: 0, doubleCrystalsTimer: 0, wf: 1,
-      seed: seed || 0, daily: !!daily, rulesetId: daily ? RULESET.daily : RULESET.classic, rng: null, accent: '#4af0ff',
+      seed: seed || 0, mode: modeDef.id, daily: !!modeDef.daily, rulesetId: modeDef.rulesetId, rng: null, accent: '#4af0ff',
+      noCollision: !!modeDef.noCollision, noPowerups: !!modeDef.noPowerups, wideTerrain: !!modeDef.wideTerrain,
+      narrowTerrain: !!modeDef.narrowTerrain, oneLife: !!modeDef.oneLife, calmMusic: !!modeDef.calmMusic,
+      remaining: modeDef.duration || 0,
       nextSpawnDist: 16, nextPickupDist: 40, nextPowerupDist: 120, powerupsUsed: [], spawnSig: []
     };
     if (seed) world.rng = mulberry32(seed >>> 0);
@@ -183,7 +194,7 @@ const Game = (() => {
       h: 26 * s.stats.size,
       ship: s,
       tilt: 0,
-      ability: s.ability || null,
+      ability: modeDef.oneLife && s.ability === 'shield' ? null : (s.ability || null),
       abilityCd: 1.5,          // pequeno cooldown inicial p/ evitar disparo acidental
       dashTimer: 0,
       shield: false,
@@ -232,10 +243,9 @@ const Game = (() => {
   function start(mode) {
     settings = Storage.getSettings();
     cosmetics = Storage.getCosmetics();
-    let seed = 0, daily = false;
-    if (mode === 'daily') { daily = true; seed = dailySeed(); }
-    else { seed = (Math.random() * 0xffffffff) >>> 0; }
-    buildWorld(seed, daily);
+    const selectedMode = MODE[mode] ? mode : 'classic';
+    const seed = selectedMode === 'daily' ? dailySeed() : (Math.random() * 0xffffffff) >>> 0;
+    buildWorld(seed, selectedMode);
     setState('ready');   // começa pausado, aguardando input do jogador
     lastT = performance.now();
     acc = 0;
@@ -248,9 +258,17 @@ const Game = (() => {
   function terrain(wx) {
     const diff = world.difficulty;
     const mid = H * 0.5;
+    if (world.wideTerrain) {
+      // Zen mantém uma abertura constante e generosa: a oscilação move o
+      // corredor inteiro, mas nunca o estreita.
+      const sway = Math.sin(wx * 0.008) * H * 0.025 + Math.sin(wx * 0.017 + 1.1) * H * 0.012;
+      return { top: H * 0.09 + sway, bot: H * 0.91 + sway, mid: mid + sway, amp: H * 0.037 };
+    }
     // começa bem aberto e estreita com a distância (rampa mais suave)
-    let gap = H * 0.78 - diff * H * 0.05;
-    gap = Math.max(H * 0.34, gap);
+    let gap;
+    if (world.narrowTerrain) gap = H * 0.58 - diff * H * 0.03;
+    else gap = H * 0.78 - diff * H * 0.05;
+    gap = Math.max(world.narrowTerrain ? H * 0.30 : H * 0.34, gap);
     // variação pequena no início, cresce com o progresso
     const amp = gap * (0.1 + Math.min(diff * 0.005, 0.22));
     const top = mid - gap * 0.5
@@ -370,6 +388,7 @@ const Game = (() => {
   }
 
   function spawnPowerup(type, x, y) {
+    if (world.noPowerups) return null;
     const def = PowerUps.get(type || PowerUps.pick(rnd).id);
     if (!def) return null;
     const px = Number.isFinite(x) ? x : W + 38;
@@ -496,8 +515,9 @@ const Game = (() => {
 
   /* Colisão mortal respeitando escudo/invulnerabilidade */
   function hit() {
+    if (world.noCollision) return;
     if (ship.invuln > 0) return;          // breve invulnerabilidade pós-escudo
-    if (ship.shield) {
+    if (ship.shield && !world.oneLife) {
       ship.shield = false;
       ship.invuln = 1.0;
       Audio2.shield();
@@ -641,7 +661,7 @@ const Game = (() => {
     // colisão com terreno
     const tInfo = terrain(ship.x + world.scroll);
     const halfH = ship.h * 0.5;
-    if (ship.y - halfH < tInfo.top || ship.y + halfH > tInfo.bot) {
+    if (!world.noCollision && (ship.y - halfH < tInfo.top || ship.y + halfH > tInfo.bot)) {
       return hit();
     }
     if (ship.y < halfH) ship.y = halfH;
@@ -675,7 +695,7 @@ const Game = (() => {
       spawnPickup();
       world.nextPickupDist += (1.6 + rnd() * 1.8) * world.speed * 0.12;
     }
-    if (world.meters >= world.nextPowerupDist) {
+    if (!world.noPowerups && world.meters >= world.nextPowerupDist) {
       spawnPowerup();
       // Índice por distância: dash/slowmo mudam o tempo de chegada, não a ordem.
       world.nextPowerupDist += (8 + rnd() * 5) * world.speed * 0.12;
@@ -722,7 +742,7 @@ const Game = (() => {
         o.rot += o.spin * dt;
         const dx = o.x - ship.x, dy = o.y - ship.y;
         const rr = o.r + ship.w * 0.32;
-        if (dx * dx + dy * dy < rr * rr) return hit();
+        if (!world.noCollision && dx * dx + dy * dy < rr * rr) return hit();
       } else if (o.type === 'blackhole') {
         o.ring += o.spin * dt;
         const dx = o.x - ship.x, dy = o.y - ship.y;
@@ -732,18 +752,23 @@ const Game = (() => {
           const f = (1 - dist / well) * o.pull;
           ship.vy += (dy / dist) * f * dt;   // poço de gravidade puxa a nave
         }
-        if (dist < o.r) return hit();
+        if (!world.noCollision && dist < o.r) return hit();
       } else if (o.type === 'laser') {
         o.timer -= dt;
         if (o.timer <= 0) { o.on = !o.on; o.timer = o.on ? o.onDur : o.offDur; }
         if (o.on) {
           const inX = Math.abs(o.x - ship.x) < (o.w * 0.5 + ship.w * 0.3);
           const inGap = ship.y > o.gapY - o.gapH / 2 && ship.y < o.gapY + o.gapH / 2;
-          if (inX && !inGap) return hit();
+          if (!world.noCollision && inX && !inGap) return hit();
         }
       }
       const margin = (o.type === 'laser') ? o.w * 3 + 20 : (o.r * 3 + 40);
       if (o.x < -margin) obstacles.splice(i, 1);
+    }
+
+    if (world.remaining > 0) {
+      world.remaining = Math.max(0, world.remaining - dt);
+      if (world.remaining === 0) return gameOver('sprint-complete');
     }
 
     notifyAchievements();
@@ -760,21 +785,26 @@ const Game = (() => {
     }
   }
 
-  function gameOver() {
+  function gameOver(reason) {
     if (state === 'over') return;
+    const completed = reason === 'sprint-complete';
     setState('over');
     crashAnim = 0;
-    const rm = Storage.getSettings().reduceMotion;
-    if (!rm) shake = 9;          // screen shake no impacto
-    freeze = 0.07;               // hitstop micro
-    explode(ship.x, ship.y);
-    vibrate([70, 35, 90]);
-    Audio2.hit();                // camada de impacto
-    Audio2.crash();
+    if (!completed) {
+      const rm = Storage.getSettings().reduceMotion;
+      if (!rm) shake = 9;          // screen shake no impacto
+      freeze = 0.07;               // hitstop micro
+      explode(ship.x, ship.y);
+      vibrate([70, 35, 90]);
+      Audio2.hit();                // camada de impacto
+      Audio2.crash();
+    } else {
+      Audio2.unlock();
+    }
     Audio2.stopMusic();
     const meters = Math.floor(world.meters);
     const time = runTime;
-    const payload = { meters, time, crystals: world.crystals, seed: world.seed, daily: world.daily,
+    const payload = { meters, time, crystals: world.crystals, seed: world.seed, daily: world.daily, mode: world.mode, completed,
                       rulesetId: world.rulesetId, shipId: ship.ship.id,
                       loadout: { agility: Storage.getUpgradeLevel('agility'), thrust: Storage.getUpgradeLevel('thrust') },
                       maxCombo: world.maxCombo, powerups: world.powerupsUsed.slice() };
@@ -1091,6 +1121,8 @@ const Game = (() => {
     return {
       meters: Math.floor(world.meters),
       speed: Math.floor(world.speed),
+      mode: world.mode,
+      remaining: world.remaining,
       crystals: world.crystals,
       combo: world.combo,
       ability: ship ? ship.ability : null,
@@ -1119,7 +1151,8 @@ const Game = (() => {
       spawnPowerup(type, x, y) { return spawnPowerup(type, x, y); },
       spawnCrystal(x, y) { const crystal = { kind: 'crystal', x, y, r: 10, spin: 0, ph: 0 }; pickups.push(crystal); return crystal; },
       recordSpawns(b) { recordSpawns = !!b; },
-      getSpawnSig() { return world.spawnSig ? world.spawnSig.slice() : []; }
+      getSpawnSig() { return world.spawnSig ? world.spawnSig.slice() : []; },
+      terrain(wx) { return terrain(wx); }
     }
   };
 })();

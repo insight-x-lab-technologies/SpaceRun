@@ -39,7 +39,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
-| 9 | Modos de Jogo | P2 | após regras de modo/ruleset | Rejogabilidade por objetivos |
+| 9 | Modos de Jogo | P2 | ✅ primeira fatia entregue na v0.6.0 | Rejogabilidade por objetivos |
 | 4B | Retenção e perfil | P2 | ✅ entregue na v0.5.4; validação de produto final ainda pendente | Motivo saudável para retornar |
 | 5 | Social & Ghost P2P | P3 | após ADRs, segurança e protocolo | Competição compartilhável não autoritativa |
 | 6 | Doação & cosméticos | P4 | parcial/contínua | Sustento sem interromper o jogo |
@@ -49,14 +49,12 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 
 ## Ordem recomendada de execução
 
-1. Entregar **F4A — Power-ups** sem login, missões ou XP.
-2. Antes do encerramento do projeto, registrar o baseline de performance, o
+1. Registrar, no encerramento do projeto, o baseline de performance, o
    contraste manual e o playtest humano restantes da **v0.5 — Fundação estrutural**.
-3. Concluir o restante de **F8A**, se algum item essencial não couber na v0.5.
-4. Implementar 2–3 modos simples da **F9**, todos com `rulesetId` explícito.
-5. Registrar os playtests/baseline finais e avaliar a F4B entregue.
-6. Implementar **F5 — Ghost/P2P** sobre o protocolo versionado definido nos ADRs.
-7. Reavaliar F10/F11. Qualquer ranking global, entitlement pago ou meta global
+2. Avaliar os três modos simples da **F9** já entregues (Zen, Sprint e Hardcore)
+   antes de expandir para Marathon, Time Attack ou Boss Rush.
+3. Implementar **F5 — Ghost/P2P** sobre o protocolo versionado definido nos ADRs.
+4. Reavaliar F8B, F10/F11. Qualquer ranking global, entitlement pago ou meta global
    exige mudança explícita da premissa serverless.
 
 ---
@@ -652,7 +650,7 @@ marco e podem ser entregues separadamente.
 
 ---
 
-## Fase 9 — Modos de Jogo  ·  P2  ·  complexidade média
+## Fase 9 — Modos de Jogo  ·  P2  ·  complexidade média  ·  ✅ primeira fatia entregue na v0.6.0
 
 Rejogabilidade por objetivos, não só "vá longe".
 
@@ -671,7 +669,13 @@ Hardcore. Boss Rush só entra após os modos simples validarem a abstração.
 - **Boss Rush:** a cada 2.000 m um mini-boss procedural surge (padrão de
   colisão/esquiva). Derrotar = bônus de cristais.
 
-**Pronto quando:** pelo menos 3 modos jogáveis e seletor de modo na Home.
+**Entregue:** seletor de modo na Home; Zen sem colisões/terreno amplo/música
+calma; Sprint de 60 segundos com cronômetro; e Hardcore de uma vida, sem
+power-ups, com túnel estreito. Cada um usa ruleset explícito e o ranking local
+filtra os resultados por modo e ruleset, mantendo Top 10 por categoria.
+
+**Pendente:** Marathon, Time Attack e Boss Rush serão avaliados como fatias
+separadas depois de playtest dos três modos base.
 
 ---
 

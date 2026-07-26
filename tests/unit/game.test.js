@@ -90,6 +90,47 @@ describe('Game — máquina de estados e ciclo de vida', () => {
   });
 });
 
+describe('Game — modos da Fase 9', () => {
+  it('inicia Zen, Sprint e Hardcore com rulesets e objetivos próprios', () => {
+    Game.start('zen');
+    expect(Game.getHud()).toMatchObject({ mode: 'zen', remaining: 0 });
+    expect(Game._debug.world).toMatchObject({ rulesetId: 'zen-v1', noCollision: true, wideTerrain: true });
+    const zenTerrain = Game._debug.terrain(0);
+    expect(zenTerrain.bot - zenTerrain.top).toBeCloseTo(600 * 0.82, 3);
+
+    Game.start('sprint');
+    expect(Game.getHud()).toMatchObject({ mode: 'sprint', remaining: 60 });
+    expect(Game._debug.world.rulesetId).toBe('sprint-v1');
+
+    Game.start('hardcore');
+    expect(Game._debug.world).toMatchObject({ rulesetId: 'hardcore-v1', noPowerups: true, narrowTerrain: true, oneLife: true });
+  });
+
+  it('Zen ignora colisões e Hardcore não permite pickups de poder ou escudo', () => {
+    Game.start('zen');
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    Game._debug.hit();
+    expect(Game.state).toBe('playing');
+
+    Storage.unlock('tank');
+    Storage.setSelectedShip('tank');
+    Game.start('hardcore');
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    expect(Game._debug.ship.ability).toBeNull();
+    expect(Game._debug.spawnPowerup('shield', Game._debug.ship.x, Game._debug.ship.y)).toBeNull();
+  });
+
+  it('encerra Sprint quando o cronômetro chega a zero', () => {
+    Game.start('sprint');
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    Game._debug.world.remaining = 1 / 60;
+    keepAlive();
+    Game._debug.tick(1 / 60);
+    expect(Game.state).toBe('over');
+    expect(Game.getHud().remaining).toBe(0);
+  });
+});
+
 describe('Game — colisão e game over', () => {
   it('hit() fatal leva a "over" e dispara onOver após 700ms', () => {
     vi.useFakeTimers();

@@ -9,12 +9,13 @@ const Storage = (() => {
   const UPGRADE_STEP = 0.02;
   const UPGRADE_BASE_COST = 30;
   const MAX_HISTORY = 50;
-  const MAX_LEADERBOARD = 10;
+  const MAX_LEADERBOARD_PER_CATEGORY = 10;
+  const MAX_LEADERBOARD = 50;
   const MAX_IMPORT_BYTES = 64 * 1024;
   const DAILY_REWARDS = [50, 75, 125, 200, 300, 400, 500];
   const SHIP_IDS = ['scout', 'falcon', 'tank', 'phantom', 'nova', 'vortex', 'quasar', 'pulsar', 'nebula', 'singularity', 'comet', 'aurora', 'raptor', 'helix', 'titan', 'spectre', 'ember', 'zephyr', 'cosmos', 'eclipse'];
   const THEMES = ['neon', 'retro', 'aurora'];
-  const MODES = ['classic', 'daily'];
+  const MODES = ['classic', 'daily', 'zen', 'sprint', 'hardcore'];
   const POWERUP_IDS = ['magnet', 'doubleCrystals', 'shield'];
   const COSMETIC_IDS = [
     'trail:ion', 'trail:wave', 'trail:stars', 'trail:flame',
@@ -123,6 +124,17 @@ const Storage = (() => {
       source: v.source === 'imported' ? 'imported' : 'local'
     };
   }
+  function rank(a, b) { return b.m - a.m || a.t - b.t || a.d - b.d; }
+  function limitLeaderboard(entries) {
+    const groups = new Map();
+    entries.slice().sort(rank).forEach(entry => {
+      const key = entry.mode + '|' + entry.rulesetId;
+      const group = groups.get(key) || [];
+      if (group.length < MAX_LEADERBOARD_PER_CATEGORY) group.push(entry);
+      groups.set(key, group);
+    });
+    return Array.from(groups.values()).flat().sort(rank).slice(0, MAX_LEADERBOARD);
+  }
   function normalize(v, options) {
     const base = defaults();
     v = object(v) ? v : {};
@@ -135,8 +147,7 @@ const Storage = (() => {
     });
     const settings = object(v.settings) ? v.settings : {};
     const history = Array.isArray(v.history) ? v.history.slice(-MAX_HISTORY).map(x => normalizeRun(x, legacy)) : [];
-    const leaderboard = Array.isArray(v.leaderboard) ? v.leaderboard.map(x => normalizeScore(x, legacy)) : [];
-    leaderboard.sort((a, b) => b.m - a.m || a.t - b.t || a.d - b.d);
+    const leaderboard = limitLeaderboard(Array.isArray(v.leaderboard) ? v.leaderboard.map(x => normalizeScore(x, legacy)) : []);
     return {
       schemaVersion: SCHEMA_VERSION,
       meta: { createdAt: timestamp(meta.createdAt), updatedAt: timestamp(meta.updatedAt), migratedFrom: legacy ? 1 : null },
@@ -145,7 +156,7 @@ const Storage = (() => {
       selectedShip: id(v.selectedShip, SHIP_IDS, base.selectedShip), unlocked: uniqueIds(v.unlocked, SHIP_IDS, ['scout'], SHIP_IDS.length),
       achievements: uniqueIds(v.achievements, ACHIEVEMENT_IDS, [], 100),
       history, streak: int(v.streak, 0, Number.MAX_SAFE_INTEGER), maxStreak: int(v.maxStreak, 0, Number.MAX_SAFE_INTEGER),
-      leaderboard: leaderboard.slice(0, MAX_LEADERBOARD), playerName: name(v.playerName), shipSkins: skins,
+      leaderboard, playerName: name(v.playerName), shipSkins: skins,
       upgrades: loadout(v.upgrades), cosmetics: cosmetics(v.cosmetics), retention: retention(v.retention), settings: {
         sound: typeof settings.sound === 'boolean' ? settings.sound : base.settings.sound,
         music: typeof settings.music === 'boolean' ? settings.music : base.settings.music,
@@ -272,7 +283,7 @@ const Storage = (() => {
     getPlayerName: () => data.playerName, setPlayerName(value) { return commit(next => { next.playerName = name(value); }); },
     recordLeaderboard(meters, time, context) {
       const entry = scoreInput(meters, time, Object.assign({ name: data.playerName, shipId: data.selectedShip, loadout: currentLoadout() }, context || {}));
-      let index = -1; const ok = commit(next => { next.leaderboard.push(entry); next.leaderboard.sort((a, b) => b.m - a.m || a.t - b.t || a.d - b.d); next.leaderboard.length = Math.min(next.leaderboard.length, MAX_LEADERBOARD); index = next.leaderboard.findIndex(x => x.id === entry.id); });
+      let index = -1; const ok = commit(next => { next.leaderboard = limitLeaderboard(next.leaderboard.concat(entry)); index = next.leaderboard.findIndex(x => x.id === entry.id); });
       return ok ? index : -1;
     },
     recordRun(meters, time, crystals, context) {
