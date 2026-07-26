@@ -17,9 +17,11 @@ const Cloud = (() => {
       if (cached) { const s = JSON.parse(cached); if (s && s.access_token && s.user && s.user.id) { token = s.access_token; userId = s.user.id; ready = true; return true; } }
       const res = await fetch(URL + '/auth/v1/signup', { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
       if (!res.ok) throw new Error('anonymous-auth-disabled');
-      const body = await res.json(); const s = body.session;
-      if (!s || !s.access_token || !body.user || !body.user.id) throw new Error('anonymous-session');
-      token = s.access_token; userId = body.user.id; sessionStorage.setItem('spacerun.cloud.session', JSON.stringify({ access_token: token, user: { id: userId } })); ready = true; return true;
+      const body = await res.json();
+      // O endpoint REST do GoTrue retorna token no topo; o SDK o embrulha em `session`.
+      const s = body.session || body; const user = s.user || body.user;
+      if (!s || !s.access_token || !user || !user.id) throw new Error('anonymous-session');
+      token = s.access_token; userId = user.id; sessionStorage.setItem('spacerun.cloud.session', JSON.stringify({ access_token: token, user: { id: userId } })); ready = true; return true;
     } catch (e) { ready = false; return false; }
   }
   async function syncProfile(profile) {
