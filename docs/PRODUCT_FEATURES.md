@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.7.0**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.7.1**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -236,8 +236,9 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 ## PWA / Installability
 
 - **Web App Manifest** (`manifest.json`) in English with `categories`.
-- **Icons** (PNG, generated): `icon-192.png`, `icon-512.png`,
-  `icon-maskable-512.png`, `apple-touch-icon.png` (180×180).
+- **Icons** (PNG, generated): a neon starship crossing a warp portal is used
+  consistently for `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`
+  (with Android safe-zone padding) and `apple-touch-icon.png` (180×180).
 - **iOS metadata:** `apple-mobile-web-app-*` tags + apple-touch-icon link.
 - **Install button** on Home that appears only when installation is supported
   (`beforeinstallprompt`). On iOS (not supported), a manual-install hint is shown

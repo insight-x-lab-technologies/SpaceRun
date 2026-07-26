@@ -37,7 +37,7 @@ const I18n = (() => {
       'ready.msg': 'Pressione ESPAÇO ou toque a tela para iniciar',
       'milestone.reach': '{n} m!',
       'boss.defeated': 'Mini-chefe derrotado! +{n} ◆',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.0',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.1',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Escolha sua aeronave',
@@ -245,7 +245,7 @@ const I18n = (() => {
       'ready.msg': 'Press SPACE or tap the screen to start',
       'milestone.reach': '{n} m!',
       'boss.defeated': 'Mini-boss defeated! +{n} ◆',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.0',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.1',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Choose your ship',
@@ -453,7 +453,7 @@ const I18n = (() => {
       'ready.msg': 'Pulsa ESPACIO o toca la pantalla para empezar',
       'milestone.reach': '¡{n} m!',
       'boss.defeated': '¡Minijefe derrotado! +{n} ◆',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.0',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.1',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Elige tu nave',
