@@ -170,6 +170,9 @@ effectively infinite and resolution-independent.
     remain recorded manual gates for project closeout; the v0.5.1 rotation
     retest is approved and the remaining manual records do not block F4A by
     product decision dated 2026-07-25.
+13. **External donations remain optional.** The Donate screen uses static,
+    localized links with `noopener noreferrer`; it creates no payment state or
+    entitlement, and cosmetics stay unlockable through gameplay.
 
 ## Structural foundation (v0.5)
 

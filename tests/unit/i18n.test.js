@@ -49,6 +49,13 @@ describe('I18n — internacionalização pt/en/es', () => {
     expect(document.querySelector('[data-i18n="ready.msg"]').textContent).toBe('Press SPACE or tap the screen to start');
   });
 
+  it('aplica rótulos aria localizados', () => {
+    document.body.innerHTML = '<a data-i18n-aria-label="donate.kofiAria" aria-label="x"></a>';
+    I18n.setLang('es');
+    I18n.apply();
+    expect(document.querySelector('a').getAttribute('aria-label')).toBe('Abrir Ko-Fi en una nueva pestaña');
+  });
+
   it('todas as 20 naves têm descrição nos 3 idiomas', () => {
     for (const s of globalThis.Ships.list) {
       for (const lang of ['pt', 'en', 'es']) {

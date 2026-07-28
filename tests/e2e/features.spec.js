@@ -133,6 +133,19 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await expect(haptics).toBeChecked();
   });
 
+  test('Donate comunica apoio opcional e usa plataformas externas seguras', async ({ page }) => {
+    await page.goto('/');
+    await page.click(`${HOME} [data-action="donate"]`);
+    const donate = page.locator('#screen-donate');
+    await expect(donate).toBeVisible();
+    await expect(donate).toContainText(/doar não desbloqueia vantagens/i);
+    const links = donate.locator('.donate-link');
+    await expect(links).toHaveCount(2);
+    await expect(links.first()).toHaveAttribute('href', /ko-fi\.com/);
+    await expect(links.first()).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(links.nth(1)).toHaveAttribute('href', /buymeacoffee\.com/);
+  });
+
   test('Footer traz ícones de compartilhamento com links corretos', async ({ page }) => {
     await page.goto('/');
     const row = page.locator('#share-row');

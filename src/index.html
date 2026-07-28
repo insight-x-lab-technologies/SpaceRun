@@ -292,12 +292,30 @@
 
     <!-- Tela Doar -->
     <section id="screen-donate" class="screen hidden overlay">
-      <div class="panel">
-        <h2 data-i18n="donate.title">Apoie o projeto</h2>
-        <p class="subtitle" data-i18n="donate.subtitle">Escolha uma plataforma:</p>
-        <div class="menu">
-          <a class="btn btn-primary" href="https://ko-fi.com/insightxlabgamestudio" target="_blank" rel="noopener noreferrer" data-i18n="donate.kofi">Ko-Fi</a>
-          <a class="btn" href="https://buymeacoffee.com/insight.x.lab.game.studio" target="_blank" rel="noopener noreferrer" data-i18n="donate.bmc">Buy Me a Coffee</a>
+      <div class="panel donate-panel">
+        <div class="donate-signal" aria-hidden="true"><span></span><span></span><span></span><b>✦</b></div>
+        <h2 data-i18n="donate.title">Mantenha a viagem acesa</h2>
+        <p class="subtitle donate-lead" data-i18n="donate.subtitle">Seu apoio ajuda a manter o SpaceRun independente, offline e em evolução.</p>
+        <p class="donate-promise" data-i18n="donate.promise">Totalmente opcional — doar não desbloqueia vantagens, naves ou progresso.</p>
+        <div class="donate-links" aria-label="Donation platforms" data-i18n-aria-label="donate.platforms">
+          <a class="donate-link donate-link-primary" href="https://ko-fi.com/insightxlabgamestudio" target="_blank" rel="noopener noreferrer" aria-label="Open Ko-Fi in a new tab" data-i18n-aria-label="donate.kofiAria">
+            <span class="donate-link-mark" aria-hidden="true">☕</span>
+            <span><strong data-i18n="donate.kofi">Ko-Fi</strong><small data-i18n="donate.kofiHint">Faça uma contribuição pelo Ko-Fi</small></span>
+            <span class="donate-link-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="donate-link" href="https://buymeacoffee.com/insight.x.lab.game.studio" target="_blank" rel="noopener noreferrer" aria-label="Open Buy Me a Coffee in a new tab" data-i18n-aria-label="donate.bmcAria">
+            <span class="donate-link-mark" aria-hidden="true">✦</span>
+            <span><strong data-i18n="donate.bmc">Buy Me a Coffee</strong><small data-i18n="donate.bmcHint">Faça uma contribuição pelo Buy Me a Coffee</small></span>
+            <span class="donate-link-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="donate-impact">
+          <h3 data-i18n="donate.impactTitle">O que o apoio mantém em rota</h3>
+          <ul>
+            <li data-i18n="donate.impactOne">Novas ideias e polimento para as próximas runs.</li>
+            <li data-i18n="donate.impactTwo">Um jogo leve, procedural e jogável offline.</li>
+            <li data-i18n="donate.impactThree">Cosméticos sempre conquistáveis dentro do jogo.</li>
+          </ul>
         </div>
         <button class="btn back" data-action="home" data-i18n="donate.back">Voltar</button>
       </div>

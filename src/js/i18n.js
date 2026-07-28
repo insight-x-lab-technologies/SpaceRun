@@ -37,7 +37,7 @@ const I18n = (() => {
       'ready.msg': 'Pressione ESPAÇO ou toque a tela para iniciar',
       'milestone.reach': '{n} m!',
       'boss.defeated': 'Mini-chefe derrotado! +{n} ◆',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.1',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.2',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Escolha sua aeronave',
@@ -106,10 +106,20 @@ const I18n = (() => {
       'stats.runs': 'Partidas',
       'stats.bestTime': 'Melhor tempo',
 
-      'donate.title': 'Apoie o projeto',
-      'donate.subtitle': 'Escolha uma plataforma:',
+      'donate.title': 'Mantenha a viagem acesa',
+      'donate.subtitle': 'Seu apoio ajuda a manter o SpaceRun independente, offline e em evolução.',
+      'donate.promise': 'Totalmente opcional — doar não desbloqueia vantagens, naves ou progresso.',
+      'donate.platforms': 'Plataformas de apoio',
       'donate.kofi': 'Ko-Fi',
+      'donate.kofiHint': 'Faça uma contribuição pelo Ko-Fi',
+      'donate.kofiAria': 'Abrir Ko-Fi em uma nova aba',
       'donate.bmc': 'Buy Me a Coffee',
+      'donate.bmcHint': 'Faça uma contribuição pelo Buy Me a Coffee',
+      'donate.bmcAria': 'Abrir Buy Me a Coffee em uma nova aba',
+      'donate.impactTitle': 'O que o apoio mantém em rota',
+      'donate.impactOne': 'Novas ideias e polimento para as próximas runs.',
+      'donate.impactTwo': 'Um jogo leve, procedural e jogável offline.',
+      'donate.impactThree': 'Cosméticos sempre conquistáveis dentro do jogo.',
       'donate.back': 'Voltar',
 
       'go.title': 'FIM DE JOGO',
@@ -245,7 +255,7 @@ const I18n = (() => {
       'ready.msg': 'Press SPACE or tap the screen to start',
       'milestone.reach': '{n} m!',
       'boss.defeated': 'Mini-boss defeated! +{n} ◆',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.1',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.2',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Choose your ship',
@@ -314,10 +324,20 @@ const I18n = (() => {
       'stats.runs': 'Runs',
       'stats.bestTime': 'Best time',
 
-      'donate.title': 'Support the project',
-      'donate.subtitle': 'Choose a platform:',
+      'donate.title': 'Keep the journey alight',
+      'donate.subtitle': 'Your support helps keep SpaceRun independent, offline, and evolving.',
+      'donate.promise': 'Completely optional — donations do not unlock advantages, ships, or progress.',
+      'donate.platforms': 'Support platforms',
       'donate.kofi': 'Ko-Fi',
+      'donate.kofiHint': 'Make a contribution through Ko-Fi',
+      'donate.kofiAria': 'Open Ko-Fi in a new tab',
       'donate.bmc': 'Buy Me a Coffee',
+      'donate.bmcHint': 'Make a contribution through Buy Me a Coffee',
+      'donate.bmcAria': 'Open Buy Me a Coffee in a new tab',
+      'donate.impactTitle': 'What your support keeps on course',
+      'donate.impactOne': 'New ideas and polish for the next runs.',
+      'donate.impactTwo': 'A lightweight, procedural game that works offline.',
+      'donate.impactThree': 'Cosmetics always earnable inside the game.',
       'donate.back': 'Back',
 
       'go.title': 'GAME OVER',
@@ -453,7 +473,7 @@ const I18n = (() => {
       'ready.msg': 'Pulsa ESPACIO o toca la pantalla para empezar',
       'milestone.reach': '¡{n} m!',
       'boss.defeated': '¡Minijefe derrotado! +{n} ◆',
-      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.1',
+      'home.footer': '© 2025 Insight X Lab Technologies · v0.7.2',
 
       'hangar.title': 'Hangar',
       'hangar.subtitle': 'Elige tu nave',
@@ -522,10 +542,20 @@ const I18n = (() => {
       'stats.runs': 'Partidas',
       'stats.bestTime': 'Mejor tiempo',
 
-      'donate.title': 'Apoya el proyecto',
-      'donate.subtitle': 'Elige una plataforma:',
+      'donate.title': 'Mantén encendido el viaje',
+      'donate.subtitle': 'Tu apoyo ayuda a que SpaceRun siga siendo independiente, sin conexión y en evolución.',
+      'donate.promise': 'Totalmente opcional: donar no desbloquea ventajas, naves ni progreso.',
+      'donate.platforms': 'Plataformas de apoyo',
       'donate.kofi': 'Ko-Fi',
+      'donate.kofiHint': 'Haz una contribución mediante Ko-Fi',
+      'donate.kofiAria': 'Abrir Ko-Fi en una nueva pestaña',
       'donate.bmc': 'Buy Me a Coffee',
+      'donate.bmcHint': 'Haz una contribución mediante Buy Me a Coffee',
+      'donate.bmcAria': 'Abrir Buy Me a Coffee en una nueva pestaña',
+      'donate.impactTitle': 'Lo que el apoyo mantiene en ruta',
+      'donate.impactOne': 'Nuevas ideas y pulido para las próximas partidas.',
+      'donate.impactTwo': 'Un juego ligero, procedural y jugable sin conexión.',
+      'donate.impactThree': 'Cosméticos siempre obtenibles dentro del juego.',
       'donate.back': 'Volver',
 
       'go.title': 'FIN DEL JUEGO',
@@ -657,6 +687,9 @@ const I18n = (() => {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       el.textContent = t(key);
+    });
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+      el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label')));
     });
   }
 

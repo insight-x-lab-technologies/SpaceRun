@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.7.1**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.7.2**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -206,7 +206,10 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Hangar:** ship grid with locked/unlocked/selected states.
 - **Settings:** **Theme** (Neon / Retro / Aurora), Sound, Music, Particles,
   **Reduce motion**, **High contrast**, Language (pt/en/es), Erase progress.
-- **Donate:** Ko-Fi and Buy Me a Coffee external links.
+- **Donate:** a localized, accessible support screen explains that donations are
+  optional and never unlock gameplay advantages, ships or progress. It offers
+  safe external links to Ko-Fi and Buy Me a Coffee and states that cosmetics
+  remain earnable through gameplay.
 - **Pause:** Resume / Menu (also auto-pauses when the tab is hidden).
 - **Game Over:** distance, best, **time**, **crystals collected**,
   unlock notification, replay/menu/hangar.

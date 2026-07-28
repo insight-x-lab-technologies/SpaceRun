@@ -65,6 +65,19 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     sel.dispatchEvent(new Event('change'));
   });
 
+  it('Donate deixa claro que a contribuição é opcional e abre plataformas externas com segurança', () => {
+    document.querySelector('[data-action="donate"]').click();
+    const screen = document.getElementById('screen-donate');
+    expect(screen.classList.contains('hidden')).toBe(false);
+    expect(screen.textContent).toContain(I18n.t('donate.promise'));
+    const links = screen.querySelectorAll('.donate-link');
+    expect(links).toHaveLength(2);
+    links.forEach(link => {
+      expect(link.getAttribute('target')).toBe('_blank');
+      expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+    });
+  });
+
   it('showGameOver registra a run e preenche o resultado', () => {
     UI.showGameOver({ meters: 1234, time: 42.5, crystals: 7, seed: 99, daily: false, shipId: 'scout', maxCombo: 3 });
     expect(document.getElementById('screen-gameover').classList.contains('hidden')).toBe(false);
