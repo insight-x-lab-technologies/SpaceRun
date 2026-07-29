@@ -4,7 +4,7 @@
 > Mantém sempre as premissas de `ARCHITECTURE.md`: **serverless, vanilla
 > (sem frameworks/bundler), asset-free (procedural), i18n pt/en/es**.
 
-> Versão atual: **v0.7.2**.
+> Versão atual: **v0.7.3**.
 
 ## Filosofia
 
@@ -41,7 +41,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
-| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.7.2 | Rejogabilidade por objetivos |
+| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.7.3 | Rejogabilidade por objetivos |
 | 4B | Retenção e perfil | P2 | ✅ entregue na v0.5.4; validação de produto final ainda pendente | Motivo saudável para retornar |
 | 5 | Social & Ghost P2P | P3 | após ADRs, segurança e protocolo | Competição compartilhável não autoritativa |
 | 6 | Doação & cosméticos | P4 | ✅ entregue na v0.7.2 | Sustento sem interromper o jogo |

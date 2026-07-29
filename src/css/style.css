@@ -653,9 +653,33 @@ body.high-contrast .donate-impact { border-color: #ffffff; background: #000000; 
   .ability-btn { display: none !important; }
 }
 
+/* ---------- Home compacta em mobile portrait ---------- */
+@media (orientation: portrait) and (max-width: 600px) {
+  #screen-home .menu {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  #screen-home [data-action="play"],
+  #screen-home [data-action="customGame"],
+  #screen-home #install-btn { grid-column: 1 / -1; }
+  #screen-home [data-action="hangar"],
+  #screen-home [data-action="achievements"],
+  #screen-home [data-action="stats"],
+  #screen-home [data-action="leaderboard"],
+  #screen-home [data-action="missions"],
+  #screen-home [data-action="settings"],
+  #screen-home [data-action="donate"] {
+    min-height: 48px;
+    padding: 10px 8px;
+    font-size: clamp(12px, 3.5vw, 14px);
+    letter-spacing: .35px;
+  }
+}
+
 /* ---------- Layout "wide" (desktop / tablet e mobile em landscape) ----------
    As evoluções visuais (ícones, grid mais largo, 2 colunas) só se aplicam em
-   orientação landscape. Em portrait (mobile/tablet) mantém-se o layout original. */
+   orientação landscape. Em tablet portrait mantém-se o layout original. */
 @media (orientation: landscape) {
   /* Home: painel 50% mais largo + grid de 2 colunas com ícones */
   #screen-home .panel { width: min(780px, 94vw); }

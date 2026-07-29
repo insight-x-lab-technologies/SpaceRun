@@ -12,6 +12,28 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await expect(page.locator(`${HOME} [data-action="hangar"]`)).toBeVisible();
   });
 
+  test('Home mobile portrait agrupa as ações secundárias em duas colunas compactas', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    const layout = await page.locator(`${HOME} .menu`).evaluate(menu => {
+      const primary = menu.querySelector('[data-action="play"]');
+      const secondary = menu.querySelector('[data-action="hangar"]');
+      const styles = getComputedStyle(menu);
+      return {
+        columns: styles.gridTemplateColumns.trim().split(/\s+/).length,
+        primaryWidth: primary.getBoundingClientRect().width,
+        secondaryWidth: secondary.getBoundingClientRect().width,
+        primaryFontSize: parseFloat(getComputedStyle(primary).fontSize),
+        secondaryFontSize: parseFloat(getComputedStyle(secondary).fontSize),
+        secondaryHeight: secondary.getBoundingClientRect().height
+      };
+    });
+    expect(layout.columns).toBe(2);
+    expect(layout.secondaryWidth).toBeLessThan(layout.primaryWidth);
+    expect(layout.secondaryFontSize).toBeLessThan(layout.primaryFontSize);
+    expect(layout.secondaryHeight).toBeGreaterThanOrEqual(48);
+  });
+
   test('Novo Jogo: ready -> playing e distância aumenta', async ({ page }) => {
     await page.goto('/');
     await page.click(`${HOME} [data-action="play"]`);

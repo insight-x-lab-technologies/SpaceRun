@@ -148,7 +148,9 @@ effectively infinite and resolution-independent.
    dictionaries (`pt`, `en`, `es`) in `i18n.js`. Use `data-i18n` in HTML and
    `I18n.t()` in JS. Never hardcode UI text.
 4. **Responsive by design.** Works in landscape + portrait, desktop + mobile.
-   Rely on `resize()` + CSS; never assume a fixed viewport.
+   Rely on `resize()` + CSS; never assume a fixed viewport. The Home keeps its
+   primary actions full-width and uses a compact two-column secondary-action grid
+   only on mobile portrait viewports up to 600 px, preserving 48 px touch targets.
 5. **Single source of truth for progress.** All persistence goes through
    `Storage`. Do not hardcode unlocks/records.
 6. **State transitions via `setState`.** New gameplay states must update

@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.7.2**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.7.3**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -53,8 +53,11 @@ para o encerramento do projeto; a Fase 4A está autorizada.
   panel is 50% wider with inline SVG icons on every menu button and the
   secondary actions (Hangar, Achievements, Statistics, Leaderboard, Settings,
   Donate) laid out in a 2-column grid (New Game + Daily span the full width).
-  The Hangar also widens 50% and shows ships in a 2-column grid. Portrait
-  (mobile/tablet) keeps the original single-column layout.
+  The Hangar also widens 50% and shows ships in a 2-column grid. On mobile
+  portrait (up to 600 px wide), New Game and Custom Game remain full-width while
+  Hangar, Achievements, Statistics, Ranking, Missions, Settings and Donate form
+  a compact two-column grid with smaller type and 48 px touch targets. Tablet
+  portrait keeps the original single-column layout.
 - **Themes (cosmetic):** the whole UI is driven by CSS custom properties
   (`--bg`, `--panel`, `--accent`, `--accent2`, `--text`, `--text-dim`, `--font`)
   set on the document root. Three built-in themes ship by default — **Neon**
