@@ -160,7 +160,9 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await page.click(`${HOME} [data-action="donate"]`);
     const donate = page.locator('#screen-donate');
     await expect(donate).toBeVisible();
-    await expect(donate).toContainText(/doar não desbloqueia vantagens/i);
+    await expect(donate.locator('.donate-promise')).toContainText(
+      /doar não desbloqueia vantagens|donations do not unlock advantages|donar no desbloquea ventajas/i
+    );
     const links = donate.locator('.donate-link');
     await expect(links).toHaveCount(2);
     await expect(links.first()).toHaveAttribute('href', /ko-fi\.com/);
