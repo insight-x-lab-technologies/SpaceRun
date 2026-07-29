@@ -361,6 +361,10 @@ describe('Game — Daily Run determinístico e por dia', () => {
       Object.defineProperty(document.getElementById('game-canvas'), 'clientHeight', { value: height, configurable: true });
       window.dispatchEvent(new Event('resize'));
       Game.start('daily');
+      // A paridade deste caso é do layout lógico de spawns. Colisões dependem
+      // da geometria visual (largura até o obstáculo) e poderiam encerrar uma
+      // das runs antes de a mesma distância lógica ser alcançada.
+      Game._debug.world.noCollision = true;
       for (let i = 0; i < wait; i++) Game._debug.tick(1 / 60);
       window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
       window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }));
