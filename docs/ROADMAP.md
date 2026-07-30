@@ -4,7 +4,7 @@
 > Mantém sempre as premissas de `ARCHITECTURE.md`: **serverless, vanilla
 > (sem frameworks/bundler), asset-free (procedural), i18n pt/en/es**.
 
-> Versão atual: **v0.7.3**.
+> Versão atual: **v0.8.1**.
 
 ## Filosofia
 
@@ -41,9 +41,9 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
-| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.7.3 | Rejogabilidade por objetivos |
+| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.8.1 | Rejogabilidade por objetivos |
 | 4B | Retenção e perfil | P2 | ✅ entregue na v0.5.4; validação de produto final ainda pendente | Motivo saudável para retornar |
-| 5 | Social & Ghost P2P | P3 | após ADRs, segurança e protocolo | Competição compartilhável não autoritativa |
+| 5 | Social & Ghost P2P | P3 | ✅ entregue na v0.8.0; fallback cross-browser corrigido na v0.8.1 | Competição compartilhável não autoritativa |
 | 6 | Doação & cosméticos | P4 | ✅ entregue na v0.7.2 | Sustento sem interromper o jogo |
 | 8B | Qualidade de vida avançada | P3 | após 8A | Novos controles e conforto |
 | 10 | Eventos & Comunidade | P4 | depende da fronteira serverless | Conteúdo temporário sem alegações globais falsas |
@@ -55,8 +55,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
    contraste manual e o playtest humano restantes da **v0.5 — Fundação estrutural**.
 2. Avaliar a **F9** completa — especialmente a curva de desbloqueio e os modos
    Marathon, Time Attack e Boss Rush — antes de ajustar metas ou criar outro modo.
-3. Implementar **F5 — Ghost/P2P** sobre o protocolo versionado definido nos ADRs.
-4. Reavaliar F8B, F10/F11. Qualquer ranking global, entitlement pago ou meta global
+3. Reavaliar F8B, F10/F11. Qualquer ranking global, entitlement pago ou meta global
    exige mudança explícita da premissa serverless.
 
 ---
@@ -540,7 +539,13 @@ os três na mesma mudança não é recomendado.
 
 ---
 
-## Fase 5 — Social & Ghost (P2P)  ·  P3  ·  complexidade alta
+## Fase 5 — Social & Ghost (P2P)  ·  P3  ·  complexidade alta  ·  ✅ entregue na v0.8.1
+
+**Entregue:** `protocol.js` valida envelopes `ghost`, `challenge` e `scores`
+antes de decodificar/parsear; `ghost.js` grava mudanças de empuxo por tick e
+desenha uma silhueta no canvas. Links recebidos entram como importados/não
+verificados, em categoria separada do Top 10 local, e só podem iniciar replay
+quando `mode` e `rulesetId` forem compatíveis.
 
 Camada social sem backend — tudo via links compartilháveis e dados locais.
 

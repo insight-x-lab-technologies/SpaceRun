@@ -104,6 +104,14 @@ describe('Storage — progresso do jogador', () => {
     expect(sprint[0].m).toBe(11);
   });
 
+  it('mantém importados separados do Top 10 local e marca a origem', () => {
+    Storage.recordLeaderboard({ m: 10, t: 1, mode: 'classic', rulesetId: 'classic-v2' });
+    expect(Storage.importLeaderboard([{ name: 'Orbit', m: 999, t: 9, mode: 'classic', rulesetId: 'classic-v2', shipId: 'scout', loadout: { agility: 0, thrust: 0 } }], 'ab12cd34ef56')).toBe(1);
+    expect(Storage.getLeaderboard(x => x.source === 'local')).toHaveLength(1);
+    expect(Storage.getLeaderboard(x => x.source === 'imported')).toEqual([expect.objectContaining({ name: 'Orbit', origin: 'ab12cd34ef56' })]);
+    expect(Storage.getFriendCode()).toMatch(/^[a-z0-9]{8,24}$/);
+  });
+
   it('mantém categorias dos modos novos sem descartar os Top 10 existentes', () => {
     ['marathon', 'timeattack', 'bossrush'].forEach(mode => {
       for (let i = 0; i < 11; i++) Storage.recordLeaderboard({ m: i, t: 1, mode, rulesetId: mode + '-v1' });

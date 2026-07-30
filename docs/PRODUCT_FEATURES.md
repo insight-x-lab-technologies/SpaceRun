@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.7.3**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.8.1**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -168,6 +168,23 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Daily Challenge:** exposed in the Home UI and implemented with seeded RNG;
   deterministic parity is validated by tests. Its results currently enter the
   same local Top 10 as classic runs; there is no daily-only leaderboard.
+
+## Social & Ghost P2P (Fase 5)
+
+- **Ghosts e desafios por link:** o Game Over pode compartilhar uma sequência
+  compacta de mudanças de empuxo, seed, modo, ruleset, nave e loadout. Ao abrir
+  um link compatível, o jogador pode importar o resultado como não verificado e
+  correr com uma silhueta do ghost no canvas.
+- **Fallback de compartilhamento:** Safari e Chrome tentam a folha nativa,
+  depois Clipboard e, caso a plataforma recuse ambas as APIs, mostram um campo
+  de link selecionável com cópia manual. O jogador sempre recebe feedback
+  localizado sobre o resultado da ação.
+- **Resultados importados:** o ranking separa Top 10 local de resultados
+  importados por modo/ruleset. Nenhum link, checksum ou código de amigo prova
+  autoria, identidade ou legitimidade do score.
+- **Protocolo seguro:** o envelope `protocolVersion: 1` limita bytes antes de
+  base64/JSON, aceita apenas modos/naves/eventos conhecidos e recusa rulesets
+  incompatíveis com uma mensagem localizada.
 
 ## Retenção, perfil e ranking global (Fase 4B)
 

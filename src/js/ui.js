@@ -9,6 +9,8 @@ const UI = (() => {
   let updateApply = null;
   let lastFocused = null;
   let lastMode = 'classic';
+  let pendingShared = null;
+  let shareReturnScreen = 'screen-gameover';
   const MODE_RULESETS = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1', marathon: 'marathon-v1', timeattack: 'timeattack-v1', bossrush: 'bossrush-v1' };
   const CUSTOM_MODES = ['daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush'];
 
@@ -311,7 +313,7 @@ const UI = (() => {
     if (!wrap) return;
     const select = document.getElementById('lb-mode');
     const mode = select && Object.prototype.hasOwnProperty.call(MODE_RULESETS, select.value) ? select.value : 'classic';
-    const lb = Storage.getLeaderboard(entry => entry.mode === mode && entry.rulesetId === MODE_RULESETS[mode]);
+    const lb = Storage.getLeaderboard(entry => entry.source === 'local' && entry.mode === mode && entry.rulesetId === MODE_RULESETS[mode]);
     const me = Storage.getPlayerName();
     if (!lb.length) {
       wrap.replaceChildren(); const empty = document.createElement('div'); empty.className = 'stats-empty'; empty.textContent = I18n.t('lb.empty'); wrap.appendChild(empty);
@@ -327,7 +329,82 @@ const UI = (() => {
     }
     const nameInput = document.getElementById('lb-name');
     if (nameInput) nameInput.value = me;
+    renderImportedLeaderboard(mode);
     renderGlobalLeaderboard();
+  }
+
+  function renderImportedLeaderboard(mode) {
+    const wrap = document.getElementById('lb-imported-list');
+    if (!wrap) return;
+    const entries = Storage.getLeaderboard(entry => entry.source === 'imported' && entry.mode === mode && entry.rulesetId === MODE_RULESETS[mode]);
+    wrap.replaceChildren();
+    if (!entries.length) { const empty = document.createElement('div'); empty.className = 'stats-empty'; empty.textContent = I18n.t('ghost.none'); wrap.appendChild(empty); return; }
+    entries.forEach((entry, i) => {
+      const row = document.createElement('div'); row.className = 'lb-row imported';
+      const values = ['#' + (i + 1), entry.name || '—', entry.m + ' m', entry.t + 's'];
+      ['lb-rank', 'lb-name', 'lb-m', 'lb-t'].forEach((className, index) => { const cell = document.createElement('span'); cell.className = className; cell.textContent = values[index]; row.appendChild(cell); });
+      wrap.appendChild(row);
+    });
+  }
+
+  function sharedUrl(token) {
+    const url = new URL(window.location.href); url.searchParams.set('sr', token); return url.toString();
+  }
+  function activeScreenId() {
+    return Object.keys(screens).find(id => screens[id] && !screens[id].classList.contains('hidden')) || 'screen-gameover';
+  }
+  function setShareFeedback(key) {
+    const target = activeScreenId() === 'screen-leaderboard'
+      ? document.getElementById('shared-notice')
+      : document.getElementById('go-share-feedback');
+    if (target) { target.textContent = I18n.t(key); target.classList.remove('hidden'); }
+  }
+  async function copySharedUrl(url, allowLegacy) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        return true;
+      }
+    } catch (e) {}
+    if (!allowLegacy) return false;
+    const input = document.getElementById('share-link-input');
+    if (!input) return false;
+    input.value = url;
+    input.focus(); input.select(); input.setSelectionRange(0, input.value.length);
+    try { return document.execCommand('copy'); } catch (e) { return false; }
+  }
+  function showLinkFallback(url) {
+    const input = document.getElementById('share-link-input');
+    const feedback = document.getElementById('share-link-feedback');
+    shareReturnScreen = activeScreenId();
+    if (input) input.value = url;
+    if (feedback) feedback.textContent = I18n.t('ghost.manual');
+    show('screen-share-link');
+    if (input) { input.focus({ preventScroll: true }); input.select(); }
+  }
+  async function shareToken(token, title) {
+    if (!token) { setShareFeedback('ghost.linkUnavailable'); return false; }
+    const url = sharedUrl(token);
+    if (typeof navigator.share === 'function') {
+      try { await navigator.share({ title: 'SpaceRun', text: title, url }); setShareFeedback('ghost.shared'); return true; } catch (e) {}
+    }
+    if (await copySharedUrl(url, false)) { setShareFeedback('ghost.linkCopied'); return true; }
+    showLinkFallback(url);
+    return false;
+  }
+  function readSharedToken(token) {
+    const decoded = Protocol.decode(token);
+    if (!decoded.ok) return decoded;
+    const sharedMode = decoded.value.payload.mode;
+    if (MODE_RULESETS[sharedMode] !== decoded.value.rulesetId) return { ok: false, reason: 'unsupported' };
+    pendingShared = decoded.value;
+    const notice = document.getElementById('shared-notice');
+    if (notice) { notice.textContent = I18n.t('ghost.readyImport'); notice.classList.remove('hidden'); }
+    return decoded;
+  }
+  function clearSharedToken() {
+    const url = new URL(window.location.href); if (!url.searchParams.has('sr')) return;
+    url.searchParams.delete('sr'); history.replaceState({}, '', url.pathname + url.search + url.hash);
   }
 
   async function renderGlobalLeaderboard() {
@@ -453,6 +530,7 @@ const UI = (() => {
       unlockEl.classList.add('hidden');
     }
     refreshRecords();
+    
     show('screen-gameover');
     if (updateApply) setUpdateAvailable(updateApply);
   }
@@ -528,7 +606,7 @@ const UI = (() => {
     onPlay = playCb;
     ['screen-home', 'screen-custom-game', 'screen-hangar', 'screen-settings', 'screen-donate',
       'screen-gameover', 'screen-pause', 'screen-achievements',
-      'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-share']
+      'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-share', 'screen-share-link']
       .forEach(id => screens[id] = document.getElementById(id));
 
     I18n.init();
@@ -554,9 +632,10 @@ const UI = (() => {
 
     renderSettings();
     refreshRecords();
+    try { const token = new URL(window.location.href).searchParams.get('sr'); if (token) readSharedToken(token); } catch (e) {}
   }
 
-  function handleAction(a, btn) {
+  async function handleAction(a, btn) {
     Audio2.uiClick();
     switch (a) {
       case 'play':
@@ -566,6 +645,45 @@ const UI = (() => {
       case 'replay':
         show(null);
         onPlay(lastMode);
+        break;
+      case 'shareGhost': {
+        const token = lastResult && lastResult.ghost ? Protocol.encode('ghost', lastResult.ghost) : null;
+        shareToken(token, I18n.t('ghost.share')); break;
+      }
+      case 'shareChallenge': {
+        const token = lastResult && lastResult.ghost ? Protocol.encode('challenge', lastResult.ghost) : null;
+        shareToken(token, I18n.t('ghost.challenge')); break;
+      }
+      case 'importShared': {
+        if (!pendingShared) break;
+        const shared = pendingShared;
+        if (shared.kind === 'scores') Storage.importLeaderboard(shared.payload.entries.map(entry => Object.assign({}, entry, { mode: shared.payload.mode, rulesetId: shared.payload.rulesetId })), shared.payload.origin);
+        else Storage.importLeaderboard([{ name: I18n.t('ghost.pilot'), m: shared.payload.claimedScore.m, t: shared.payload.claimedScore.t, mode: shared.payload.mode, rulesetId: shared.payload.rulesetId, shipId: shared.payload.shipId, loadout: shared.payload.loadout }], shared.payload.origin);
+        const notice = document.getElementById('shared-notice'); if (notice) { notice.textContent = I18n.t('ghost.imported'); notice.classList.remove('hidden'); }
+        clearSharedToken(); renderLeaderboard(); break;
+      }
+      case 'playShared': {
+        if (!pendingShared || (pendingShared.kind !== 'ghost' && pendingShared.kind !== 'challenge')) break;
+        const ghost = pendingShared.payload;
+        if (ghost.rulesetId !== MODE_RULESETS[ghost.mode]) { const notice = document.getElementById('shared-notice'); if (notice) notice.textContent = I18n.t('ghost.incompatible'); break; }
+        show(null); onPlay(ghost.mode, { ghost }); break;
+      }
+      case 'shareScores': {
+        const mode = document.getElementById('lb-mode').value;
+        const entries = Storage.getLeaderboard(entry => entry.source === 'local' && entry.mode === mode && entry.rulesetId === MODE_RULESETS[mode]).map(entry => ({ name: entry.name, m: entry.m, t: entry.t, shipId: entry.shipId, loadout: entry.loadout }));
+        shareToken(Protocol.encode('scores', { mode, rulesetId: MODE_RULESETS[mode], origin: Storage.getFriendCode(), entries }), I18n.t('ghost.shareScores'));
+        break;
+      }
+      case 'copySharedLink': {
+        const input = document.getElementById('share-link-input');
+        const feedback = document.getElementById('share-link-feedback');
+        if (input && await copySharedUrl(input.value, true)) {
+          if (feedback) feedback.textContent = I18n.t('ghost.linkCopied');
+        } else if (feedback) feedback.textContent = I18n.t('ghost.copyFailed');
+        break;
+      }
+      case 'closeSharedLink':
+        show(shareReturnScreen);
         break;
       case 'customGame':
         renderCustomModes(); show('screen-custom-game');
@@ -692,5 +810,5 @@ const UI = (() => {
   }
 
   return { init, show, showGameOver, showPause, hidePause, showReady, hideReady, setUpdateAvailable,
-           refreshRecords, applyAccessibility, showMilestone, showAchievement };
+           refreshRecords, applyAccessibility, showMilestone, showAchievement, importSharedToken: readSharedToken };
 })();

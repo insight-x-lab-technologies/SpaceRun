@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { loadApp, loadDOM } from '../helpers/loadApp.js';
 
 loadDOM();
@@ -184,5 +184,18 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(wa.getAttribute('aria-label')).toBe('Compartilhar no WhatsApp');
     sel.value = 'en';
     sel.dispatchEvent(new Event('change'));
+  });
+
+  it('mostra o link manual quando Web Share e Clipboard falham', async () => {
+    const ghost = { seed: 99, mode: 'classic', rulesetId: 'classic-v2', origin: 'ab12cd34ef56', shipId: 'scout', loadout: { agility: 0, thrust: 0 }, durationTicks: 2, inputs: [], claimedScore: { m: 5, t: 1 } };
+    UI.showGameOver({ meters: 5, time: 1, crystals: 0, seed: 99, mode: 'classic', rulesetId: 'classic-v2', shipId: 'scout', ghost });
+    Object.defineProperty(navigator, 'share', { value: vi.fn().mockRejectedValue(new Error('unsupported')), configurable: true });
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) }, configurable: true });
+    Object.defineProperty(document, 'execCommand', { value: vi.fn(() => false), configurable: true });
+    document.querySelector('#screen-gameover [data-action="shareGhost"]').click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(document.getElementById('screen-share-link').classList.contains('hidden')).toBe(false);
+    expect(document.getElementById('share-link-input').value).toContain('?sr=');
+    expect(document.getElementById('share-link-feedback').textContent).toBe(I18n.t('ghost.manual'));
   });
 });

@@ -10,8 +10,8 @@ const Storage = (() => {
   const UPGRADE_BASE_COST = 30;
   const MAX_HISTORY = 50;
   const MAX_LEADERBOARD_PER_CATEGORY = 10;
-  // Há oito categorias de modo; cada uma preserva o seu próprio Top 10.
-  const MAX_LEADERBOARD = 80;
+  // Há oito categorias de modo; cada uma preserva Top 10 local e importado.
+  const MAX_LEADERBOARD = 160;
   const MAX_IMPORT_BYTES = 64 * 1024;
   const DAILY_REWARDS = [50, 75, 125, 200, 300, 400, 500];
   const SHIP_IDS = ['scout', 'falcon', 'tank', 'phantom', 'nova', 'vortex', 'quasar', 'pulsar', 'nebula', 'singularity', 'comet', 'aurora', 'raptor', 'helix', 'titan', 'spectre', 'ember', 'zephyr', 'cosmos', 'eclipse'];
@@ -52,7 +52,7 @@ const Storage = (() => {
       meta: { createdAt: timestamp, updatedAt: timestamp, migratedFrom: null },
       best: 0, totalMeters: 0, totalRuns: 0, bestTime: 0, crystals: 0,
       selectedShip: 'scout', unlocked: ['scout'], achievements: [], history: [],
-      streak: 0, maxStreak: 0, leaderboard: [], playerName: '', shipSkins: {},
+      streak: 0, maxStreak: 0, leaderboard: [], playerName: '', friendCode: newFriendCode(), shipSkins: {},
       upgrades: { agility: 0, thrust: 0 },
       cosmetics: { trail: 'ion', explosion: 'nova', title: 'cadet', unlocked: ['trail:ion', 'explosion:nova', 'title:cadet'] },
       retention: { lastClaimDate: '', loginStreak: 0, xp: 0, daily: { date: '', progress: {} }, weekly: { week: '', progress: {} } },
@@ -113,6 +113,13 @@ const Storage = (() => {
       daily: { date: dateKey(daily.date), progress: counterMap(daily.progress) }, weekly: { week: weekKey(weekly.week), progress: counterMap(weekly.progress) } };
   }
   function randomId(prefix) { return prefix + '-' + now().toString(36) + '-' + Math.random().toString(36).slice(2, 10); }
+  function newFriendCode() {
+    const bytes = new Uint8Array(8);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) crypto.getRandomValues(bytes);
+    else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+    return Array.from(bytes, n => n.toString(36).padStart(2, '0')).join('').slice(0, 16);
+  }
+  function friendCode(v, fallback) { return typeof v === 'string' && /^[a-z0-9]{8,24}$/.test(v) ? v : fallback; }
   function normalizeRun(v, legacy) {
     v = object(v) ? v : {};
     const mode = id(v.mode, MODES, 'classic');
@@ -134,14 +141,15 @@ const Storage = (() => {
       seed: int(v.seed, 0, 0xffffffff),
       rulesetId: typeof v.rulesetId === 'string' && v.rulesetId.length <= 32 ? v.rulesetId : (legacy ? 'legacy-v04' : mode + '-v2'),
       shipId: id(v.shipId, SHIP_IDS, legacy ? 'unknown' : 'scout'), loadout: loadout(v.loadout),
-      source: v.source === 'imported' ? 'imported' : 'local'
+      source: v.source === 'imported' ? 'imported' : 'local',
+      origin: v.source === 'imported' ? friendCode(v.origin, '') : ''
     };
   }
   function rank(a, b) { return b.m - a.m || a.t - b.t || a.d - b.d; }
   function limitLeaderboard(entries) {
     const groups = new Map();
     entries.slice().sort(rank).forEach(entry => {
-      const key = entry.mode + '|' + entry.rulesetId;
+      const key = entry.source + '|' + entry.mode + '|' + entry.rulesetId;
       const group = groups.get(key) || [];
       if (group.length < MAX_LEADERBOARD_PER_CATEGORY) group.push(entry);
       groups.set(key, group);
@@ -169,7 +177,7 @@ const Storage = (() => {
       selectedShip: id(v.selectedShip, SHIP_IDS, base.selectedShip), unlocked: uniqueIds(v.unlocked, SHIP_IDS, ['scout'], SHIP_IDS.length),
       achievements: uniqueIds(v.achievements, ACHIEVEMENT_IDS, [], 100),
       history, streak: int(v.streak, 0, Number.MAX_SAFE_INTEGER), maxStreak: int(v.maxStreak, 0, Number.MAX_SAFE_INTEGER),
-      leaderboard, playerName: name(v.playerName), shipSkins: skins,
+      leaderboard, playerName: name(v.playerName), friendCode: friendCode(v.friendCode, base.friendCode), shipSkins: skins,
       upgrades: loadout(v.upgrades), cosmetics: cosmetics(v.cosmetics), retention: retention(v.retention), settings: {
         sound: typeof settings.sound === 'boolean' ? settings.sound : base.settings.sound,
         music: typeof settings.music === 'boolean' ? settings.music : base.settings.music,
@@ -245,6 +253,7 @@ const Storage = (() => {
     get: () => clone(data), getSnapshot: () => clone(data), getBest: () => data.best,
     getSettings: () => clone(data.settings), getHistory: () => clone(data.history),
     getLeaderboard: (filter) => clone(filter ? data.leaderboard.filter(filter) : data.leaderboard),
+    getFriendCode: () => data.friendCode,
     getModeMilestone: mode => Object.prototype.hasOwnProperty.call(MODE_MILESTONES, mode) ? MODE_MILESTONES[mode] : null,
     isModeUnlocked: mode => Object.prototype.hasOwnProperty.call(MODE_MILESTONES, mode) && data.totalMeters >= MODE_MILESTONES[mode],
     getLastError: () => lastError,
@@ -300,6 +309,20 @@ const Storage = (() => {
       const entry = scoreInput(meters, time, Object.assign({ name: data.playerName, shipId: data.selectedShip, loadout: currentLoadout() }, context || {}));
       let index = -1; const ok = commit(next => { next.leaderboard = limitLeaderboard(next.leaderboard.concat(entry)); index = next.leaderboard.findIndex(x => x.id === entry.id); });
       return ok ? index : -1;
+    },
+    importLeaderboard(entries, origin) {
+      if (!Array.isArray(entries) || entries.length > 10 || !friendCode(origin, '')) return 0;
+      const clean = entries.map(entry => scoreInput(entry.m, entry.t, Object.assign({}, entry, { source: 'imported', origin }))).filter(entry => entry.source === 'imported');
+      if (!clean.length) return 0;
+      let imported = 0;
+      const ok = commit(next => {
+        clean.forEach(entry => {
+          const exists = next.leaderboard.some(item => item.source === 'imported' && item.origin === entry.origin && item.mode === entry.mode && item.rulesetId === entry.rulesetId && item.name === entry.name && item.m === entry.m && item.t === entry.t);
+          if (!exists) { next.leaderboard.push(entry); imported++; }
+        });
+        next.leaderboard = limitLeaderboard(next.leaderboard);
+      });
+      return ok ? imported : 0;
     },
     recordRun(meters, time, crystals, context) {
       const run = runInput(meters, time, crystals, Object.assign({ shipId: data.selectedShip, loadout: currentLoadout() }, context || {}));

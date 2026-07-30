@@ -19,6 +19,8 @@ const Game = (() => {
   let freeze = 0;         // hitstop (congelamento micro no impacto)
   let runTime = 0;        // tempo de voo da partida atual (s)
   let wasThrusting = false;
+  let ghostRecorder = null;
+  let ghostReplay = null;
 
   let nextMilestone = 1000, milestoneIdx = 0;
   let starColor = '#cfe8ff';
@@ -175,7 +177,7 @@ const Game = (() => {
     for (const n of nebulae) n.c = b.nebula;
   }
 
-  function buildWorld(seed, mode) {
+  function buildWorld(seed, mode, options) {
     const modeDef = MODE[mode] || MODE.classic;
     const s = Ships.get(Storage.get().selectedShip);
     world = {
@@ -222,6 +224,8 @@ const Game = (() => {
     freeze = 0;
     runTime = 0;
     wasThrusting = false;
+    ghostRecorder = Ghost.recorder();
+    ghostReplay = options && options.ghost ? Ghost.replay(options.ghost, H) : null;
     nextMilestone = 1000;
     milestoneIdx = 0;
     biomeIdx = -1;
@@ -244,12 +248,14 @@ const Game = (() => {
     else if (ship.y > H - halfH) ship.y = H - halfH;
   }
 
-  function start(mode) {
+  function start(mode, options) {
     settings = Storage.getSettings();
     cosmetics = Storage.getCosmetics();
     const selectedMode = MODE[mode] && Storage.isModeUnlocked(mode) ? mode : 'classic';
-    const seed = selectedMode === 'daily' ? dailySeed() : (Math.random() * 0xffffffff) >>> 0;
-    buildWorld(seed, selectedMode);
+    const shared = options && options.ghost;
+    const forcedSeed = shared && shared.mode === selectedMode && shared.rulesetId === MODE[selectedMode].rulesetId ? shared.seed : null;
+    const seed = forcedSeed === null ? (selectedMode === 'daily' ? dailySeed() : (Math.random() * 0xffffffff) >>> 0) : forcedSeed;
+    buildWorld(seed, selectedMode, options);
     setState('ready');   // começa pausado, aguardando input do jogador
     lastT = performance.now();
     acc = 0;
@@ -655,6 +661,8 @@ const Game = (() => {
     const upTh = Storage.getUpgradeMult('thrust');
     const thrust = 2300 * st.agility * upAg * st.thrust * upTh;
     const thrusting = Input.isThrusting();
+    if (ghostRecorder) ghostRecorder.tick(thrusting);
+    if (ghostReplay) Ghost.update(ghostReplay, H);
     if (thrusting) {
       if (!wasThrusting) Audio2.thrust();   // som de empuxo no início do pulso
       ship.vy -= thrust * dt;
@@ -841,10 +849,12 @@ const Game = (() => {
     Audio2.stopMusic();
     const meters = Math.floor(world.meters);
     const time = runTime;
+    const baseGhost = { seed: world.seed, mode: world.mode, rulesetId: world.rulesetId, origin: Storage.getFriendCode(), shipId: ship.ship.id,
+      loadout: { agility: Storage.getUpgradeLevel('agility'), thrust: Storage.getUpgradeLevel('thrust') }, claimedScore: { m: meters, t: time } };
     const payload = { meters, time, crystals: world.crystals, seed: world.seed, daily: world.daily, mode: world.mode, completed,
                       rulesetId: world.rulesetId, shipId: ship.ship.id,
                       loadout: { agility: Storage.getUpgradeLevel('agility'), thrust: Storage.getUpgradeLevel('thrust') },
-                      maxCombo: world.maxCombo, powerups: world.powerupsUsed.slice() };
+                      maxCombo: world.maxCombo, powerups: world.powerupsUsed.slice(), ghost: ghostRecorder ? ghostRecorder.finish(baseGhost) : null };
     setTimeout(() => { if (onOverCb) onOverCb(payload); }, 700);
   }
 
@@ -867,6 +877,7 @@ const Game = (() => {
       drawObstacles();
       drawBoss();
       drawPickups();
+      Ghost.draw(ctx, ghostReplay, Math.max(54, ship ? ship.x - 64 : W * 0.12), t);
       drawShip(t);
       drawParticles();
       ctx.restore();
@@ -1205,6 +1216,7 @@ const Game = (() => {
       get pickups() { return pickups; },
       get boss() { return boss; },
       get ship() { return ship; },
+      get ghost() { return ghostReplay; },
       tick(dt) { update(dt, performance.now()); },
       hit: () => hit(),
       spawnPowerup(type, x, y) { return spawnPowerup(type, x, y); },

@@ -594,6 +594,11 @@ body.high-contrast .donate-impact { border-color: #ffffff; background: #000000; 
   padding: 7px 8px; border-bottom: 1px solid rgba(74,240,255,0.1);
 }
 .lb-row.me { color: var(--accent); font-weight: 700; background: rgba(74,240,255,0.06); border-radius: 8px; }
+.lb-row.imported { border-left: 2px solid var(--accent2); background: rgba(255,74,216,0.05); }
+.shared-notice { margin: 8px 0; padding: 9px 10px; border: 1px solid rgba(74,240,255,0.35); border-radius: 8px; color: var(--text); font-size: 13px; line-height: 1.35; }
+.shared-actions { grid-template-columns: 1fr 1fr; margin: 10px 0; }
+.share-feedback { min-height: 1.35em; margin: 8px 0 0; color: var(--accent); font-size: 13px; }
+.share-link-input { width: 100%; box-sizing: border-box; margin: 12px 0; padding: 11px; border: 1px solid rgba(74,240,255,0.48); border-radius: 8px; background: rgba(0,0,0,0.34); color: var(--text); font-size: 13px; }
 .lb-rank { width: 36px; font-weight: 700; }
 .lb-name { flex: 1; text-align: left; }
 .lb-m, .lb-t { color: var(--muted); }

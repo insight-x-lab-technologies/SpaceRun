@@ -58,6 +58,7 @@ migração. Novas grandes reorganizações exigem v3.
   maxStreak: 0,
   leaderboard: [],
   playerName: "",
+  friendCode: "a1b2c3d4e5f6", // aleatório local; rótulo de origem, não identidade
   shipSkins: {},
   upgrades: { agility: 0, thrust: 0 },
   cosmetics: {
@@ -153,11 +154,15 @@ distância e com desempate documentado.
   shipId: "scout",
   loadout: { agility: 0, thrust: 0 },
   source: "local"             // local | imported
+  origin: "friend-code"        // somente imported; rótulo local, não identidade
 }
 ```
 
 Scores só são diretamente comparáveis quando modo, ruleset e categoria de
 loadout forem compatíveis. `source: imported` nunca significa verificado.
+Cada categoria preserva até 10 resultados locais e até 10 importados, para que
+um link recebido não expulse o Top 10 local. `friendCode` é um token aleatório
+local e não autentica uma pessoa.
 
 ### Desbloqueio de modos
 
@@ -213,7 +218,7 @@ Todo valor importado ou carregado deve passar por estas regras:
 | Nome | string Unicode, trim, máximo de 16 grafemas; render via `textContent` |
 | Arrays de ids | lista única, apenas ids conhecidos, com limite por domínio |
 | Histórico | máximo 50 |
-| Leaderboard local | máximo 10 por `{mode, rulesetId}`; 80 no total |
+| Leaderboard | máximo 10 local + 10 importados por `{mode, rulesetId}`; 160 no total |
 | Payload importado | limite de bytes definido pelo protocolo antes do parse |
 
 Valores inválidos são substituídos pelo default do campo, não pelo reset do save
@@ -232,6 +237,7 @@ Leitura
   getBest()
   getHistory()
   getLeaderboard(filter?)
+  getFriendCode()
   getLastError()
 
 Comandos
@@ -244,6 +250,7 @@ Comandos
   setPlayerName(name)
   recordRun(result)
   recordLeaderboard(result)
+  importLeaderboard(entries, origin)
   importSave(serialized)
   exportSave()
   reset()

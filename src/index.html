@@ -109,7 +109,7 @@
         </div>
         <div id="update-notice" class="update-notice hidden" role="status" aria-live="polite"><span></span><button class="btn small" data-action="applyUpdate"></button></div>
         <div class="footer">
-          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.7.3</div>
+          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.8.1</div>
           <div class="share-row" id="share-row">
             <a class="share-ic" data-share="whatsapp" href="#" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5z"/><path d="M9 9c0 4 3 7 7 7M9 9l2 1 1-1M16 16l-1-2-1 1"/></svg>
@@ -210,6 +210,7 @@
       <div class="panel">
         <h2 data-i18n="lb.title">Ranking</h2>
         <p class="subtitle" data-i18n="lb.subtitle">Top 10 local</p>
+        <p id="shared-notice" class="shared-notice hidden" role="status" aria-live="polite"></p>
         <div class="lb-filter">
           <label for="lb-mode" data-i18n="lb.mode">Modo</label>
           <select id="lb-mode">
@@ -224,6 +225,14 @@
           </select>
         </div>
         <div id="lb-list" class="lb-list"></div>
+        <button class="btn small" data-action="shareScores" data-i18n="ghost.shareScores">Compartilhar Top 10</button>
+        <h3 data-i18n="ghost.importedTitle">Resultados importados</h3>
+        <p class="hint" data-i18n="ghost.unverified">Conteúdo de links é importado e não verificado.</p>
+        <div id="lb-imported-list" class="lb-list"></div>
+        <div class="menu shared-actions">
+          <button class="btn small" data-action="importShared" data-i18n="ghost.import">Importar link recebido</button>
+          <button class="btn small" data-action="playShared" data-i18n="ghost.play">Correr contra o ghost</button>
+        </div>
         <h3 data-i18n="lb.global">Top 10 global</h3>
         <p class="hint" data-i18n="lb.unverified">Pontuações globais não verificadas.</p>
         <div id="lb-global-list" class="lb-list"></div>
@@ -348,11 +357,28 @@
           <div class="result-row hidden" id="go-seed-row"><span data-i18n="go.seed">Seed</span><strong id="go-seed">-</strong></div>
           <div id="go-unlock" class="unlock hidden"></div>
         </div>
+        <p id="go-share-feedback" class="share-feedback hidden" role="status" aria-live="polite"></p>
         <div class="menu">
           <button class="btn btn-primary" data-action="replay" data-i18n="go.again">Jogar de novo</button>
           <button class="btn" data-action="share" data-i18n="go.share">Compartilhar</button>
+          <button class="btn" data-action="shareGhost" data-i18n="ghost.share">Compartilhar ghost</button>
+          <button class="btn" data-action="shareChallenge" data-i18n="ghost.challenge">Desafiar amigo</button>
           <button class="btn" data-action="home" data-i18n="go.menu">Menu</button>
           <button class="btn" data-action="hangar" data-i18n="menu.hangar">Hangar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Link selecionável quando Web Share e Clipboard não estiverem disponíveis. -->
+    <section id="screen-share-link" class="screen hidden overlay">
+      <div class="panel small">
+        <h2 data-i18n="ghost.linkTitle">Link de desafio</h2>
+        <p id="share-link-feedback" class="subtitle" data-i18n="ghost.manual">Copie este link para enviar a um amigo.</p>
+        <label class="sr-only" for="share-link-input" data-i18n="ghost.linkLabel">Link compartilhável</label>
+        <input id="share-link-input" class="share-link-input" type="text" readonly autocomplete="off" spellcheck="false">
+        <div class="menu">
+          <button class="btn btn-primary" data-action="copySharedLink" data-i18n="ghost.copyLink">Copiar link</button>
+          <button class="btn" data-action="closeSharedLink" data-i18n="share.close">Fechar</button>
         </div>
       </div>
     </section>
@@ -379,6 +405,8 @@
   <script src="js/input.js"></script>
   <script src="js/powerups.js"></script>
   <script src="js/missions.js"></script>
+  <script src="js/protocol.js"></script>
+  <script src="js/ghost.js"></script>
   <script src="js/game.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/share.js"></script>

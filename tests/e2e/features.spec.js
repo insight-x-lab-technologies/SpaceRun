@@ -201,4 +201,39 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await expect(page.locator('#screen-share')).toBeVisible();
     await expect(page.locator('#share-canvas')).toBeVisible();
   });
+
+  test('importa um ghost por link como resultado não verificado e permite a corrida', async ({ page }) => {
+    await page.goto('/');
+    const token = await page.evaluate(() => Protocol.encode('ghost', {
+      seed: 1234, mode: 'classic', rulesetId: 'classic-v2', origin: 'ab12cd34ef56', shipId: 'scout',
+      loadout: { agility: 0, thrust: 0 }, durationTicks: 60, inputs: [[0, 'thrustOn']], claimedScore: { m: 42, t: 1 }
+    }));
+    await page.goto('/?sr=' + token);
+    await page.click(`${HOME} [data-action="leaderboard"]`);
+    await expect(page.locator('#shared-notice')).toContainText(/pronto para importar|ready to import|listo para importar/i);
+    await page.click('#screen-leaderboard [data-action="importShared"]');
+    await expect(page.locator('#lb-imported-list .lb-row')).toHaveCount(1);
+    await page.click('#screen-leaderboard [data-action="playShared"]');
+    await expect(page.locator('#ready-overlay')).toBeVisible();
+    await page.keyboard.press('Space');
+    await expect(page.locator('#hud')).toBeVisible();
+  });
+
+  test('Ghost expõe link manual quando Web Share e Clipboard não estão disponíveis', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
+      Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+      document.execCommand = () => false;
+    });
+    await page.goto('/');
+    await page.evaluate(() => {
+      UI.showGameOver({
+        meters: 8, time: 1, crystals: 0, seed: 99, mode: 'classic', rulesetId: 'classic-v2', shipId: 'scout',
+        ghost: { seed: 99, mode: 'classic', rulesetId: 'classic-v2', origin: 'ab12cd34ef56', shipId: 'scout', loadout: { agility: 0, thrust: 0 }, durationTicks: 2, inputs: [], claimedScore: { m: 8, t: 1 } }
+      });
+    });
+    await page.click('#screen-gameover [data-action="shareGhost"]');
+    await expect(page.locator('#screen-share-link')).toBeVisible();
+    await expect(page.locator('#share-link-input')).toHaveValue(/\?sr=/);
+  });
 });

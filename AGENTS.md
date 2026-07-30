@@ -13,7 +13,7 @@ em um único `<canvas>` e o áudio é sintetizado com WebAudio. Não use imagens
 áudio binários para gameplay; os PNGs em `src/assets/` são apenas ícones
 obrigatórios da PWA.
 
-## Estado real do produto (v0.7.1; F4A, F4B, F7 e F9 entregues)
+## Estado real do produto (v0.8.1; F4A, F4B, F5, F7 e F9 entregues)
 
 - Jogo clássico e **Daily Run** estão ativos na Home. O Daily usa a data local
   como seed; a sequência de spawns é indexada por distância e tem testes de
@@ -31,8 +31,10 @@ obrigatórios da PWA.
 - A F9 adiciona a tela Custom Game e os modos Zen, Sprint, Hardcore, Marathon,
   Time Attack e Boss Rush; cada categoria usa `mode` e `rulesetId` próprios.
 - Conquistas, estatísticas, histórico, Top 10 local e score card para download/
-  Web Share já existem. Não existe leaderboard diário separado ou ghost; o
-  ranking global opcional não é verificado e nunca bloqueia uma run offline.
+  Web Share já existem. A F5 adiciona ghosts/desafios por URL e resultados
+  importados, sempre não verificados e separados do Top 10 local; não existe
+  leaderboard diário separado. O ranking global opcional não é verificado e
+  nunca bloqueia uma run offline.
 - Settings: idioma `pt`/`en`/`es`, tema Neon/Retro/Aurora, som, música,
   partículas, reduzir movimento e alto contraste.
 - A base estrutural v0.5 já está no código: save v2 com migração, renderização
@@ -58,7 +60,7 @@ Leia, nesta ordem, antes de alterar funcionalidade:
 |---|---|
 | Página, telas e estilo | `src/index.html`, `src/css/style.css`, `src/js/ui.js` |
 | Simulação e renderização | `src/js/game.js`, `src/js/ships.js`, `src/js/input.js`, `src/js/powerups.js` |
-| Progresso e meta | `src/js/storage.js`, `src/js/cloud.js`, `src/js/missions.js`, `src/js/achievements.js`, `src/js/share.js` |
+| Progresso e meta | `src/js/storage.js`, `src/js/cloud.js`, `src/js/missions.js`, `src/js/achievements.js`, `src/js/share.js`, `src/js/protocol.js`, `src/js/ghost.js` |
 | Texto, temas e som | `src/js/i18n.js`, `src/js/themes.js`, `src/js/audio.js` |
 | Bootstrap/PWA | `src/js/main.js`, `src/sw.js`, `src/manifest.json` |
 | Testes | `tests/unit/`, `tests/e2e/`, `tests/helpers/loadApp.js` |
@@ -68,7 +70,7 @@ Leia, nesta ordem, antes de alterar funcionalidade:
 1. Mantenha o padrão de IIFEs globais e a ordem relativa exata dos scripts
    existentes em
    `src/index.html`: `storage → cloud → i18n → ships → achievements → audio → themes →
-   input → powerups → missions → game → ui → share → main`. Módulo novo exige posição/dependências
+   input → powerups → missions → protocol → ghost → game → ui → share → main`. Módulo novo exige posição/dependências
    documentadas e atualização do helper de testes e SW. Não introduza
    `import`/`export`.
 2. Toda string visível precisa de chave em `src/js/i18n.js` para **pt, en e es**.

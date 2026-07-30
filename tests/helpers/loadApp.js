@@ -18,7 +18,7 @@ export function loadDOM() {
 
 // Carrega os módulos do app (ordem fixa) num único escopo e expõe os globais.
 export function loadApp() {
-  const order = ['storage', 'cloud', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'powerups', 'missions', 'game', 'ui', 'share'];
+  const order = ['storage', 'cloud', 'i18n', 'ships', 'achievements', 'audio', 'themes', 'input', 'powerups', 'missions', 'protocol', 'ghost', 'game', 'ui', 'share'];
   const code = order
     .map((n) => fs.readFileSync(path.join(SRC, 'js', n + '.js'), 'utf8'))
     .join('\n;\n');
@@ -33,6 +33,8 @@ export function loadApp() {
     globalThis.Input = Input;
     globalThis.PowerUps = PowerUps;
     globalThis.Missions = Missions;
+    globalThis.Protocol = Protocol;
+    globalThis.Ghost = Ghost;
     globalThis.Game = Game;
     globalThis.UI = UI;
     globalThis.Share = Share;

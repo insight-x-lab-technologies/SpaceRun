@@ -47,6 +47,8 @@ SpaceRun/
         ├── input.js          # Input: unified "thrust" + "ability" (Shift / touch button)
         ├── powerups.js       # PowerUps: declarative F4A pickup types/durations
         ├── missions.js       # F4B: projeção de missões/perfil a partir de Storage
+        ├── protocol.js       # F5: envelope versionado/validador de links sociais
+        ├── ghost.js          # F5: gravação e reprodução visual do ghost
         ├── game.js           # Game: engine, state machine, render, physics
         ├── ui.js             # UI: screen routing, hangar, settings, gameover
         ├── share.js          # Share: procedural score-card canvas (Fase 3)
@@ -60,7 +62,7 @@ Each `js/*.js` file is an **IIFE that exposes a single global object**. There is
 globals and are loaded in a fixed `<script>` order in `index.html`:
 
 ```
-storage → cloud → i18n → ships → achievements → audio → themes → input → powerups → missions → game → ui → share → main
+storage → cloud → i18n → ships → achievements → audio → themes → input → powerups → missions → protocol → ghost → game → ui → share → main
 ```
 
 Load order matters: `Game.init()` registers an `Input` listener. During
@@ -75,6 +77,8 @@ applies the saved CSS variables and audio configuration through
 | `Storage`| Save/load local progress, including `retention` (login streak, XP and bounded mission progress); validates the eight known mode ids, derives Custom Game unlocks from `totalMeters`, and preserves a Top 10 per `{mode, rulesetId}` category. |
 | `Cloud`| Optional Supabase anonymous session, profile synchronization and unverified global leaderboard. Network failures are swallowed. |
 | `Missions`| F4B daily/weekly mission projection from validated `Storage` counters. |
+| `Protocol` | F5 envelope versionado para `ghost`, `challenge` e `scores`; limita/valida texto antes de base64 e JSON. |
+| `Ghost` | F5 grava transições de empuxo por tick e reproduz apenas a silhueta visual; nunca autoriza score. |
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
@@ -82,8 +86,8 @@ applies the saved CSS variables and audio configuration through
 | `Themes` | `list` (defs with `id`, `name`, `vars`, `font`, optional `audio`), `get(id)`, `currentId()`, `apply(id)`, `set(id)` (persists + applies + emits `musicchange`), `init()` (applies saved theme, sets `--font` on `<html>`, sets `data-theme`, wires `Audio2.setTheme`). |
 | `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; `Shift` (desktop) and the floating touch button (`#ability-btn`) emit `ability`. |
 | `PowerUps` | Declarative F4A pickup definitions (`magnet`, `doubleCrystals`, `shield`), their durations and deterministic type selection. It has no DOM or persistence dependency. |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start('classic'|'daily'|'zen'|'sprint'|'hardcore')`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, mode objective, crystals, combo, ability and active power-ups), `state`. The Game Over callback receives run context plus bounded power-up use. Zen disables collisions, Sprint has a 60-second completion timer, and Hardcore removes pickups/shields and narrows terrain; every mode uses an explicit ruleset. |
-| `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Renders Hangar (skins + upgrades), Achievements, Stats, Leaderboard, Share screens. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode, { ghost? })`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, mode objective, crystals, combo, ability and active power-ups), `state`. Grava transições do jogador por tick e pode desenhar um ghost compatível sem afetar colisão/RNG. |
+| `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Importa links `sr` de forma explícita, mostra conteúdo não verificado e inicia desafio apenas com ruleset compatível. Compartilhamento usa Web Share, Clipboard, cópia legada e por fim um campo manual acessível. |
 | `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |
 | `main`   | Bootstraps everything; HUD loop (incl. ability status); music switching; install (`beforeinstallprompt`); SW registration. |
 
@@ -190,8 +194,8 @@ architecture or blockers for F4A.
 New domain modules remain IIFE-globals. Their dependency and insertion point
 must be documented before implementation and mirrored in `index.html`,
 `tests/helpers/loadApp.js` and `sw.js`. Likely future boundaries are
-`powerups.js`, `missions.js`, `protocol.js` and `ghost.js`; their existence is
-not authorized until the roadmap item that needs them begins.
+`powerups.js`, `missions.js`, `protocol.js` and `ghost.js`; os quatro já existem
+como módulos IIFE pequenos e documentados.
 
 ## Testing (dev only — não faz parte do app em produção)
 

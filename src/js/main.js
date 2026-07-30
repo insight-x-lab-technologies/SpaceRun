@@ -14,9 +14,9 @@
 
   let hudActive = false;
 
-  function startGame(mode) {
+  function startGame(mode, options) {
     Audio2.setEnabled(Storage.getSettings().sound);
-    Game.start(mode);   // entra em estado "ready"
+    Game.start(mode, options);   // entra em estado "ready"
   }
 
   function hudLoop() {
