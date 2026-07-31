@@ -86,6 +86,7 @@
             <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
             <span class="btn-label" data-i18n="menu.leaderboard">Ranking</span>
           </button>
+          <button class="btn" data-action="ghosts"><span class="btn-label" data-i18n="menu.ghosts">Ghosts</span></button>
           <button class="btn" data-action="missions"><span class="btn-label" data-i18n="menu.missions">Missões</span></button>
           <button class="btn" data-action="settings">
             <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 3.6V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.4 9V9a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
@@ -109,7 +110,7 @@
         </div>
         <div id="update-notice" class="update-notice hidden" role="status" aria-live="polite"><span></span><button class="btn small" data-action="applyUpdate"></button></div>
         <div class="footer">
-          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.8.1</div>
+          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.8.2</div>
           <div class="share-row" id="share-row">
             <a class="share-ic" data-share="whatsapp" href="#" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5z"/><path d="M9 9c0 4 3 7 7 7M9 9l2 1 1-1M16 16l-1-2-1 1"/></svg>
@@ -155,6 +156,31 @@
         <h3 data-i18n="missions.daily">Missões diárias</h3><div id="missions-daily" class="mission-list"></div>
         <h3 data-i18n="missions.weekly">Missões semanais</h3><div id="missions-weekly" class="mission-list"></div>
         <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
+      </div>
+    </section>
+
+    <section id="screen-ghosts" class="screen hidden">
+      <div class="panel">
+        <h2 data-i18n="ghost.collectionTitle">Meus ghosts</h2>
+        <p class="subtitle" data-i18n="ghost.collectionSubtitle">Replays salvos para treinar e correr de novo.</p>
+        <h3 data-i18n="ghost.selfTitle">Meus melhores ghosts</h3>
+        <div id="ghost-list-self" class="ghost-list"></div>
+        <h3 data-i18n="ghost.importedCollection">Ghosts importados — não verificados</h3>
+        <p class="hint" data-i18n="ghost.unverified">Conteúdo de links é importado e não verificado.</p>
+        <div id="ghost-list-imported" class="ghost-list"></div>
+        <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
+      </div>
+    </section>
+
+    <section id="screen-ghost-preview" class="screen hidden overlay">
+      <div class="panel small">
+        <h2 data-i18n="ghost.previewTitle">Prévia do ghost</h2>
+        <div id="ghost-preview-content"></div>
+        <div class="menu">
+          <button class="btn btn-primary" data-action="runPreview" data-i18n="ghost.runNow">Correr agora</button>
+          <button class="btn" data-action="savePreview" data-i18n="ghost.save">Salvar na coleção</button>
+          <button class="btn" data-action="dismissPreview" data-i18n="ghost.dismiss">Agora não</button>
+        </div>
       </div>
     </section>
 
@@ -229,10 +255,7 @@
         <h3 data-i18n="ghost.importedTitle">Resultados importados</h3>
         <p class="hint" data-i18n="ghost.unverified">Conteúdo de links é importado e não verificado.</p>
         <div id="lb-imported-list" class="lb-list"></div>
-        <div class="menu shared-actions">
-          <button class="btn small" data-action="importShared" data-i18n="ghost.import">Importar link recebido</button>
-          <button class="btn small" data-action="playShared" data-i18n="ghost.play">Correr contra o ghost</button>
-        </div>
+        <button class="btn small" data-action="importShared" data-i18n="ghost.import">Importar link recebido</button>
         <h3 data-i18n="lb.global">Top 10 global</h3>
         <p class="hint" data-i18n="lb.unverified">Pontuações globais não verificadas.</p>
         <div id="lb-global-list" class="lb-list"></div>
@@ -357,6 +380,7 @@
           <div class="result-row hidden" id="go-seed-row"><span data-i18n="go.seed">Seed</span><strong id="go-seed">-</strong></div>
           <div id="go-unlock" class="unlock hidden"></div>
         </div>
+        <div id="go-ghost-comparison" class="ghost-comparison hidden" role="status" aria-live="polite"></div>
         <p id="go-share-feedback" class="share-feedback hidden" role="status" aria-live="polite"></p>
         <div class="menu">
           <button class="btn btn-primary" data-action="replay" data-i18n="go.again">Jogar de novo</button>

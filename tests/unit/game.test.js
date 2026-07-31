@@ -196,6 +196,17 @@ describe('Game — colisão e game over', () => {
     Game._debug.hit();
     expect(Game.state).toBe('playing'); // escudo absorveu
   });
+
+  it('mantém o contexto de desafio separado no resultado da run', () => {
+    vi.useFakeTimers();
+    const ghost = { seed: 99, mode: 'classic', rulesetId: 'classic-v2', origin: 'ab12cd34ef56', shipId: 'scout', loadout: { agility: 0, thrust: 0 }, durationTicks: 2, inputs: [[0, 'thrustOn']], claimedScore: { m: 15, t: 1 }, target: { m: 20, t: 2 } };
+    Game.start('classic', { ghost, ghostKind: 'challenge' });
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }));
+    Game._debug.hit();
+    vi.advanceTimersByTime(700);
+    expect(onOverPayload.ghostContext).toEqual(expect.objectContaining({ kind: 'challenge', reference: expect.objectContaining({ m: 20, origin: 'ab12cd34ef56' }) }));
+    vi.useRealTimers();
+  });
 });
 
 describe('Game — habilidades (tecla/botão dedicado)', () => {

@@ -57,6 +57,7 @@ migração. Novas grandes reorganizações exigem v3.
   streak: 0,
   maxStreak: 0,
   leaderboard: [],
+  ghosts: [],
   playerName: "",
   friendCode: "a1b2c3d4e5f6", // aleatório local; rótulo de origem, não identidade
   shipSkins: {},
@@ -163,6 +164,39 @@ loadout forem compatíveis. `source: imported` nunca significa verificado.
 Cada categoria preserva até 10 resultados locais e até 10 importados, para que
 um link recebido não expulse o Top 10 local. `friendCode` é um token aleatório
 local e não autentica uma pessoa.
+
+### GhostRecord (F5B)
+
+`ghosts` é uma coleção persistente de replays, separada de `leaderboard`.
+Guarda no máximo 10 registros `self` (um melhor por `{mode, rulesetId}`) e 20
+`imported`; itens importados excedentes são descartados. Cada item é
+normalizado antes de entrar no save:
+
+```js
+{
+  id: "ghost-local-id",
+  type: "self",              // self | imported
+  kind: "ghost",             // ghost | challenge; self aceita somente ghost
+  origin: "a1b2c3d4e5f6",    // rótulo local, não identidade
+  savedAt: 1784600000000,
+  payload: {
+    seed: 1234567890,
+    mode: "classic",
+    rulesetId: "classic-v2",
+    shipId: "scout",
+    loadout: { agility: 0, thrust: 0 },
+    durationTicks: 3600,
+    inputs: [[0, "thrustOn"], [18, "thrustOff"]],
+    claimedScore: { m: 1234, t: 60.0 },
+    target: { m: 1234, t: 60.0 } // obrigatório somente em kind challenge
+  }
+}
+```
+
+O payload aceita apenas modos/rulesets atuais, naves, upgrades, eventos e
+limites já definidos no protocolo. Entradas locais hostis são descartadas como
+na URL. Export/import do save preservam somente registros normalizados; reset
+limpa a coleção com o restante do progresso.
 
 ### Desbloqueio de modos
 

@@ -112,6 +112,20 @@ describe('Storage — progresso do jogador', () => {
     expect(Storage.getFriendCode()).toMatch(/^[a-z0-9]{8,24}$/);
   });
 
+  it('persiste ghosts validados, substitui apenas o recorde próprio da categoria e limita importados', () => {
+    const payload = (m, origin = 'ab12cd34ef56') => ({ seed: 12, mode: 'classic', rulesetId: 'classic-v2', origin, shipId: 'scout', loadout: { agility: 0, thrust: 0 }, durationTicks: 5, inputs: [[0, 'thrustOn']], claimedScore: { m, t: 1 } });
+    expect(Storage.saveSelfGhost(payload(50))).toEqual(expect.objectContaining({ type: 'self' }));
+    expect(Storage.saveSelfGhost(payload(40))).toBeNull();
+    expect(Storage.saveSelfGhost(payload(60)).payload.claimedScore.m).toBe(60);
+    expect(Storage.getGhosts(entry => entry.type === 'self')).toHaveLength(1);
+    const imported = Storage.saveImportedGhost('ghost', payload(70));
+    expect(Storage.getGhost(imported.id)).toMatchObject({ type: 'imported', payload: { claimedScore: { m: 70 } } });
+    expect(Storage.saveImportedGhost('ghost', Object.assign({}, payload(1), { inputs: [[3, 'thrustOn'], [2, 'thrustOff']] }))).toBeNull();
+    for (let i = 0; i < 25; i++) Storage.saveImportedGhost('ghost', payload(100 + i, 'ab12cd34ef' + String(i).padStart(2, '0')));
+    expect(Storage.getGhosts(entry => entry.type === 'imported')).toHaveLength(20);
+    expect(Storage.removeGhost(Storage.getGhosts(entry => entry.type === 'imported')[0].id)).toBe(true);
+  });
+
   it('mantém categorias dos modos novos sem descartar os Top 10 existentes', () => {
     ['marathon', 'timeattack', 'bossrush'].forEach(mode => {
       for (let i = 0; i < 11; i++) Storage.recordLeaderboard({ m: i, t: 1, mode, rulesetId: mode + '-v1' });
@@ -215,6 +229,7 @@ describe('Storage — progresso do jogador', () => {
     expect(saved.settings.sound).toBe(true);
     expect(saved.cosmetics).toMatchObject({ trail: 'ion', explosion: 'nova', title: 'cadet' });
     expect(saved.settings.haptics).toBe(false);
+    expect(saved.ghosts).toEqual([]);
   });
 
   it('rejeita importações inválidas sem substituir o snapshot atual', () => {

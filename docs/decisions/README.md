@@ -21,6 +21,7 @@ explicam por que um contrato existe.
 | [0003](0003-versioned-share-replay-protocol.md) | Aceita | Envelope versionado para share/ghost |
 | [0004](0004-progression-and-competition.md) | Aceita | Upgrades mecânicos e comparabilidade |
 | [0005](0005-supabase-sync-and-unverified-global-ranking.md) | Aceita | Sync Supabase opcional e ranking global não verificado |
+| [0006](0006-reference-challenges-loadout-policy.md) | Aceita | Desafios por ghost como referência não verificada |
 
 ## Template
 

@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.8.1**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.8.2**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -185,6 +185,21 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Protocolo seguro:** o envelope `protocolVersion: 1` limita bytes antes de
   base64/JSON, aceita apenas modos/naves/eventos conhecidos e recusa rulesets
   incompatíveis com uma mensagem localizada.
+
+## Experiência de Ghost & Desafios (Fase 5B)
+
+- **Entrada imediata por link:** um ghost ou desafio válido abre uma prévia
+  dedicada, marcada como não verificada, com modo, ruleset, nave, loadout,
+  distância e duração declaradas. O jogador pode correr imediatamente, salvar
+  ou dispensar; a URL é normalizada para não repetir a importação.
+- **Coleção local de ghosts:** a Home oferece uma tela própria de replays,
+  distinta do Ranking. Ela mantém até 10 melhores ghosts pessoais por
+  `{mode, rulesetId}` e 20 imports com payload de inputs validado, preservados
+  em reload, export/import e uso offline.
+- **Comparação transparente:** ghosts são referência visual. Challenges têm
+  schema com meta declarada e, no Game Over, mostram `Você` e `Referência` lado
+  a lado. Eles continuam desafios de referência não verificados: loadouts
+  atuais não são tratados como uma competição justa.
 
 ## Retenção, perfil e ranking global (Fase 4B)
 

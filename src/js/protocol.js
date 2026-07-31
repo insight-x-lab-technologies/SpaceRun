@@ -43,7 +43,7 @@ const Protocol = (() => {
     for (const event of v.inputs) {
       if (!Array.isArray(event) || event.length !== 2) return null;
       const tick = uint(event[0], durationTicks); const kind = text(event[1], 12);
-      if (tick === null || !EVENTS.includes(kind) || tick < last) return null;
+      if (tick === null || !EVENTS.includes(kind) || tick <= last) return null;
       last = tick; inputs.push([tick, kind]);
     }
     return { seed, mode, rulesetId: rs, origin, shipId, loadout: snapshot, durationTicks, inputs, claimedScore };
@@ -61,11 +61,20 @@ const Protocol = (() => {
     }
     return { mode, rulesetId: rs, origin, entries };
   }
-  function validate(kind, payload) { return kind === 'ghost' || kind === 'challenge' ? ghost(payload) : kind === 'scores' ? scores(payload) : null; }
+  function challenge(v) {
+    const base = ghost(v);
+    const target = isObject(v) ? score(v.target) : null;
+    return base && target ? Object.assign({}, base, { target }) : null;
+  }
+  function validate(kind, payload) {
+    return kind === 'ghost' ? ghost(payload)
+      : kind === 'challenge' ? challenge(payload)
+        : kind === 'scores' ? scores(payload) : null;
+  }
   function encode(kind, payload) {
     const clean = validate(kind, payload);
     if (!clean) return null;
-    const body = { protocolVersion: VERSION, kind, createdAt: Date.now(), gameVersion: '0.8.1', rulesetId: clean.rulesetId, payload: clean };
+    const body = { protocolVersion: VERSION, kind, createdAt: Date.now(), gameVersion: '0.8.2', rulesetId: clean.rulesetId, payload: clean };
     body.checksum = hash(JSON.stringify(body));
     const encoded = toBase64(JSON.stringify(body));
     return encoded.length <= MAX_ENCODED ? encoded : null;
@@ -84,5 +93,5 @@ const Protocol = (() => {
     if (!payload || payload.rulesetId !== body.rulesetId) return { ok: false, reason: 'invalid' };
     return { ok: true, value: { kind: body.kind, createdAt: uint(body.createdAt, 4102444800000) || 0, rulesetId: body.rulesetId, payload } };
   }
-  return { VERSION, MAX_ENCODED, encode, decode, validateGhost: ghost };
+  return { VERSION, MAX_ENCODED, encode, decode, validateGhost: ghost, validateChallenge: challenge };
 })();

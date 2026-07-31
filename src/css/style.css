@@ -97,6 +97,16 @@ html, body {
 .custom-mode-card.locked { opacity: .68; background: rgba(255,255,255,.025); }
 .custom-mode-card .btn { flex: 0 0 auto; min-width: 78px; }
 .custom-mode-card .btn:disabled { cursor: not-allowed; opacity: .58; filter: grayscale(.5); }
+.ghost-list { display: grid; gap: 10px; margin: 10px 0 18px; text-align: left; }
+.ghost-card { padding: 13px; border: 1px solid rgba(74,240,255,.28); border-radius: 12px; background: linear-gradient(115deg, rgba(74,240,255,.08), rgba(255,74,216,.035)); }
+.ghost-card.imported { border-left: 3px solid var(--accent2); }
+.ghost-card h3 { margin: 0; color: var(--accent); font-size: 15px; }
+.ghost-origin, .ghost-kicker { margin: 5px 0; color: var(--muted); font-size: 12px; }
+.ghost-details { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 12px; margin: 10px 0; font-size: 12px; }
+.ghost-details dt { color: var(--muted); }.ghost-details dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.ghost-card-actions { display: flex; flex-wrap: wrap; gap: 7px; }.btn.tiny { min-height: 32px; padding: 5px 8px; font-size: 11px; }
+.ghost-comparison { margin: 12px 0; padding: 12px; border: 1px solid rgba(255,74,216,.35); border-radius: 10px; background: rgba(255,74,216,.06); }
+.ghost-comparison h3 { margin: 0 0 7px; color: var(--accent2); font-size: 15px; }.ghost-comparison p { margin: 4px 0; font-size: 13px; }.ghost-comparison-outcome { color: var(--accent); font-weight: 700; }
 
 h2 { font-size: clamp(22px, 6vw, 32px); margin-bottom: 6px; letter-spacing: 2px; }
 .subtitle { color: var(--muted); margin-bottom: 20px; }

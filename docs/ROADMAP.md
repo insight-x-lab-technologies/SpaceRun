@@ -4,7 +4,7 @@
 > Mantém sempre as premissas de `ARCHITECTURE.md`: **serverless, vanilla
 > (sem frameworks/bundler), asset-free (procedural), i18n pt/en/es**.
 
-> Versão atual: **v0.8.1**.
+> Versão atual: **v0.8.2**.
 
 ## Filosofia
 
@@ -41,9 +41,10 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
-| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.8.1 | Rejogabilidade por objetivos |
+| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.8.2 | Rejogabilidade por objetivos |
 | 4B | Retenção e perfil | P2 | ✅ entregue na v0.5.4; validação de produto final ainda pendente | Motivo saudável para retornar |
 | 5 | Social & Ghost P2P | P3 | ✅ entregue na v0.8.0; fallback cross-browser corrigido na v0.8.1 | Competição compartilhável não autoritativa |
+| 5B | Experiência de Ghost & Desafios | P2 | ✅ entregue na v0.8.2; depende da base F5 | Transformar links e replays em uma experiência imediata e persistente |
 | 6 | Doação & cosméticos | P4 | ✅ entregue na v0.7.2 | Sustento sem interromper o jogo |
 | 8B | Qualidade de vida avançada | P3 | após 8A | Novos controles e conforto |
 | 10 | Eventos & Comunidade | P4 | depende da fronteira serverless | Conteúdo temporário sem alegações globais falsas |
@@ -573,6 +574,128 @@ são visualmente identificados como não verificados.
 
 ---
 
+## Fase 5B — Experiência de Ghost & Desafios  ·  P2  ·  complexidade média/alta  ·  ✅ entregue na v0.8.2
+
+**Contexto:** a F5 entregou o transporte seguro do replay e a silhueta no
+canvas, mas o fluxo atual não é uma experiência de jogador completa: abrir um
+link deixa o payload apenas em memória, exige navegar até Ranking para correr,
+e a importação persiste o score mas não os inputs do ghost. Assim, após reload,
+o resultado continua visível mas não há replay selecionável. Esta fase substitui
+essa jornada indireta por uma entrada imediata e uma coleção local de ghosts.
+
+### Jornada principal — link recebido
+
+```text
+Abrir link → validar protocolo/ruleset → prévia do desafio
+                                      ├─ Correr agora → ready → ghost ao lado → comparação no Game Over
+                                      └─ Salvar ghost → Coleção → correr depois/remover
+```
+
+- Ao abrir um link válido, mostrar uma **prévia dedicada**, não a Home em
+  silêncio. Ela informa origem local/importada, modo, ruleset, distância e
+  tempo declarados, além do aviso permanente de conteúdo não verificado.
+- A ação primária é **Correr agora**. Ela usa a seed e o ruleset do link e leva
+  diretamente ao `ready`, onde a silhueta translúcida do ghost aparece ao lado
+  da nave do jogador após o primeiro input.
+- **Salvar na coleção** é opcional; abrir o link nunca deve obrigar a visitar
+  Ranking, importar primeiro ou salvar dados.
+- Depois de aceitar, recusar ou salvar, normalizar a URL com `history.replaceState`
+  para não reimportar o payload em reload.
+- Link inválido, grande demais ou incompatível abre uma mensagem localizada e
+  segura, sem iniciar uma run nem alterar a coleção.
+
+### Coleção de Ghosts — replay persistente
+
+Criar uma tela **Ghosts** (Home ou Custom Game), distinta de Ranking. Ranking
+compara scores; a coleção é o lugar para jogar replays.
+
+```text
+Meus ghosts
+  Meu melhor · Classic · 2.450 m                 [Correr]
+  Meu melhor · Daily · 1.800 m                   [Correr]
+
+Ghosts importados — não verificados
+  Piloto importado · Classic · 1.245 m           [Correr] [Remover]
+```
+
+- Todo novo recorde pessoal elegível salva/substitui automaticamente **Meu
+  melhor ghost** por categoria compatível `{mode, rulesetId}`. O jogador pode
+  então correr contra si mesmo sem compartilhar nem abrir link.
+- Um ghost importado salvo preserva o **payload validado de inputs**, e não só
+  seu `ScoreRecord`; por isso continua selecionável depois de reload.
+- O card identifica `mode`, `rulesetId`, nave, loadout, distância, duração e
+  origem. Dados externos nunca são renderizados como HTML.
+- Fornecer apenas ações seguras: **Correr**, **Remover** e, quando aplicável,
+  **Compartilhar novamente**. Limitar a coleção (por exemplo, 10 próprios + 20
+  importados) e remover por id explícito; nunca crescer sem limite.
+- Manter os resultados importados no Ranking como histórico, mas cada linha
+  importada deve oferecer um caminho claro para o ghost associado quando ele
+  tiver sido salvo. Um score sem payload não promete replay.
+
+### Dois significados explícitos: Ghost e Desafio
+
+- **Ghost:** referência visual e treino. O jogador pode usar sua nave/loadout
+  atual; no Game Over, mostrar os dois resultados lado a lado, sem declarar uma
+  vitória justa se políticas de loadout forem diferentes.
+- **Desafio:** mesma seed mais uma meta declarada. O Game Over mostra, de forma
+  objetiva, `Você 1.320 m · Ghost 1.245 m` e uma mensagem localizada de
+  superação ou tentativa não concluída.
+- Antes de chamar desafio de competitivo/justo, criar ADR específico para sua
+  política de loadout. A recomendação é um ruleset canônico dedicado (por
+  exemplo Scout e upgrades fixos) ou categorias explícitas de loadout. Até essa
+  decisão, ele é um **desafio de referência não verificado**, mesmo que a seed
+  seja igual.
+- `kind: "ghost"` e `kind: "challenge"` precisam ter schemas e cópia de UI
+  distintos. Challenge inclui a meta; ghost não promete comparação competitiva.
+
+### Regras técnicas e de dados
+
+- Respeitar ADRs 0001, 0002, 0003 e 0004: replay só roda com `rulesetId`
+  suportado; usa ticks lógicos, não pixels/RAF; payload é limitado antes de
+  decodificar; checksum não prova autoria; scores importados são não verificados.
+- Estender `Storage` com uma coleção limitada e normalizada de registros de
+  ghost. Cada registro contém um id local, tipo (`self`/`imported`), origem,
+  metadados de apresentação e o payload estritamente validado. A mudança exige
+  default, normalização, migração compatível do save v2, backup, round-trip,
+  reset/export/import e fixtures antigas conforme `DATA_MODEL.md`.
+- `Protocol` continua sem DOM. Ele valida versões, tipos, payloads de ghost e
+  challenge, e retorna falhas tipadas. `Ghost` continua responsável apenas por
+  gravar/reproduzir; `UI` orquestra prévia, coleção e feedback; `Game` recebe
+  somente um ghost já validado e o contexto explícito do desafio.
+- A execução de ghost não pode alterar RNG lógico, física do jogador, score,
+  Daily, partículas ou assinatura determinística. Se a política competitiva
+  mudar regras de nave/loadout, ela cria um novo `rulesetId`.
+- Toda string nova entra em pt/en/es; ações de link, erro e comparação possuem
+  `aria-live`, foco previsível e fallback manual de compartilhamento.
+
+### Critérios de aceite
+
+1. Um link válido abre a prévia e permite **Correr agora** em no máximo uma
+   decisão; o ghost fica visível durante a run.
+2. Salvar um ghost importado e recarregar a página preserva um botão funcional
+   **Correr** na Coleção.
+3. Bater recorde pessoal cria/substitui apenas o ghost da categoria compatível;
+   jogar contra si mesmo funciona offline.
+4. Ghost e challenge mostram comparação no Game Over; somente o challenge com
+   política compatível pode usar linguagem de superação competitiva.
+5. Payload truncado, enorme, fora de ordem, de ruleset desconhecido ou com
+   schema incompatível não altera Storage nem inicia a partida.
+6. Remover ghost, reset, export/import e save v2 antigo preservam os limites e
+   não corrompem progresso existente.
+7. Testes unitários cobrem protocolo, migração/limites, seleção e comparação;
+   E2E cobre link → prévia → correr → Game Over, salvar → reload → correr e
+   fallback sem Web Share/Clipboard em desktop e mobile.
+
+### Arquivos e documentação esperados
+
+- `src/js/storage.js`, `protocol.js`, `ghost.js`, `game.js`, `ui.js`,
+  `index.html`, `i18n.js`, `main.js` quando a rota de link precisar do bootstrap,
+  além de `style.css`, testes e `sw.js` se houver arquivo estático novo.
+- Atualizar `PRODUCT_FEATURES.md`, `ARCHITECTURE.md`, `DATA_MODEL.md`, este
+  roadmap e o ADR da política de desafio antes de marcar a fase como entregue.
+
+---
+
 ## Fase 6 — Monetização (cosmética apenas)  ·  P4  ·  complexidade baixa  ·  ✅ entregue na v0.7.2
 
 Só depois do jogo ser divertido e completo. Nunca pay-to-win.
@@ -769,6 +892,10 @@ jogável.
 - **Social/ghost (F5):** novos módulos `protocol.js` (envelope/validação) e
   `ghost.js` (input recording/replay), `game.js` (ghost draw), `storage.js`
   (origens/scores importados), `ui.js` (aba Importados), `sw.js` e testes hostis.
+- **Experiência Ghost/Desafio (F5B):** `storage.js` (coleção limitada de
+  payloads validados), `protocol.js` (schemas separados), `ghost.js` (replay),
+  `game.js` (contexto/comparação), `ui.js` + `index.html` (prévia, coleção e
+  Game Over), `i18n.js`, testes de reload/inputs hostis e ADR de loadout justo.
 - **Temas/áudio por tema (F6):** `themes.js` (defs + apply/set/init de CSS vars
   + `--font` + `data-theme`), `audio.js` (`setTheme`/`setMusicTracks`,
   sequências procedurais por tema + MP3 opcional), `storage.js` (`theme` em

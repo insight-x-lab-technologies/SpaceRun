@@ -21,6 +21,7 @@ const Game = (() => {
   let wasThrusting = false;
   let ghostRecorder = null;
   let ghostReplay = null;
+  let ghostContext = null;
 
   let nextMilestone = 1000, milestoneIdx = 0;
   let starColor = '#cfe8ff';
@@ -226,6 +227,18 @@ const Game = (() => {
     wasThrusting = false;
     ghostRecorder = Ghost.recorder();
     ghostReplay = options && options.ghost ? Ghost.replay(options.ghost, H) : null;
+    const ghostKind = options && options.ghostKind === 'challenge' ? 'challenge' : 'ghost';
+    const referenceScore = ghostReplay && ghostKind === 'challenge' && ghostReplay.payload.target ? ghostReplay.payload.target : ghostReplay && ghostReplay.payload.claimedScore;
+    ghostContext = ghostReplay ? {
+      kind: ghostKind,
+      reference: {
+        m: referenceScore.m,
+        t: referenceScore.t,
+        shipId: ghostReplay.payload.shipId,
+        loadout: ghostReplay.payload.loadout,
+        origin: ghostReplay.payload.origin
+      }
+    } : null;
     nextMilestone = 1000;
     milestoneIdx = 0;
     biomeIdx = -1;
@@ -251,8 +264,9 @@ const Game = (() => {
   function start(mode, options) {
     settings = Storage.getSettings();
     cosmetics = Storage.getCosmetics();
-    const selectedMode = MODE[mode] && Storage.isModeUnlocked(mode) ? mode : 'classic';
     const shared = options && options.ghost;
+    const sharedMode = shared && shared.mode === mode && shared.rulesetId === (MODE[mode] && MODE[mode].rulesetId);
+    const selectedMode = MODE[mode] && (Storage.isModeUnlocked(mode) || sharedMode) ? mode : 'classic';
     const forcedSeed = shared && shared.mode === selectedMode && shared.rulesetId === MODE[selectedMode].rulesetId ? shared.seed : null;
     const seed = forcedSeed === null ? (selectedMode === 'daily' ? dailySeed() : (Math.random() * 0xffffffff) >>> 0) : forcedSeed;
     buildWorld(seed, selectedMode, options);
@@ -854,7 +868,8 @@ const Game = (() => {
     const payload = { meters, time, crystals: world.crystals, seed: world.seed, daily: world.daily, mode: world.mode, completed,
                       rulesetId: world.rulesetId, shipId: ship.ship.id,
                       loadout: { agility: Storage.getUpgradeLevel('agility'), thrust: Storage.getUpgradeLevel('thrust') },
-                      maxCombo: world.maxCombo, powerups: world.powerupsUsed.slice(), ghost: ghostRecorder ? ghostRecorder.finish(baseGhost) : null };
+                      maxCombo: world.maxCombo, powerups: world.powerupsUsed.slice(), ghost: ghostRecorder ? ghostRecorder.finish(baseGhost) : null,
+                      ghostContext };
     setTimeout(() => { if (onOverCb) onOverCb(payload); }, 700);
   }
 

@@ -3,7 +3,7 @@ import { loadApp, loadDOM } from '../helpers/loadApp.js';
 
 loadDOM();
 loadApp();
-const { UI, I18n, Storage, Ships } = globalThis;
+const { UI, I18n, Storage, Ships, Protocol } = globalThis;
 
 function init() {
   Storage.reset();
@@ -197,5 +197,27 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(document.getElementById('screen-share-link').classList.contains('hidden')).toBe(false);
     expect(document.getElementById('share-link-input').value).toContain('?sr=');
     expect(document.getElementById('share-link-feedback').textContent).toBe(I18n.t('ghost.manual'));
+  });
+
+  it('abre prévia, salva um ghost importado e o inicia pela coleção', () => {
+    const play = vi.fn();
+    UI.init(play);
+    const ghost = { seed: 99, mode: 'classic', rulesetId: 'classic-v2', origin: 'ab12cd34ef56', shipId: 'scout', loadout: { agility: 0, thrust: 0 }, durationTicks: 2, inputs: [[0, 'thrustOn']], claimedScore: { m: 5, t: 1 } };
+    expect(UI.importSharedToken(Protocol.encode('ghost', ghost)).ok).toBe(true);
+    expect(document.getElementById('screen-ghost-preview').classList.contains('hidden')).toBe(false);
+    document.querySelector('[data-action="savePreview"]').click();
+    expect(Storage.getGhosts(entry => entry.type === 'imported')).toHaveLength(1);
+    expect(document.getElementById('screen-ghosts').classList.contains('hidden')).toBe(false);
+    document.querySelector('#ghost-list-imported [data-action="runGhost"]').click();
+    expect(play).toHaveBeenCalledWith('classic', expect.objectContaining({ ghost, ghostKind: 'ghost' }));
+  });
+
+  it('mantém a importação de Top 10 por link fora da coleção de ghosts', () => {
+    const token = Protocol.encode('scores', { mode: 'classic', rulesetId: 'classic-v2', origin: 'ab12cd34ef56', entries: [{ name: 'Orbit', m: 9, t: 1, shipId: 'scout', loadout: { agility: 0, thrust: 0 } }] });
+    expect(UI.importSharedToken(token).ok).toBe(true);
+    expect(document.getElementById('screen-leaderboard').classList.contains('hidden')).toBe(false);
+    document.querySelector('#screen-leaderboard [data-action="importShared"]').click();
+    expect(Storage.getLeaderboard(entry => entry.source === 'imported')).toHaveLength(1);
+    expect(Storage.getGhosts()).toHaveLength(0);
   });
 });

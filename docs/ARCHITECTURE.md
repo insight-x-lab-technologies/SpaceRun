@@ -74,11 +74,11 @@ applies the saved CSS variables and audio configuration through
 
 | Global   | Responsibility |
 |----------|----------------|
-| `Storage`| Save/load local progress, including `retention` (login streak, XP and bounded mission progress); validates the eight known mode ids, derives Custom Game unlocks from `totalMeters`, and preserves a Top 10 per `{mode, rulesetId}` category. |
+| `Storage`| Save/load local progress, including `retention` (login streak, XP and bounded mission progress); validates the eight known mode ids, derives Custom Game unlocks from `totalMeters`, preserves a Top 10 per `{mode, rulesetId}` category and a bounded, normalized F5B ghost collection. |
 | `Cloud`| Optional Supabase anonymous session, profile synchronization and unverified global leaderboard. Network failures are swallowed. |
 | `Missions`| F4B daily/weekly mission projection from validated `Storage` counters. |
-| `Protocol` | F5 envelope versionado para `ghost`, `challenge` e `scores`; limita/valida texto antes de base64 e JSON. |
-| `Ghost` | F5 grava transições de empuxo por tick e reproduz apenas a silhueta visual; nunca autoriza score. |
+| `Protocol` | Envelope versionado para `ghost`, `challenge` e `scores`; limita/valida texto antes de base64 e JSON. Ghost e challenge têm schemas separados; challenge requer meta declarada. |
+| `Ghost` | Grava transições de empuxo por tick e reproduz apenas a silhueta visual; nunca autoriza score nem altera a simulação do jogador. |
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
@@ -86,8 +86,8 @@ applies the saved CSS variables and audio configuration through
 | `Themes` | `list` (defs with `id`, `name`, `vars`, `font`, optional `audio`), `get(id)`, `currentId()`, `apply(id)`, `set(id)` (persists + applies + emits `musicchange`), `init()` (applies saved theme, sets `--font` on `<html>`, sets `data-theme`, wires `Audio2.setTheme`). |
 | `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `on('start'|'end'|'ability', fn)`. Unifies Space + pointer as "thrust"; `Shift` (desktop) and the floating touch button (`#ability-btn`) emit `ability`. |
 | `PowerUps` | Declarative F4A pickup definitions (`magnet`, `doubleCrystals`, `shield`), their durations and deterministic type selection. It has no DOM or persistence dependency. |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode, { ghost? })`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, mode objective, crystals, combo, ability and active power-ups), `state`. Grava transições do jogador por tick e pode desenhar um ghost compatível sem afetar colisão/RNG. |
-| `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. Importa links `sr` de forma explícita, mostra conteúdo não verificado e inicia desafio apenas com ruleset compatível. Compartilhamento usa Web Share, Clipboard, cópia legada e por fim um campo manual acessível. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode, { ghost?, ghostKind? })`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, mode objective, crystals, combo, ability and active power-ups), `state`. Grava transições do jogador por tick, desenha ghost compatível sem afetar colisão/RNG e devolve contexto explícito para a comparação final. |
+| `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. F5B abre links `sr` numa prévia, orquestra coleção persistente e comparação não verificada; compartilhamento usa Web Share, Clipboard, cópia legada e por fim um campo manual acessível. |
 | `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |
 | `main`   | Bootstraps everything; HUD loop (incl. ability status); music switching; install (`beforeinstallprompt`); SW registration. |
 

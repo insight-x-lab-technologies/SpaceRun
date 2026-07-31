@@ -10,6 +10,7 @@ const UI = (() => {
   let lastFocused = null;
   let lastMode = 'classic';
   let pendingShared = null;
+  let sharedPreviewError = null;
   let shareReturnScreen = 'screen-gameover';
   const MODE_RULESETS = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1', marathon: 'marathon-v1', timeattack: 'timeattack-v1', bossrush: 'bossrush-v1' };
   const CUSTOM_MODES = ['daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush'];
@@ -343,8 +344,55 @@ const UI = (() => {
       const row = document.createElement('div'); row.className = 'lb-row imported';
       const values = ['#' + (i + 1), entry.name || '—', entry.m + ' m', entry.t + 's'];
       ['lb-rank', 'lb-name', 'lb-m', 'lb-t'].forEach((className, index) => { const cell = document.createElement('span'); cell.className = className; cell.textContent = values[index]; row.appendChild(cell); });
+      const ghost = Storage.findGhostForScore(entry);
+      if (ghost) { const play = document.createElement('button'); play.className = 'btn tiny'; play.type = 'button'; play.dataset.action = 'runGhost'; play.dataset.ghostId = ghost.id; play.textContent = I18n.t('ghost.run'); row.appendChild(play); }
       wrap.appendChild(row);
     });
+  }
+
+  function ghostDetails(payload) {
+    const details = document.createElement('dl'); details.className = 'ghost-details';
+    const values = [
+      ['ghost.mode', I18n.t('mode.' + payload.mode)], ['ghost.ruleset', payload.rulesetId],
+      ['ghost.distance', payload.claimedScore.m + ' m'], ['ghost.duration', payload.claimedScore.t.toFixed(1) + 's'],
+      ['ghost.ship', Ships.get(payload.shipId).name], ['ghost.loadout', I18n.t('ghost.loadoutValue', { agility: payload.loadout.agility, thrust: payload.loadout.thrust })],
+      ['ghost.origin', I18n.t('ghost.importedOrigin', { origin: payload.origin })]
+    ];
+    if (payload.target) values.push(['ghost.target', I18n.t('ghost.targetValue', { m: payload.target.m, t: payload.target.t.toFixed(1) })]);
+    values.forEach(([label, value]) => { const term = document.createElement('dt'); term.textContent = I18n.t(label); const desc = document.createElement('dd'); desc.textContent = value; details.append(term, desc); });
+    return details;
+  }
+  function renderGhostPreview() {
+    const wrap = document.getElementById('ghost-preview-content'); if (!wrap) return;
+    wrap.replaceChildren();
+    if (sharedPreviewError) {
+      const message = document.createElement('p'); message.className = 'shared-notice'; message.setAttribute('role', 'status'); message.textContent = I18n.t('ghost.linkError.' + sharedPreviewError);
+      wrap.appendChild(message); return;
+    }
+    if (!pendingShared) return;
+    const title = document.createElement('p'); title.className = 'ghost-kicker'; title.textContent = I18n.t(pendingShared.kind === 'challenge' ? 'ghost.previewChallenge' : 'ghost.previewGhost');
+    const warning = document.createElement('p'); warning.className = 'shared-notice'; warning.setAttribute('role', 'status'); warning.textContent = I18n.t('ghost.unverified');
+    wrap.append(title, warning, ghostDetails(pendingShared.payload));
+  }
+  function renderGhostCollection() {
+    const own = document.getElementById('ghost-list-self'); const imported = document.getElementById('ghost-list-imported');
+    const render = (wrap, entries, emptyKey) => {
+      if (!wrap) return; wrap.replaceChildren();
+      if (!entries.length) { const empty = document.createElement('p'); empty.className = 'stats-empty'; empty.textContent = I18n.t(emptyKey); wrap.appendChild(empty); return; }
+      entries.forEach(entry => {
+        const card = document.createElement('article'); card.className = 'ghost-card ' + entry.type;
+        const heading = document.createElement('h3'); heading.textContent = I18n.t(entry.type === 'self' ? 'ghost.selfBest' : entry.kind === 'challenge' ? 'ghost.previewChallenge' : 'ghost.importedGhost');
+        const origin = document.createElement('p'); origin.className = 'ghost-origin'; origin.textContent = entry.type === 'self' ? I18n.t('ghost.selfOrigin') : I18n.t('ghost.importedOrigin', { origin: entry.origin });
+        const actions = document.createElement('div'); actions.className = 'ghost-card-actions';
+        const run = document.createElement('button'); run.className = 'btn small'; run.type = 'button'; run.dataset.action = 'runGhost'; run.dataset.ghostId = entry.id; run.textContent = I18n.t('ghost.run');
+        const remove = document.createElement('button'); remove.className = 'btn small'; remove.type = 'button'; remove.dataset.action = 'removeGhost'; remove.dataset.ghostId = entry.id; remove.textContent = I18n.t('ghost.remove');
+        actions.append(run, remove);
+        const share = document.createElement('button'); share.className = 'btn small'; share.type = 'button'; share.dataset.action = 'shareSavedGhost'; share.dataset.ghostId = entry.id; share.textContent = I18n.t('ghost.shareAgain');
+        actions.appendChild(share); card.append(heading, origin, ghostDetails(entry.payload), actions); wrap.appendChild(card);
+      });
+    };
+    render(own, Storage.getGhosts(entry => entry.type === 'self'), 'ghost.noneSelf');
+    render(imported, Storage.getGhosts(entry => entry.type === 'imported'), 'ghost.noneImported');
   }
 
   function sharedUrl(token) {
@@ -394,12 +442,18 @@ const UI = (() => {
   }
   function readSharedToken(token) {
     const decoded = Protocol.decode(token);
-    if (!decoded.ok) return decoded;
+    if (!decoded.ok) { pendingShared = null; sharedPreviewError = decoded.reason; clearSharedToken(); renderGhostPreview(); show('screen-ghost-preview'); return decoded; }
     const sharedMode = decoded.value.payload.mode;
-    if (MODE_RULESETS[sharedMode] !== decoded.value.rulesetId) return { ok: false, reason: 'unsupported' };
+    if (MODE_RULESETS[sharedMode] !== decoded.value.rulesetId) { pendingShared = null; sharedPreviewError = 'unsupported'; clearSharedToken(); renderGhostPreview(); show('screen-ghost-preview'); return { ok: false, reason: 'unsupported' }; }
     pendingShared = decoded.value;
-    const notice = document.getElementById('shared-notice');
-    if (notice) { notice.textContent = I18n.t('ghost.readyImport'); notice.classList.remove('hidden'); }
+    sharedPreviewError = null;
+    if (decoded.value.kind === 'scores') {
+      const notice = document.getElementById('shared-notice');
+      if (notice) { notice.textContent = I18n.t('ghost.readyImport'); notice.classList.remove('hidden'); }
+      renderLeaderboard(); show('screen-leaderboard');
+      return decoded;
+    }
+    renderGhostPreview(); show('screen-ghost-preview');
     return decoded;
   }
   function clearSharedToken() {
@@ -529,10 +583,25 @@ const UI = (() => {
     } else {
       unlockEl.classList.add('hidden');
     }
+    if (lastResult.ghost) Storage.saveSelfGhost(lastResult.ghost);
+    renderGhostComparison(lastResult);
     refreshRecords();
     
     show('screen-gameover');
     if (updateApply) setUpdateAvailable(updateApply);
+  }
+
+  function renderGhostComparison(result) {
+    const wrap = document.getElementById('go-ghost-comparison'); if (!wrap) return;
+    wrap.replaceChildren();
+    const context = result && result.ghostContext;
+    if (!context || !context.reference) { wrap.classList.add('hidden'); return; }
+    const heading = document.createElement('h3'); heading.textContent = I18n.t(context.kind === 'challenge' ? 'ghost.challengeResult' : 'ghost.ghostResult');
+    const you = document.createElement('p'); you.textContent = I18n.t('ghost.compareYou', { m: result.meters, t: result.time.toFixed(1) });
+    const reference = document.createElement('p'); reference.textContent = I18n.t('ghost.compareReference', { m: context.reference.m, t: context.reference.t.toFixed(1) });
+    wrap.append(heading, you, reference);
+    if (context.kind === 'challenge') { const outcome = document.createElement('p'); outcome.className = 'ghost-comparison-outcome'; outcome.textContent = I18n.t(result.meters > context.reference.m ? 'ghost.referenceReached' : 'ghost.referenceMissed'); wrap.appendChild(outcome); }
+    wrap.classList.remove('hidden');
   }
 
   function renderSettings() {
@@ -587,7 +656,7 @@ const UI = (() => {
       updateShare();
       document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
       renderSettings();
-      ['screen-custom-game', 'screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard', 'screen-missions']
+      ['screen-custom-game', 'screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-ghosts', 'screen-ghost-preview']
         .forEach(id => { if (!screens[id].classList.contains('hidden')) rerenderScreen(id); });
       refreshRecords();
     };
@@ -600,13 +669,15 @@ const UI = (() => {
     else if (id === 'screen-stats') renderStats();
     else if (id === 'screen-leaderboard') renderLeaderboard();
     else if (id === 'screen-missions') renderMissions();
+    else if (id === 'screen-ghosts') renderGhostCollection();
+    else if (id === 'screen-ghost-preview') renderGhostPreview();
   }
 
   function init(playCb) {
     onPlay = playCb;
     ['screen-home', 'screen-custom-game', 'screen-hangar', 'screen-settings', 'screen-donate',
       'screen-gameover', 'screen-pause', 'screen-achievements',
-      'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-share', 'screen-share-link']
+      'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-ghosts', 'screen-ghost-preview', 'screen-share', 'screen-share-link']
       .forEach(id => screens[id] = document.getElementById(id));
 
     I18n.init();
@@ -651,22 +722,40 @@ const UI = (() => {
         shareToken(token, I18n.t('ghost.share')); break;
       }
       case 'shareChallenge': {
-        const token = lastResult && lastResult.ghost ? Protocol.encode('challenge', lastResult.ghost) : null;
+        const challenge = lastResult && lastResult.ghost ? Object.assign({}, lastResult.ghost, { target: lastResult.ghost.claimedScore }) : null;
+        const token = challenge ? Protocol.encode('challenge', challenge) : null;
         shareToken(token, I18n.t('ghost.challenge')); break;
       }
       case 'importShared': {
-        if (!pendingShared) break;
+        if (!pendingShared || pendingShared.kind !== 'scores') break;
         const shared = pendingShared;
-        if (shared.kind === 'scores') Storage.importLeaderboard(shared.payload.entries.map(entry => Object.assign({}, entry, { mode: shared.payload.mode, rulesetId: shared.payload.rulesetId })), shared.payload.origin);
-        else Storage.importLeaderboard([{ name: I18n.t('ghost.pilot'), m: shared.payload.claimedScore.m, t: shared.payload.claimedScore.t, mode: shared.payload.mode, rulesetId: shared.payload.rulesetId, shipId: shared.payload.shipId, loadout: shared.payload.loadout }], shared.payload.origin);
-        const notice = document.getElementById('shared-notice'); if (notice) { notice.textContent = I18n.t('ghost.imported'); notice.classList.remove('hidden'); }
-        clearSharedToken(); renderLeaderboard(); break;
+        Storage.importLeaderboard(shared.payload.entries.map(entry => Object.assign({}, entry, { mode: shared.payload.mode, rulesetId: shared.payload.rulesetId })), shared.payload.origin);
+        pendingShared = null; clearSharedToken(); renderLeaderboard(); break;
       }
-      case 'playShared': {
-        if (!pendingShared || (pendingShared.kind !== 'ghost' && pendingShared.kind !== 'challenge')) break;
-        const ghost = pendingShared.payload;
-        if (ghost.rulesetId !== MODE_RULESETS[ghost.mode]) { const notice = document.getElementById('shared-notice'); if (notice) notice.textContent = I18n.t('ghost.incompatible'); break; }
-        show(null); onPlay(ghost.mode, { ghost }); break;
+      case 'runPreview': {
+        if (!pendingShared) break;
+        const shared = pendingShared; pendingShared = null; clearSharedToken();
+        show(null); onPlay(shared.payload.mode, { ghost: shared.payload, ghostKind: shared.kind }); break;
+      }
+      case 'savePreview': {
+        if (!pendingShared) break;
+        const shared = pendingShared; const saved = Storage.saveImportedGhost(shared.kind, shared.payload);
+        if (!saved) break;
+        Storage.importLeaderboard([{ name: I18n.t('ghost.pilot'), m: shared.payload.claimedScore.m, t: shared.payload.claimedScore.t, mode: shared.payload.mode, rulesetId: shared.payload.rulesetId, shipId: shared.payload.shipId, loadout: shared.payload.loadout }], shared.payload.origin);
+        pendingShared = null; clearSharedToken(); renderGhostCollection(); show('screen-ghosts'); break;
+      }
+      case 'dismissPreview': pendingShared = null; sharedPreviewError = null; clearSharedToken(); show('screen-home'); break;
+      case 'ghosts': renderGhostCollection(); show('screen-ghosts'); break;
+      case 'runGhost': {
+        const record = btn && Storage.getGhost(btn.dataset.ghostId);
+        if (!record || MODE_RULESETS[record.payload.mode] !== record.payload.rulesetId) break;
+        show(null); onPlay(record.payload.mode, { ghost: record.payload, ghostKind: record.kind }); break;
+      }
+      case 'removeGhost': if (btn && Storage.removeGhost(btn.dataset.ghostId)) renderGhostCollection(); break;
+      case 'shareSavedGhost': {
+        const record = btn && Storage.getGhost(btn.dataset.ghostId);
+        shareToken(record ? Protocol.encode(record.kind, record.payload) : null, I18n.t(record && record.kind === 'challenge' ? 'ghost.challenge' : 'ghost.share'));
+        break;
       }
       case 'shareScores': {
         const mode = document.getElementById('lb-mode').value;

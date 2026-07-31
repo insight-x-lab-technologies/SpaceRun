@@ -34,4 +34,11 @@ describe('Protocol — links sociais F5', () => {
     expect(Protocol.encode('ghost', Object.assign({}, ghost, { shipId: 'evil' }))).toBeNull();
     expect(Protocol.encode('ghost', Object.assign({}, ghost, { inputs: [[10, 'thrustOn'], [2, 'thrustOff']] }))).toBeNull();
   });
+
+  it('mantém o schema de desafio separado e exige uma meta declarada', () => {
+    expect(Protocol.encode('challenge', ghost)).toBeNull();
+    const challenge = Object.assign({}, ghost, { target: { m: 120, t: 2 } });
+    const token = Protocol.encode('challenge', challenge);
+    expect(Protocol.decode(token)).toEqual(expect.objectContaining({ ok: true, value: expect.objectContaining({ kind: 'challenge', payload: challenge }) }));
+  });
 });

@@ -12,11 +12,14 @@ const Storage = (() => {
   const MAX_LEADERBOARD_PER_CATEGORY = 10;
   // Há oito categorias de modo; cada uma preserva Top 10 local e importado.
   const MAX_LEADERBOARD = 160;
+  const MAX_SELF_GHOSTS = 10;
+  const MAX_IMPORTED_GHOSTS = 20;
   const MAX_IMPORT_BYTES = 64 * 1024;
   const DAILY_REWARDS = [50, 75, 125, 200, 300, 400, 500];
   const SHIP_IDS = ['scout', 'falcon', 'tank', 'phantom', 'nova', 'vortex', 'quasar', 'pulsar', 'nebula', 'singularity', 'comet', 'aurora', 'raptor', 'helix', 'titan', 'spectre', 'ember', 'zephyr', 'cosmos', 'eclipse'];
   const THEMES = ['neon', 'retro', 'aurora'];
   const MODES = ['classic', 'daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush'];
+  const MODE_RULESETS = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1', marathon: 'marathon-v1', timeattack: 'timeattack-v1', bossrush: 'bossrush-v1' };
   // Desbloqueios são derivados do progresso já persistido, sem criar um
   // segundo inventário de progresso nem exigir migração de schema.
   const MODE_MILESTONES = {
@@ -52,7 +55,7 @@ const Storage = (() => {
       meta: { createdAt: timestamp, updatedAt: timestamp, migratedFrom: null },
       best: 0, totalMeters: 0, totalRuns: 0, bestTime: 0, crystals: 0,
       selectedShip: 'scout', unlocked: ['scout'], achievements: [], history: [],
-      streak: 0, maxStreak: 0, leaderboard: [], playerName: '', friendCode: newFriendCode(), shipSkins: {},
+      streak: 0, maxStreak: 0, leaderboard: [], ghosts: [], playerName: '', friendCode: newFriendCode(), shipSkins: {},
       upgrades: { agility: 0, thrust: 0 },
       cosmetics: { trail: 'ion', explosion: 'nova', title: 'cadet', unlocked: ['trail:ion', 'explosion:nova', 'title:cadet'] },
       retention: { lastClaimDate: '', loginStreak: 0, xp: 0, daily: { date: '', progress: {} }, weekly: { week: '', progress: {} } },
@@ -145,6 +148,59 @@ const Storage = (() => {
       origin: v.source === 'imported' ? friendCode(v.origin, '') : ''
     };
   }
+  function ghostPayload(v, kind) {
+    v = object(v) ? v : {};
+    const seed = int(v.seed, -1, 0xffffffff);
+    const mode = id(v.mode, MODES, '');
+    const rulesetId = typeof v.rulesetId === 'string' && /^[a-z]+-v\d+$/.test(v.rulesetId) && v.rulesetId.length <= 32 ? v.rulesetId : '';
+    const origin = friendCode(v.origin, '');
+    const shipId = id(v.shipId, SHIP_IDS, '');
+    const durationTicks = int(v.durationTicks, -1, 21600);
+    const claimed = object(v.claimedScore) ? v.claimedScore : {};
+    const rawLoadout = object(v.loadout) ? v.loadout : null;
+    const m = int(claimed.m, -1, Number.MAX_SAFE_INTEGER);
+    const t = Number(claimed.t);
+    if (seed < 0 || !mode || !rulesetId || rulesetId !== MODE_RULESETS[mode] || !origin || !shipId || durationTicks < 0 || m < 0 || !rawLoadout || int(rawLoadout.agility, -1, UPGRADE_MAX) < 0 || int(rawLoadout.thrust, -1, UPGRADE_MAX) < 0 || !Number.isFinite(t) || t < 0 || t > 1e9 || !Array.isArray(v.inputs) || v.inputs.length > 6000) return null;
+    const inputs = []; let previous = -1;
+    for (const event of v.inputs) {
+      if (!Array.isArray(event) || event.length !== 2) return null;
+      const tick = int(event[0], -1, durationTicks);
+      if (tick <= previous || !['thrustOn', 'thrustOff'].includes(event[1])) return null;
+      previous = tick; inputs.push([tick, event[1]]);
+    }
+    const payload = { seed, mode, rulesetId, origin, shipId, loadout: loadout(v.loadout), durationTicks, inputs, claimedScore: { m, t: seconds(t, 0) } };
+    if (kind === 'challenge') {
+      const target = object(v.target) ? v.target : {};
+      const targetM = int(target.m, -1, Number.MAX_SAFE_INTEGER); const targetT = Number(target.t);
+      if (targetM < 0 || !Number.isFinite(targetT) || targetT < 0 || targetT > 1e9) return null;
+      payload.target = { m: targetM, t: seconds(targetT, 0) };
+    }
+    return payload;
+  }
+  function normalizeGhostRecord(v) {
+    v = object(v) ? v : {};
+    const type = v.type === 'self' ? 'self' : v.type === 'imported' ? 'imported' : '';
+    const kind = v.kind === 'ghost' || v.kind === 'challenge' ? v.kind : '';
+    const payload = ghostPayload(v.payload, kind);
+    if (!type || !kind || !payload || (type === 'self' && kind !== 'ghost')) return null;
+    return {
+      id: typeof v.id === 'string' && /^ghost-[a-z0-9-]{8,64}$/.test(v.id) ? v.id : randomId('ghost'),
+      type, kind, origin: payload.origin, savedAt: timestamp(v.savedAt), payload
+    };
+  }
+  function limitGhosts(entries) {
+    const self = new Map(); const imported = [];
+    (Array.isArray(entries) ? entries : []).forEach(raw => {
+      const entry = normalizeGhostRecord(raw); if (!entry) return;
+      if (entry.type === 'self') {
+        const key = entry.payload.mode + '|' + entry.payload.rulesetId;
+        const current = self.get(key);
+        if (!current || entry.payload.claimedScore.m > current.payload.claimedScore.m || (entry.payload.claimedScore.m === current.payload.claimedScore.m && entry.savedAt > current.savedAt)) self.set(key, entry);
+      } else if (!imported.some(item => item.origin === entry.origin && item.kind === entry.kind && item.payload.mode === entry.payload.mode && item.payload.rulesetId === entry.payload.rulesetId && item.payload.claimedScore.m === entry.payload.claimedScore.m && item.payload.claimedScore.t === entry.payload.claimedScore.t)) imported.push(entry);
+    });
+    return Array.from(self.values()).sort((a, b) => b.savedAt - a.savedAt).slice(0, MAX_SELF_GHOSTS)
+      .concat(imported.sort((a, b) => b.savedAt - a.savedAt).slice(0, MAX_IMPORTED_GHOSTS));
+  }
   function rank(a, b) { return b.m - a.m || a.t - b.t || a.d - b.d; }
   function limitLeaderboard(entries) {
     const groups = new Map();
@@ -169,6 +225,7 @@ const Storage = (() => {
     const settings = object(v.settings) ? v.settings : {};
     const history = Array.isArray(v.history) ? v.history.slice(-MAX_HISTORY).map(x => normalizeRun(x, legacy)) : [];
     const leaderboard = limitLeaderboard(Array.isArray(v.leaderboard) ? v.leaderboard.map(x => normalizeScore(x, legacy)) : []);
+    const ghosts = limitGhosts(v.ghosts);
     return {
       schemaVersion: SCHEMA_VERSION,
       meta: { createdAt: timestamp(meta.createdAt), updatedAt: timestamp(meta.updatedAt), migratedFrom: legacy ? 1 : null },
@@ -177,7 +234,7 @@ const Storage = (() => {
       selectedShip: id(v.selectedShip, SHIP_IDS, base.selectedShip), unlocked: uniqueIds(v.unlocked, SHIP_IDS, ['scout'], SHIP_IDS.length),
       achievements: uniqueIds(v.achievements, ACHIEVEMENT_IDS, [], 100),
       history, streak: int(v.streak, 0, Number.MAX_SAFE_INTEGER), maxStreak: int(v.maxStreak, 0, Number.MAX_SAFE_INTEGER),
-      leaderboard, playerName: name(v.playerName), friendCode: friendCode(v.friendCode, base.friendCode), shipSkins: skins,
+      leaderboard, ghosts, playerName: name(v.playerName), friendCode: friendCode(v.friendCode, base.friendCode), shipSkins: skins,
       upgrades: loadout(v.upgrades), cosmetics: cosmetics(v.cosmetics), retention: retention(v.retention), settings: {
         sound: typeof settings.sound === 'boolean' ? settings.sound : base.settings.sound,
         music: typeof settings.music === 'boolean' ? settings.music : base.settings.music,
@@ -253,6 +310,8 @@ const Storage = (() => {
     get: () => clone(data), getSnapshot: () => clone(data), getBest: () => data.best,
     getSettings: () => clone(data.settings), getHistory: () => clone(data.history),
     getLeaderboard: (filter) => clone(filter ? data.leaderboard.filter(filter) : data.leaderboard),
+    getGhosts: (filter) => clone(filter ? data.ghosts.filter(filter) : data.ghosts),
+    getGhost(id) { const item = data.ghosts.find(entry => entry.id === id); return item ? clone(item) : null; },
     getFriendCode: () => data.friendCode,
     getModeMilestone: mode => Object.prototype.hasOwnProperty.call(MODE_MILESTONES, mode) ? MODE_MILESTONES[mode] : null,
     isModeUnlocked: mode => Object.prototype.hasOwnProperty.call(MODE_MILESTONES, mode) && data.totalMeters >= MODE_MILESTONES[mode],
@@ -323,6 +382,31 @@ const Storage = (() => {
         next.leaderboard = limitLeaderboard(next.leaderboard);
       });
       return ok ? imported : 0;
+    },
+    saveSelfGhost(payload) {
+      const clean = ghostPayload(payload, 'ghost');
+      if (!clean || clean.claimedScore.m <= 0) return null;
+      const existing = data.ghosts.find(entry => entry.type === 'self' && entry.payload.mode === clean.mode && entry.payload.rulesetId === clean.rulesetId);
+      if (existing && existing.payload.claimedScore.m >= clean.claimedScore.m) return null;
+      const entry = { id: randomId('ghost'), type: 'self', kind: 'ghost', origin: clean.origin, savedAt: now(), payload: clean };
+      const ok = commit(next => { next.ghosts = limitGhosts(next.ghosts.filter(item => !(item.type === 'self' && item.payload.mode === clean.mode && item.payload.rulesetId === clean.rulesetId)).concat(entry)); });
+      return ok ? clone(entry) : null;
+    },
+    saveImportedGhost(kind, payload) {
+      const clean = ghostPayload(payload, kind);
+      if (!clean || !['ghost', 'challenge'].includes(kind)) return null;
+      const entry = { id: randomId('ghost'), type: 'imported', kind, origin: clean.origin, savedAt: now(), payload: clean };
+      const ok = commit(next => { next.ghosts = limitGhosts(next.ghosts.concat(entry)); });
+      return ok ? clone(entry) : null;
+    },
+    removeGhost(ghostId) {
+      if (typeof ghostId !== 'string' || !data.ghosts.some(entry => entry.id === ghostId)) return false;
+      return commit(next => { next.ghosts = next.ghosts.filter(entry => entry.id !== ghostId); });
+    },
+    findGhostForScore(score) {
+      if (!object(score)) return null;
+      const entry = data.ghosts.find(item => item.type === 'imported' && item.origin === score.origin && item.payload.mode === score.mode && item.payload.rulesetId === score.rulesetId && item.payload.claimedScore.m === score.m && item.payload.claimedScore.t === score.t);
+      return entry ? clone(entry) : null;
     },
     recordRun(meters, time, crystals, context) {
       const run = runInput(meters, time, crystals, Object.assign({ shipId: data.selectedShip, loadout: currentLoadout() }, context || {}));

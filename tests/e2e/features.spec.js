@@ -202,18 +202,21 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await expect(page.locator('#share-canvas')).toBeVisible();
   });
 
-  test('importa um ghost por link como resultado não verificado e permite a corrida', async ({ page }) => {
+  test('link de ghost abre prévia, salva após reload e permite corrida', async ({ page }) => {
     await page.goto('/');
     const token = await page.evaluate(() => Protocol.encode('ghost', {
       seed: 1234, mode: 'classic', rulesetId: 'classic-v2', origin: 'ab12cd34ef56', shipId: 'scout',
       loadout: { agility: 0, thrust: 0 }, durationTicks: 60, inputs: [[0, 'thrustOn']], claimedScore: { m: 42, t: 1 }
     }));
     await page.goto('/?sr=' + token);
-    await page.click(`${HOME} [data-action="leaderboard"]`);
-    await expect(page.locator('#shared-notice')).toContainText(/pronto para importar|ready to import|listo para importar/i);
-    await page.click('#screen-leaderboard [data-action="importShared"]');
-    await expect(page.locator('#lb-imported-list .lb-row')).toHaveCount(1);
-    await page.click('#screen-leaderboard [data-action="playShared"]');
+    await expect(page.locator('#screen-ghost-preview')).toBeVisible();
+    await expect(page.locator('#ghost-preview-content')).toContainText(/não verificado|unverified|no verificado/i);
+    await page.click('#screen-ghost-preview [data-action="savePreview"]');
+    await expect(page.locator('#screen-ghosts')).toBeVisible();
+    await expect(page.locator('#ghost-list-imported .ghost-card')).toHaveCount(1);
+    await page.reload();
+    await page.click(`${HOME} [data-action="ghosts"]`);
+    await page.click('#ghost-list-imported [data-action="runGhost"]');
     await expect(page.locator('#ready-overlay')).toBeVisible();
     await page.keyboard.press('Space');
     await expect(page.locator('#hud')).toBeVisible();

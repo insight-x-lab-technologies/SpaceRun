@@ -13,7 +13,7 @@ em um único `<canvas>` e o áudio é sintetizado com WebAudio. Não use imagens
 áudio binários para gameplay; os PNGs em `src/assets/` são apenas ícones
 obrigatórios da PWA.
 
-## Estado real do produto (v0.8.1; F4A, F4B, F5, F7 e F9 entregues)
+## Estado real do produto (v0.8.2; F4A, F4B, F5, F5B, F7 e F9 entregues)
 
 - Jogo clássico e **Daily Run** estão ativos na Home. O Daily usa a data local
   como seed; a sequência de spawns é indexada por distância e tem testes de
