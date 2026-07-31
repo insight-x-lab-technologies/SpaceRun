@@ -3,7 +3,7 @@ import { loadApp, loadDOM } from '../helpers/loadApp.js';
 
 loadDOM();
 loadApp();
-const { Game, Input, Storage, Ships } = globalThis;
+const { Game, Input, Storage, Ships, Events } = globalThis;
 
 let lastState = null;
 let onOverPayload = null;
@@ -65,6 +65,15 @@ describe('Game — máquina de estados e ciclo de vida', () => {
     startPlaying();
     for (let i = 0; i < 120; i++) { keepAlive(); globalThis.stepFrames(1); }
     expect(Game.getHud().meters).toBeGreaterThan(0);
+  });
+
+  it('aplica um evento sazonal apenas à apresentação e preserva a seed curada', () => {
+    const current = Events.current;
+    Events.current = () => Events.get('halloween');
+    Game.start('classic', { seed: 319240581, curatedSeed: 'cometRelay' });
+    expect(Game.getHud().eventId).toBe('halloween');
+    expect(Game._debug.world).toMatchObject({ seed: 319240581, curatedSeed: 'cometRelay', rulesetId: 'classic-v2' });
+    Events.current = current;
   });
 
   it('recalcula o buffer do canvas após a orientação estabilizar', () => {

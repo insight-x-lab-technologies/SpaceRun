@@ -97,6 +97,47 @@ html, body {
 .custom-mode-card.locked { opacity: .68; background: rgba(255,255,255,.025); }
 .custom-mode-card .btn { flex: 0 0 auto; min-width: 78px; }
 .custom-mode-card .btn:disabled { cursor: not-allowed; opacity: .58; filter: grayscale(.5); }
+.event-panel {
+  position: relative;
+  overflow-x: hidden;
+  text-align: left;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(255, 222, 110, .16), transparent 24%),
+    radial-gradient(circle at 8% 28%, rgba(74, 240, 255, .12), transparent 28%),
+    var(--panel);
+}
+.event-panel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .35;
+  background-image: radial-gradient(circle, rgba(255,255,255,.65) 0 1px, transparent 1.4px);
+  background-size: 41px 41px;
+  mask-image: linear-gradient(180deg, #000, transparent 78%);
+}
+.event-panel > * { position: relative; }
+.event-eyebrow, .event-status { color: #ffe27a; font-size: 11px; font-weight: 900; letter-spacing: 1.4px; text-transform: uppercase; }
+.event-panel h2 { text-align: left; margin-top: 5px; }
+.season-event { margin: 17px 0 22px; }
+.season-event-card, .event-seed-card {
+  border: 1px solid rgba(74,240,255,.28); border-radius: 14px; padding: 15px;
+  background: rgba(3, 8, 25, .54); box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.season-event-card.active {
+  border-color: rgba(255,226,122,.68);
+  background: linear-gradient(118deg, rgba(255,226,122,.13), rgba(74,240,255,.08) 58%, rgba(255,74,216,.08));
+}
+.season-event-card h3, .event-seed-card h3 { margin: 6px 0; color: var(--text); font-size: 18px; letter-spacing: .6px; }
+.event-copy, .event-seed-card > p { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.event-detail, .seed-meta { margin-top: 10px; color: var(--accent); font-size: 12px; font-weight: 700; }
+.season-event-card .btn { margin-top: 13px; }
+.event-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 10px 0; }
+.event-section-heading h3 { color: var(--accent); font-size: 16px; letter-spacing: 1px; }
+.event-section-heading p { color: var(--muted); max-width: 58%; font-size: 11px; line-height: 1.35; text-align: right; }
+.event-seed-list { display: grid; gap: 10px; }
+.event-seed-card { border-left: 3px solid var(--accent); }
+.event-seed-card.event-halloween { border-left-color: #ff9b38; }
+.event-seed-card.event-newyear { border-left-color: #ffe476; }
+.event-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
+.event-card-actions .btn { flex: 1 1 130px; }
+.event-trust { margin: 17px 0 2px; color: var(--muted); font-size: 11px; line-height: 1.45; }
 .ghost-list { display: grid; gap: 10px; margin: 10px 0 18px; text-align: left; }
 .ghost-card { padding: 13px; border: 1px solid rgba(74,240,255,.28); border-radius: 12px; background: linear-gradient(115deg, rgba(74,240,255,.08), rgba(255,74,216,.035)); }
 .ghost-card.imported { border-left: 3px solid var(--accent2); }
@@ -491,6 +532,14 @@ body.one-handed #hud-pause { position: fixed; right: max(18px, env(safe-area-ins
   font-weight: 800;
   letter-spacing: 0.7px;
 }
+.hud-event {
+  color: #ffe27a;
+  font-size: clamp(11px, 2.8vw, 14px);
+  font-weight: 900;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(255, 226, 122, .62);
+}
 
 /* ---------- Toast de conquista ---------- */
 .achievement {
@@ -697,6 +746,7 @@ body.one-handed #hud-pause { position: fixed; right: max(18px, env(safe-area-ins
   #screen-home [data-action="stats"],
   #screen-home [data-action="leaderboard"],
   #screen-home [data-action="missions"],
+  #screen-home [data-action="events"],
   #screen-home [data-action="settings"],
   #screen-home [data-action="donate"] {
     min-height: 48px;
@@ -734,4 +784,6 @@ body.one-handed #hud-pause { position: fixed; right: max(18px, env(safe-area-ins
   }
   #screen-custom-game .panel { width: min(780px, 94vw); }
   .custom-mode-list { grid-template-columns: 1fr 1fr; }
+  #screen-events .panel { width: min(780px, 94vw); }
+  .event-seed-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

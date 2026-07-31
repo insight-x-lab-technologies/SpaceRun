@@ -6,6 +6,7 @@ const Audio2 = (() => {
 
   // ----- música -----
   const music = { type: null, timer: null, next: 0, step: 0, master: null, drone: null, el: null };
+  let seasonalMusic = null;
 
   const MENU_SEQ  = [220.00, 261.63, 329.63, 293.66, 261.63, 220.00, 329.63, 392.00];
   const GAME_SEQ  = [440.00, 523.25, 659.25, 523.25, 587.33, 659.25, 523.25, 440.00];
@@ -38,6 +39,12 @@ const Audio2 = (() => {
     theme.menuMp3 = menuUrl || null;
     theme.gameMp3 = gameUrl || null;
     stopMusic();
+  }
+  function setSeasonalMusic(config) {
+    seasonalMusic = config && Array.isArray(config.seq) && config.seq.length
+      ? { seq: config.seq.slice(), wave: config.wave || 'sine', drone: Number(config.drone) || 110, tempo: Math.max(0.16, Number(config.tempo) || 0.3) }
+      : null;
+    if (music.type === 'event') stopMusic();
   }
 
   function ensure() {
@@ -105,7 +112,7 @@ const Audio2 = (() => {
   function startMusic(type) {
     if (!musicOn) { stopMusic(); return; }
     // MP3 do tema tem prioridade quando definido (não depende de AudioContext)
-    const url = (type === 'menu') ? theme.menuMp3 : theme.gameMp3;
+    const url = type === 'event' ? null : (type === 'menu' ? theme.menuMp3 : theme.gameMp3);
     if (url && typeof Audio !== 'undefined') {
       if (music.type === type && music.el) return; // já tocando essa faixa
       stopMusic();
@@ -126,6 +133,7 @@ const Audio2 = (() => {
     }
     if (type === 'menu') startDrone(c, 110, 0.04); // pad grave
     if (type === 'zen') startDrone(c, 82.41, 0.035);
+    if (type === 'event' && seasonalMusic) startDrone(c, seasonalMusic.drone, 0.04);
     music.timer = setInterval(scheduler, 25);
   }
 
@@ -178,6 +186,11 @@ const Audio2 = (() => {
         const f = seq[music.step % seq.length] * 0.5;
         note(f, music.next, 0.62, 'sine', 0.28);
         if (music.step % 3 === 0) note(f * 1.5, music.next + 0.12, 0.42, 'triangle', 0.13);
+      } else if (type === 'event' && seasonalMusic) {
+        const seq = seasonalMusic.seq;
+        const f = seq[music.step % seq.length];
+        note(f, music.next, seasonalMusic.tempo * 1.8, seasonalMusic.wave, 0.34);
+        if (music.step % 3 === 0) note(f * 0.5, music.next, seasonalMusic.tempo * 1.4, 'triangle', 0.22);
       } else { // game
         const seq = theme.gameSeq;
         const f = seq[music.step % seq.length];
@@ -185,7 +198,7 @@ const Audio2 = (() => {
         if (music.step % 2 === 0) note(110, music.next, 0.15, 'triangle', 0.5);
         if (music.step % 4 === 2) note(164.81, music.next, 0.15, 'triangle', 0.3);
       }
-      music.next += type === 'menu' ? 0.46 : (type === 'zen' ? 0.58 : 0.16);
+      music.next += type === 'menu' ? 0.46 : (type === 'zen' ? 0.58 : (type === 'event' && seasonalMusic ? seasonalMusic.tempo : 0.16));
       music.step++;
     }
   }
@@ -199,7 +212,7 @@ const Audio2 = (() => {
 
   return {
     ensure,
-    setEnabled, setMusicEnabled, setTheme, setMusicTracks,
+    setEnabled, setMusicEnabled, setTheme, setMusicTracks, setSeasonalMusic,
     uiClick, thrust, hit, crash, unlock, pickup, ability, shield,
     startMusic, stopMusic
   };

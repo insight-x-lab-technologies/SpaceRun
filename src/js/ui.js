@@ -72,6 +72,45 @@ const UI = (() => {
     });
   }
 
+  function renderEvents() {
+    const seasonWrap = document.getElementById('season-event');
+    const seedWrap = document.getElementById('event-seed-list');
+    if (!seasonWrap || !seedWrap || typeof Events === 'undefined') return;
+    seasonWrap.replaceChildren();
+    const active = Events.current();
+    const card = document.createElement('article');
+    card.className = 'season-event-card' + (active ? ' active event-' + active.id : ' inactive');
+    const marker = document.createElement('p'); marker.className = 'event-status';
+    const title = document.createElement('h3');
+    const copy = document.createElement('p'); copy.className = 'event-copy';
+    if (active) {
+      marker.textContent = I18n.t('events.active');
+      title.textContent = I18n.t('event.' + active.id + '.name');
+      copy.textContent = I18n.t('event.' + active.id + '.desc');
+      const detail = document.createElement('p'); detail.className = 'event-detail'; detail.textContent = I18n.t('events.visualOnly');
+      const play = document.createElement('button'); play.className = 'btn small'; play.type = 'button'; play.dataset.action = 'playSeasonal'; play.textContent = I18n.t('events.play');
+      card.append(marker, title, copy, detail, play);
+    } else {
+      marker.textContent = I18n.t('events.noneKicker');
+      title.textContent = I18n.t('events.noneTitle');
+      copy.textContent = I18n.t('events.noneDesc');
+      card.append(marker, title, copy);
+    }
+    seasonWrap.appendChild(card);
+
+    seedWrap.replaceChildren();
+    Events.listSeeds().forEach(seed => {
+      const seedCard = document.createElement('article'); seedCard.className = 'event-seed-card event-' + seed.event;
+      const heading = document.createElement('h3'); heading.textContent = I18n.t('seed.' + seed.id + '.name');
+      const description = document.createElement('p'); description.textContent = I18n.t('seed.' + seed.id + '.desc');
+      const meta = document.createElement('p'); meta.className = 'seed-meta'; meta.textContent = I18n.t('events.seedValue', { n: String(seed.seed) });
+      const actions = document.createElement('div'); actions.className = 'event-card-actions';
+      const run = document.createElement('button'); run.className = 'btn small'; run.type = 'button'; run.dataset.action = 'runCommunitySeed'; run.dataset.seedId = seed.id; run.textContent = I18n.t('events.runSeed');
+      const copySeed = document.createElement('button'); copySeed.className = 'btn small'; copySeed.type = 'button'; copySeed.dataset.action = 'copyCommunitySeed'; copySeed.dataset.seedId = seed.id; copySeed.textContent = I18n.t('events.copySeed');
+      actions.append(run, copySeed); seedCard.append(heading, description, meta, actions); seedWrap.appendChild(seedCard);
+    });
+  }
+
   /* Aplica classes de acessibilidade no <body> conforme as configurações */
   function applyAccessibility() {
     const s = Storage.getSettings();
@@ -573,8 +612,15 @@ const UI = (() => {
     const seedRow = document.getElementById('go-seed-row');
     const seedEl = document.getElementById('go-seed');
     if (seedRow && seedEl) {
-      if (daily) { seedEl.textContent = String(seed); seedRow.classList.remove('hidden'); }
+      if (daily || (payload && payload.curatedSeed)) { seedEl.textContent = String(seed); seedRow.classList.remove('hidden'); }
       else seedRow.classList.add('hidden');
+    }
+    const eventRow = document.getElementById('go-event-row');
+    const eventEl = document.getElementById('go-event');
+    const event = payload && payload.seasonalEvent && typeof Events !== 'undefined' ? Events.get(payload.seasonalEvent) : null;
+    if (eventRow && eventEl) {
+      if (event) { eventEl.textContent = I18n.t('event.' + event.id + '.name'); eventRow.classList.remove('hidden'); }
+      else eventRow.classList.add('hidden');
     }
     const unlockEl = document.getElementById('go-unlock');
     if (res.newUnlocks.length) {
@@ -692,7 +738,7 @@ const UI = (() => {
       updateShare();
       document.documentElement.lang = I18n.lang === 'pt' ? 'pt-BR' : I18n.lang;
       renderSettings();
-      ['screen-custom-game', 'screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-ghosts', 'screen-ghost-preview']
+      ['screen-custom-game', 'screen-hangar', 'screen-achievements', 'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-ghosts', 'screen-ghost-preview', 'screen-events']
         .forEach(id => { if (!screens[id].classList.contains('hidden')) rerenderScreen(id); });
       refreshRecords();
     };
@@ -707,13 +753,14 @@ const UI = (() => {
     else if (id === 'screen-missions') renderMissions();
     else if (id === 'screen-ghosts') renderGhostCollection();
     else if (id === 'screen-ghost-preview') renderGhostPreview();
+    else if (id === 'screen-events') renderEvents();
   }
 
   function init(playCb) {
     onPlay = playCb;
     ['screen-home', 'screen-custom-game', 'screen-hangar', 'screen-settings', 'screen-donate',
       'screen-gameover', 'screen-pause', 'screen-achievements',
-      'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-ghosts', 'screen-ghost-preview', 'screen-share', 'screen-share-link']
+      'screen-stats', 'screen-leaderboard', 'screen-missions', 'screen-ghosts', 'screen-ghost-preview', 'screen-events', 'screen-share', 'screen-share-link']
       .forEach(id => screens[id] = document.getElementById(id));
 
     I18n.init();
@@ -782,6 +829,25 @@ const UI = (() => {
       }
       case 'dismissPreview': pendingShared = null; sharedPreviewError = null; clearSharedToken(); show('screen-home'); break;
       case 'ghosts': renderGhostCollection(); show('screen-ghosts'); break;
+      case 'events': renderEvents(); show('screen-events'); break;
+      case 'playSeasonal': {
+        if (!Events.current()) break;
+        show(null); onPlay('classic'); break;
+      }
+      case 'runCommunitySeed': {
+        const seed = btn && Events.getSeed(btn.dataset.seedId);
+        if (!seed) break;
+        show(null); onPlay('classic', { seed: seed.seed, curatedSeed: seed.id }); break;
+      }
+      case 'copyCommunitySeed': {
+        const seed = btn && Events.getSeed(btn.dataset.seedId);
+        if (!seed) break;
+        copyText(String(seed.seed)).then(() => {
+          const feedback = document.getElementById('event-feedback');
+          if (feedback) { feedback.textContent = I18n.t('events.seedCopied'); feedback.classList.remove('hidden'); }
+        }).catch(() => {});
+        break;
+      }
       case 'runGhost': {
         const record = btn && Storage.getGhost(btn.dataset.ghostId);
         if (!record || MODE_RULESETS[record.payload.mode] !== record.payload.rulesetId) break;

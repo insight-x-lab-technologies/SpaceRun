@@ -22,6 +22,7 @@ const Game = (() => {
   let ghostRecorder = null;
   let ghostReplay = null;
   let ghostContext = null;
+  let seasonalEvent = null;
 
   let nextMilestone = 1000, milestoneIdx = 0;
   let starColor = '#cfe8ff';
@@ -172,25 +173,30 @@ const Game = (() => {
 
   function applyBiome(idx) {
     const b = BIOMES[((idx % BIOMES.length) + BIOMES.length) % BIOMES.length];
+    const seasonal = world.seasonalPalette;
     biomeIdx = idx;
-    starColor = b.star;
-    accentColor = b.accent;
+    starColor = seasonal ? seasonal.star : b.star;
+    accentColor = seasonal ? seasonal.accent : b.accent;
     if (settings.colorblind === 'protanopia') accentColor = '#32d8ff';
     else if (settings.colorblind === 'deuteranopia') accentColor = '#47b8ff';
     else if (settings.colorblind === 'tritanopia') accentColor = '#ff6b52';
-    for (const n of nebulae) n.c = b.nebula;
+    for (const n of nebulae) n.c = seasonal ? seasonal.nebula : b.nebula;
   }
 
   function visionColors() {
     if (settings.colorblind === 'protanopia') return { terrainA: '#10294b', terrainB: '#174a72', terrainC: '#0b1d38', crystal: '#ffd23f', crystalGlow: '#ffd23f' };
     if (settings.colorblind === 'deuteranopia') return { terrainA: '#11254b', terrainB: '#1c4675', terrainC: '#0c1934', crystal: '#ffcf40', crystalGlow: '#ffcf40' };
     if (settings.colorblind === 'tritanopia') return { terrainA: '#321446', terrainB: '#66315a', terrainC: '#240d37', crystal: '#36e2b3', crystalGlow: '#36e2b3' };
+    const seasonal = world.seasonalPalette;
+    if (seasonal) return { terrainA: seasonal.terrainA, terrainB: seasonal.terrainB, terrainC: seasonal.terrainC, crystal: '#ffe27a', crystalGlow: '#ffd84a' };
     return { terrainA: '#1a0b3a', terrainB: '#2a1466', terrainC: '#14082f', crystal: '#ffe27a', crystalGlow: '#ffd84a' };
   }
 
   function buildWorld(seed, mode, options) {
     const modeDef = MODE[mode] || MODE.classic;
     const s = Ships.get(Storage.get().selectedShip);
+    seasonalEvent = typeof Events !== 'undefined' ? Events.current() : null;
+    const curated = options && typeof options.curatedSeed === 'string' && typeof Events !== 'undefined' ? Events.getSeed(options.curatedSeed) : null;
     world = {
       scroll: 0, speed: 220, meters: 0, difficulty: 0,
       crystals: 0, combo: 0, comboTimer: 0, maxCombo: 0,
@@ -199,8 +205,11 @@ const Game = (() => {
       noCollision: !!modeDef.noCollision, noPowerups: !!modeDef.noPowerups, wideTerrain: !!modeDef.wideTerrain,
       narrowTerrain: !!modeDef.narrowTerrain, oneLife: !!modeDef.oneLife, calmMusic: !!modeDef.calmMusic,
       remaining: modeDef.duration || 0, targetMeters: modeDef.targetMeters || 0, bossRush: !!modeDef.bossRush, nextBossDist: 2000,
-      nextSpawnDist: 16, nextPickupDist: 40, nextPowerupDist: 120, powerupsUsed: [], spawnSig: []
+      nextSpawnDist: 16, nextPickupDist: 40, nextPowerupDist: 120, powerupsUsed: [], spawnSig: [],
+      seasonalEvent: seasonalEvent ? seasonalEvent.id : null, seasonalPalette: seasonalEvent ? seasonalEvent.palette : null,
+      curatedSeed: curated ? curated.id : null
     };
+    Audio2.setSeasonalMusic(seasonalEvent ? seasonalEvent.music : null);
     if (seed) world.rng = mulberry32(seed >>> 0);
     ship = {
       x: Math.max(80, W * 0.22),
@@ -278,7 +287,8 @@ const Game = (() => {
     const sharedMode = shared && shared.mode === mode && shared.rulesetId === (MODE[mode] && MODE[mode].rulesetId);
     const selectedMode = MODE[mode] && (Storage.isModeUnlocked(mode) || sharedMode) ? mode : 'classic';
     const forcedSeed = shared && shared.mode === selectedMode && shared.rulesetId === MODE[selectedMode].rulesetId ? shared.seed : null;
-    const seed = forcedSeed === null ? (selectedMode === 'daily' ? dailySeed() : (Math.random() * 0xffffffff) >>> 0) : forcedSeed;
+    const curatedSeed = options && Number.isSafeInteger(options.seed) && options.seed >= 0 && options.seed <= 0xffffffff ? options.seed >>> 0 : null;
+    const seed = forcedSeed === null ? (curatedSeed === null ? (selectedMode === 'daily' ? dailySeed() : (Math.random() * 0xffffffff) >>> 0) : curatedSeed) : forcedSeed;
     buildWorld(seed, selectedMode, options);
     setState('ready');   // começa pausado, aguardando input do jogador
     lastT = performance.now();
@@ -287,7 +297,7 @@ const Game = (() => {
   function pause() { if (state === 'playing') setState('paused'); }
   function resume() { if (state === 'paused') { setState('playing'); lastT = performance.now(); acc = 0; } }
   function isPaused() { return state === 'paused'; }
-  function stop() { setState('idle'); }
+  function stop() { Audio2.setSeasonalMusic(null); seasonalEvent = null; setState('idle'); }
 
   function terrain(wx) {
     const diff = world.difficulty;
@@ -879,7 +889,7 @@ const Game = (() => {
                       rulesetId: world.rulesetId, shipId: ship.ship.id,
                       loadout: { agility: Storage.getUpgradeLevel('agility'), thrust: Storage.getUpgradeLevel('thrust') },
                       maxCombo: world.maxCombo, powerups: world.powerupsUsed.slice(), ghost: ghostRecorder ? ghostRecorder.finish(baseGhost) : null,
-                      ghostContext };
+                      ghostContext, seasonalEvent: world.seasonalEvent, curatedSeed: world.curatedSeed };
     setTimeout(() => { if (onOverCb) onOverCb(payload); }, 700);
   }
 
@@ -911,10 +921,11 @@ const Game = (() => {
   }
 
   function drawSpaceBg() {
+    const seasonal = world.seasonalPalette;
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#05010f');
-    g.addColorStop(0.5, '#0a0526');
-    g.addColorStop(1, '#04030f');
+    g.addColorStop(0, seasonal ? seasonal.bgTop : '#05010f');
+    g.addColorStop(0.5, seasonal ? seasonal.bgMid : '#0a0526');
+    g.addColorStop(1, seasonal ? seasonal.bgBottom : '#04030f');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   }
@@ -948,8 +959,8 @@ const Game = (() => {
     for (const s of nearStars) {
       const a = 0.6 + 0.4 * Math.sin(s.tw);
       ctx.globalAlpha = a;
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = '#9fd8ff';
+      ctx.fillStyle = world.seasonalPalette ? world.seasonalPalette.nearStar : '#ffffff';
+      ctx.shadowColor = world.seasonalPalette ? world.seasonalPalette.accent : '#9fd8ff';
       ctx.shadowBlur = 6;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
@@ -1037,11 +1048,12 @@ const Game = (() => {
   }
 
   function drawAsteroid(o) {
+    const seasonal = world.seasonalPalette;
     ctx.save();
     ctx.translate(o.x, o.y);
     ctx.rotate(o.rot);
-    ctx.fillStyle = '#6b5a7a';
-    ctx.strokeStyle = '#a892c0';
+    ctx.fillStyle = seasonal ? seasonal.asteroid : '#6b5a7a';
+    ctx.strokeStyle = seasonal ? seasonal.asteroidStroke : '#a892c0';
     ctx.lineWidth = 2;
     ctx.beginPath();
     const sides = 9;
@@ -1057,6 +1069,14 @@ const Game = (() => {
     ctx.fillStyle = 'rgba(20,10,40,0.5)';
     ctx.beginPath(); ctx.arc(-o.r * 0.2, -o.r * 0.1, o.r * 0.22, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(o.r * 0.3, o.r * 0.25, o.r * 0.15, 0, Math.PI * 2); ctx.fill();
+    if (world.seasonalEvent === 'halloween') {
+      ctx.strokeStyle = '#2a1020'; ctx.lineWidth = Math.max(1.5, o.r * 0.08);
+      ctx.beginPath(); ctx.moveTo(-o.r * 0.3, -o.r * 0.05); ctx.lineTo(-o.r * 0.1, o.r * 0.2); ctx.lineTo(o.r * 0.1, -o.r * 0.05); ctx.lineTo(o.r * 0.3, o.r * 0.2); ctx.stroke();
+    } else if (world.seasonalEvent === 'newyear') {
+      ctx.strokeStyle = '#ffe476'; ctx.lineWidth = Math.max(1.5, o.r * 0.09); ctx.beginPath(); ctx.moveTo(-o.r, 0); ctx.lineTo(o.r, 0); ctx.moveTo(0, -o.r); ctx.lineTo(0, o.r); ctx.stroke();
+    } else if (world.seasonalEvent === 'starlight') {
+      ctx.strokeStyle = '#e7fdff'; ctx.lineWidth = Math.max(1, o.r * 0.06); ctx.beginPath(); ctx.moveTo(-o.r * 1.7, 0); ctx.lineTo(-o.r * 0.55, 0); ctx.stroke();
+    }
     ctx.restore();
   }
 
@@ -1219,6 +1239,7 @@ const Game = (() => {
       targetMeters: world.targetMeters,
       boss: boss ? { remaining: Math.max(0, boss.remaining) } : null,
       bossDistance: world.bossRush ? Math.max(0, Math.ceil(world.nextBossDist - world.meters)) : 0,
+      eventId: world.seasonalEvent,
       crystals: world.crystals,
       combo: world.combo,
       ability: ship ? ship.ability : null,

@@ -82,6 +82,16 @@ test.describe('SpaceRun — fluxo end-to-end', () => {
     await expect(page.locator('#hud')).toBeVisible();
   });
 
+  test('Radar de eventos abre rotas curadas e inicia a seed selecionada', async ({ page }) => {
+    await page.goto('/');
+    await page.click(`${HOME} [data-action="events"]`);
+    await expect(page.locator('#screen-events')).toBeVisible();
+    await expect(page.locator('#event-seed-list .event-seed-card')).toHaveCount(3);
+    await page.click('#event-seed-list [data-action="runCommunitySeed"][data-seed-id="cometRelay"]');
+    await expect(page.locator('#ready-overlay')).toBeVisible();
+    expect(await page.evaluate(() => Game._debug.world.seed)).toBe(319240581);
+  });
+
   test('Sprint é selecionável no Custom Game e mostra cronômetro no HUD', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => Storage.recordRun(50000, 0, 0));

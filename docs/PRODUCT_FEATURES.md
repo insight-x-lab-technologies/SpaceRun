@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.9.0**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.10.0**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -241,8 +241,23 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
 - **Boss Rush:** a cada 2.000 m um mini-chefe procedural lança uma sequência de
   asteroides por 12 s. Sobreviver derrota o chefe e concede 25 cristais.
 - Cada resultado persiste `mode` e `rulesetId` próprio. Os rankings local e
-  global não verificado são filtrados por `{mode, rulesetId}` e preservam Top
-  10 independente por categoria.
+global não verificado são filtrados por `{mode, rulesetId}` e preservam Top
+10 independente por categoria.
+
+## Eventos sazonais e comunidade (Fase 10)
+
+- **Radar de eventos local:** a Home abre uma tela acessível que comunica com
+  clareza quando há uma janela sazonal ativa no calendário local. Semana da Luz
+  Estelar, Órbita das Lanternas e Virada Prismática aplicam paleta, nebulosas,
+  variações procedurais dos asteroides e música procedural próprias. O efeito é
+  estritamente visual/sonoro: não muda física, seed, RNG, ruleset ou score.
+- **Rotas curadas:** três seeds estáticas ficam disponíveis offline na mesma
+  tela, com uma ação direta para correr e outra para copiar a seed. Ao terminar
+  a run, o fluxo existente de desafio por ghost pode compartilhar uma referência
+  não verificada; a UI não sugere ranking ou competição global.
+- Eventos e rotas não adicionam estado persistido, conta, telemetria ou rede.
+  Links recebidos continuam sujeitos ao protocolo F5 e são explicitamente não
+  verificados.
 
 ## Screens & navigation
 

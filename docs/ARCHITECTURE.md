@@ -44,6 +44,7 @@ SpaceRun/
         ├── achievements.js   # Achievement defs + check (Fase 3)
         ├── audio.js          # Audio2: SFX + procedural music + optional MP3 (WebAudio)
         ├── themes.js         # Themes: list + apply/set/init of CSS vars + audio (cosmetic)
+        ├── events.js         # F10: calendário local, paletas/música sazonais e seeds curadas
         ├── input.js          # Input: unified "thrust" + "ability" (Shift / touch button)
         ├── powerups.js       # PowerUps: declarative F4A pickup types/durations
         ├── missions.js       # F4B: projeção de missões/perfil a partir de Storage
@@ -62,7 +63,7 @@ Each `js/*.js` file is an **IIFE that exposes a single global object**. There is
 globals and are loaded in a fixed `<script>` order in `index.html`:
 
 ```
-storage → cloud → i18n → ships → achievements → audio → themes → input → powerups → missions → protocol → ghost → game → ui → share → main
+storage → cloud → i18n → ships → achievements → audio → themes → events → input → powerups → missions → protocol → ghost → game → ui → share → main
 ```
 
 Load order matters: `Game.init()` registers an `Input` listener. During
@@ -82,11 +83,12 @@ applies the saved CSS variables and audio configuration through
 | `I18n`   | Dictionaries for `pt/en/es`; `t(key,vars)`, `apply()` (fills `data-i18n`), `setLang`, `init` (auto-detect). |
 | `Ships`  | `list` of ship defs (each: `id`, `name`, `unlockAt`, `color`, `accent`, `stats`, `ability`, `draw`); `get(id)`, `getSkin(id)`. |
 | `Achievements` | `all()`, `check(ctx)` (unlocks + returns new ids), `isUnlocked(id)`, `getName(id)`, `getDesc(id)`. Definitions live here; persistence via `Storage`. |
-| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setTheme(t)`, `setMusicTracks(menuUrl, gameUrl)`, `setEnabled`, `setMusicEnabled`, `ensure`. `startMusic('zen')` uses the calm procedural variation. |
+| `Audio2` | `uiClick()`, `crash()`, `unlock()`, `pickup()`, `ability()`, `shield()`, `startMusic(type)`, `stopMusic()`, `setTheme(t)`, `setMusicTracks(menuUrl, gameUrl)`, `setSeasonalMusic(config)`, `setEnabled`, `setMusicEnabled`, `ensure`. `startMusic('zen')` uses the calm procedural variation and `event` uses a local seasonal sequence. |
 | `Themes` | `list` (defs with `id`, `name`, `vars`, `font`, optional `audio`), `get(id)`, `currentId()`, `apply(id)`, `set(id)` (persists + applies + emits `musicchange`), `init()` (applies saved theme, sets `--font` on `<html>`, sets `data-theme`, wires `Audio2.setTheme`). |
+| `Events` | F10: calendário local sem persistência/rede; expõe evento sazonal atual, suas paletas/música procedurais e a galeria estática de seeds curadas. Nunca altera RNG lógico, física, ruleset ou score. |
 | `Input`  | `init()`, `isThrusting()`, `triggerAbility()`, `setControls(settings)`, `on('start'|'end'|'ability', fn)`. Unifies remappable keyboard, pointer and Gamepad A as "thrust"; the configured ability key, right bumper and the floating touch button (`#ability-btn`) emit `ability`. It polls defensively and degrades safely when Gamepad API is unavailable. |
 | `PowerUps` | Declarative F4A pickup definitions (`magnet`, `doubleCrystals`, `shield`), their durations and deterministic type selection. It has no DOM or persistence dependency. |
-| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode, { ghost?, ghostKind? })`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, mode objective, crystals, combo, ability and active power-ups), `state`. Grava transições do jogador por tick, desenha ghost compatível sem afetar colisão/RNG e devolve contexto explícito para a comparação final. A paleta F8B altera apenas a apresentação de terreno e cristais. |
+| `Game`   | Engine: `init(canvas, onOver, onState)`, `start(mode, { ghost?, ghostKind?, seed?, curatedSeed? })`, `pause`, `resume`, `stop`, `getHud()` (meters, speed, mode objective, crystals, combo, ability and active power-ups), `state`. Grava transições do jogador por tick, desenha ghost compatível sem afetar colisão/RNG e devolve contexto explícito para a comparação final. A paleta F8B e os eventos F10 alteram apenas a apresentação. |
 | `UI`     | `init(playCb)`, `show`, `showGameOver` (records every run in the shared local leaderboard + achievements), `showPause/hidePause`, `showReady/hideReady`, `refreshRecords`, `showAchievement`, `showMilestone`. F8B aplica classes de paleta/uma-mão e orquestra a captura segura de teclas. F5B abre links `sr` numa prévia, orquestra coleção persistente e comparação não verificada; compartilhamento usa Web Share, Clipboard, cópia legada e por fim um campo manual acessível. |
 | `Share`  | `render(canvas, payload)` draws a procedural PNG "score card" onto a canvas (no assets). |
 | `main`   | Bootstraps everything; HUD loop (incl. ability status); music switching; install (`beforeinstallprompt`); SW registration. |
@@ -196,6 +198,8 @@ must be documented before implementation and mirrored in `index.html`,
 `tests/helpers/loadApp.js` and `sw.js`. Likely future boundaries are
 `powerups.js`, `missions.js`, `protocol.js` and `ghost.js`; os quatro já existem
 como módulos IIFE pequenos e documentados.
+`events.js` é carregado após `themes.js`: ele não depende do DOM e fornece dados
+estáticos para `Game` e `UI`, preservando o funcionamento offline.
 
 ## Testing (dev only — não faz parte do app em produção)
 

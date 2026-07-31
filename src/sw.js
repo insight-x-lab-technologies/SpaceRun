@@ -2,8 +2,8 @@
    Estratégia: sempre busca a versão mais nova quando houver rede, com fallback
    ao cache para funcionar offline. Garante que uma atualização no servidor
    (incl. iPhone/Safari) seja aplicada e não fique "presa" em dados antigos. */
-const CACHE = 'spacerun-v9.0';
-const VERSION = '0.9.0';
+const CACHE = 'spacerun-v10.0';
+const VERSION = '0.10.0';
 const ASSETS = [
   '.',
   'index.html',
@@ -17,6 +17,7 @@ const ASSETS = [
   'js/achievements.js',
   'js/audio.js',
   'js/themes.js',
+  'js/events.js',
   'js/input.js',
   'js/powerups.js',
   'js/missions.js',

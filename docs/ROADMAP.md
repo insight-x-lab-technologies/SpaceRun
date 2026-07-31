@@ -4,7 +4,7 @@
 > Mantém sempre as premissas de `ARCHITECTURE.md`: **serverless, vanilla
 > (sem frameworks/bundler), asset-free (procedural), i18n pt/en/es**.
 
-> Versão atual: **v0.9.0**.
+> Versão atual: **v0.10.0**.
 
 ## Filosofia
 
@@ -41,13 +41,13 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
-| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.9.0 | Rejogabilidade por objetivos |
+| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.10.0 | Rejogabilidade por objetivos |
 | 4B | Retenção e perfil | P2 | ✅ entregue na v0.5.4; validação de produto final ainda pendente | Motivo saudável para retornar |
 | 5 | Social & Ghost P2P | P3 | ✅ entregue na v0.8.0; fallback cross-browser corrigido na v0.8.1 | Competição compartilhável não autoritativa |
 | 5B | Experiência de Ghost & Desafios | P2 | ✅ entregue na v0.8.2; depende da base F5 | Transformar links e replays em uma experiência imediata e persistente |
 | 6 | Doação & cosméticos | P4 | ✅ entregue na v0.7.2 | Sustento sem interromper o jogo |
 | 8B | Qualidade de vida avançada | P3 | ✅ entregue na v0.9.0 | Novos controles e conforto |
-| 10 | Eventos & Comunidade | P4 | depende da fronteira serverless | Conteúdo temporário sem alegações globais falsas |
+| 10 | Eventos & Comunidade | P4 | ✅ entregue na v0.10.0 | Conteúdo temporário sem alegações globais falsas |
 | 11 | Ultra Ambicioso | P4 | reavaliar após validação do produto | Expansão de longo prazo |
 
 ## Ordem recomendada de execução
@@ -56,7 +56,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
    contraste manual e o playtest humano restantes da **v0.5 — Fundação estrutural**.
 2. Avaliar a **F9** completa — especialmente a curva de desbloqueio e os modos
    Marathon, Time Attack e Boss Rush — antes de ajustar metas ou criar outro modo.
-3. Reavaliar F10/F11. Qualquer ranking global, entitlement pago ou meta global
+3. Reavaliar F11. Qualquer ranking global, entitlement pago ou meta global
    exige mudança explícita da premissa serverless.
 
 ---
@@ -816,9 +816,16 @@ não verificado filtram `{mode, rulesetId}`, mantendo Top 10 por categoria.
 
 ---
 
-## Fase 10 — Eventos Sazonais & Comunidade  ·  P4  ·  complexidade média
+## Fase 10 — Eventos Sazonais & Comunidade  ·  P4  ·  complexidade média  ·  ✅ entregue na v0.10.0
 
 Conteúdo temporário que renova o interesse e cria momentos de comunidade.
+
+**Entregue:** o Radar de eventos é uma tela local e offline que apresenta a
+janela sazonal ativa e três rotas curadas por seed. Semana da Luz Estelar,
+Órbita das Lanternas e Virada Prismática aplicam paleta, nebulosas, asteroides
+procedurais e música próprios apenas à apresentação. As rotas iniciam em uma
+ação, podem ter a seed copiada e levam ao fluxo já existente de desafio por
+ghost. Não há persistência, rede, telemetria ou linguagem de ranking global.
 
 **Limite arquitetural:** enquanto o projeto permanecer sem backend, eventos são
 locais/determinísticos e a comunidade funciona por catálogo estático ou links.
@@ -842,7 +849,9 @@ Não existe autoridade global, identidade verificada nem agregação confiável.
   layout por evento; texto inclui hashtags e link direto para o jogo.
 
 **Pronto quando:** pelo menos 1 evento sazonal funcional e a galeria de seeds
-comunitários está acessível.
+comunitários está acessível. — **entregue:** três janelas sazonais locais e três
+seeds curadas estão disponíveis offline; desafios compartilhados permanecem
+referências não verificadas sob o protocolo F5.
 
 ---
 
@@ -917,10 +926,10 @@ jogável.
   `ui.js` (seletor de modo na Home), `storage.js` (progresso por modo),
   possível novo módulo `boss.js` (mini-boss procedural, IIFE-global antes de
   `main.js`).
-- **Eventos/comunidade (F10):** `themes.js` (paletas sazonais detectadas por
-  data), `game.js` (obstáculos temáticos condicionais), `achievements.js`
-  (conquistas de evento), `storage.js` (flags de evento), `share.js` (layout
-  sazonal), `ui.js` (galeria de seeds), `i18n.js` (strings sazonais pt/en/es).
+- **Eventos/comunidade (F10):** `events.js` (calendário local, paletas, música
+  e seeds curadas), `audio.js` (sequência sazonal procedural), `game.js`
+  (apresentação temática sem alterar regras), `ui.js` + `index.html` (Radar e
+  entrada direta nas rotas), `i18n.js`, `sw.js` e testes de calendário/UI.
 - **Ultra (F11):** `storage.js` (prestígio, season pass), `ui.js` (tela do
   season pass), novos módulos IIFE (`campaign.js`), `themes.js` (gerador de
   universos paramétrico), `audio.js` (áudio adaptativo, BPM reativo),

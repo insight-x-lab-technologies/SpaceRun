@@ -9,6 +9,7 @@
   const hudAbility = document.getElementById('hud-ability');
   const hudPowerup = document.getElementById('hud-powerup');
   const hudObjective = document.getElementById('hud-objective');
+  const hudEvent = document.getElementById('hud-event');
   const hudPause = document.getElementById('hud-pause');
   const abilityBtn = document.getElementById('ability-btn');
 
@@ -59,6 +60,7 @@
           : I18n.t('hud.bossIncoming', { n: h.bossDistance });
         else hudObjective.textContent = '';
       }
+      if (hudEvent) hudEvent.textContent = h.eventId ? I18n.t('events.hud', { name: I18n.t('event.' + h.eventId + '.name') }) : '';
       if (abilityBtn) {
         if (h.ability) {
           const label = abilityBtn.querySelector('.ab-label');
@@ -78,7 +80,10 @@
   /* ---------- Música (menu x gameplay) ---------- */
   function currentMusicType() {
     const st = Game.state;
-    if (st === 'ready' || st === 'playing' || st === 'paused') return Game.getHud().mode === 'zen' ? 'zen' : 'game';
+    if (st === 'ready' || st === 'playing' || st === 'paused') {
+      const hud = Game.getHud();
+      return hud.eventId ? 'event' : (hud.mode === 'zen' ? 'zen' : 'game');
+    }
     return 'menu';
   }
 

@@ -42,6 +42,13 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(document.querySelector('[data-action="playMode"][data-mode="bossrush"]').disabled).toBe(true);
   });
 
+  it('abre o Radar de eventos com rotas curadas acessíveis offline', () => {
+    document.querySelector('[data-action="events"]').click();
+    expect(document.getElementById('screen-events').classList.contains('hidden')).toBe(false);
+    expect(document.querySelectorAll('#event-seed-list .event-seed-card')).toHaveLength(3);
+    expect(document.querySelectorAll('#event-seed-list [data-action="runCommunitySeed"]')).toHaveLength(3);
+  });
+
   it('abre missões e coleta apenas uma recompensa diária', () => {
     document.querySelector('[data-action="missions"]').click();
     expect(document.getElementById('screen-missions').classList.contains('hidden')).toBe(false);

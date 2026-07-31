@@ -39,6 +39,7 @@
           <span id="hud-ability" class="hud-ability"></span>
           <span id="hud-powerup" class="hud-powerup"></span>
           <span id="hud-objective" class="hud-objective"></span>
+          <span id="hud-event" class="hud-event"></span>
         </span>
         <button id="hud-pause" aria-label="Pause">II</button>
       </div>
@@ -88,6 +89,7 @@
           </button>
           <button class="btn" data-action="ghosts"><span class="btn-label" data-i18n="menu.ghosts">Ghosts</span></button>
           <button class="btn" data-action="missions"><span class="btn-label" data-i18n="menu.missions">Missões</span></button>
+          <button class="btn" data-action="events"><span class="btn-label" data-i18n="menu.events">Eventos</span></button>
           <button class="btn" data-action="settings">
             <span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 14H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 3.6V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.4 9V9a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
             <span class="btn-label" data-i18n="menu.settings">Configurações</span>
@@ -110,7 +112,7 @@
         </div>
         <div id="update-notice" class="update-notice hidden" role="status" aria-live="polite"><span></span><button class="btn small" data-action="applyUpdate"></button></div>
         <div class="footer">
-          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.9.0</div>
+          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.10.0</div>
           <div class="share-row" id="share-row">
             <a class="share-ic" data-share="whatsapp" href="#" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5z"/><path d="M9 9c0 4 3 7 7 7M9 9l2 1 1-1M16 16l-1-2-1 1"/></svg>
@@ -181,6 +183,24 @@
           <button class="btn" data-action="savePreview" data-i18n="ghost.save">Salvar na coleção</button>
           <button class="btn" data-action="dismissPreview" data-i18n="ghost.dismiss">Agora não</button>
         </div>
+      </div>
+    </section>
+
+    <!-- Radar local de eventos e seeds curadas (Fase 10). -->
+    <section id="screen-events" class="screen hidden">
+      <div class="panel event-panel">
+        <p class="event-eyebrow" data-i18n="events.eyebrow">SINAL LOCAL · SEM RANKING GLOBAL</p>
+        <h2 data-i18n="events.title">Radar de eventos</h2>
+        <p class="subtitle" data-i18n="events.subtitle">Eventos visuais pelo seu calendário e rotas curadas para voar agora.</p>
+        <div id="season-event" class="season-event" role="status" aria-live="polite"></div>
+        <div class="event-section-heading">
+          <h3 data-i18n="events.seedsTitle">Rotas curadas</h3>
+          <p data-i18n="events.seedsSubtitle">Todas usam seeds fixas. Complete uma rota e compartilhe o desafio no fim da run.</p>
+        </div>
+        <div id="event-seed-list" class="event-seed-list"></div>
+        <p class="event-trust" data-i18n="events.trust">Links e desafios recebidos continuam não verificados; esta galeria é local e funciona offline.</p>
+        <p id="event-feedback" class="share-feedback hidden" role="status" aria-live="polite"></p>
+        <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>
       </div>
     </section>
 
@@ -411,6 +431,7 @@
           <div class="result-row"><span data-i18n="go.crystals">Cristais</span><strong id="go-crystals">0</strong></div>
           <div class="result-row"><span data-i18n="go.mode">Modo</span><strong id="go-mode">Clássico</strong></div>
           <div class="result-row hidden" id="go-seed-row"><span data-i18n="go.seed">Seed</span><strong id="go-seed">-</strong></div>
+          <div class="result-row hidden" id="go-event-row"><span data-i18n="go.event">Evento</span><strong id="go-event">-</strong></div>
           <div id="go-unlock" class="unlock hidden"></div>
         </div>
         <div id="go-ghost-comparison" class="ghost-comparison hidden" role="status" aria-live="polite"></div>
@@ -459,6 +480,7 @@
   <script src="js/achievements.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/themes.js"></script>
+  <script src="js/events.js"></script>
   <script src="js/input.js"></script>
   <script src="js/powerups.js"></script>
   <script src="js/missions.js"></script>
