@@ -73,4 +73,32 @@ describe('Input — empuxo unificado (teclado/toque) e habilidade (Shift)', () =
     Input.triggerAbility();
     expect(abilities).toBe(2);
   });
+
+  it('aceita teclas remapeadas e modo toggle sem alterar o contrato de eventos', () => {
+    Input.setControls({ thrustKey: 'KeyW', abilityKey: 'KeyE', controlMode: 'toggle' });
+    let starts = 0; let ends = 0; let abilities = 0;
+    Input.on('start', () => starts++); Input.on('end', () => ends++); Input.on('ability', () => abilities++);
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' }));
+    expect(Input.isThrusting()).toBe(true);
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW' }));
+    expect(Input.isThrusting()).toBe(true);
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE' }));
+    expect(Input.isThrusting()).toBe(false);
+    expect([starts, ends, abilities]).toEqual([1, 1, 1]);
+    expect(Input.setControls({ thrustKey: 'ShiftLeft', abilityKey: 'ShiftLeft' })).toMatchObject({ thrustKey: 'ShiftLeft', abilityKey: 'ShiftRight' });
+  });
+
+  it('Gamepad A controla o empuxo e RB dispara a habilidade com fallback seguro', () => {
+    const original = navigator.getGamepads;
+    let buttons = [{ pressed: true }, { pressed: false }, { pressed: false }, { pressed: false }, { pressed: false }, { pressed: true }];
+    Object.defineProperty(navigator, 'getGamepads', { value: () => [{ buttons }], configurable: true });
+    let starts = 0; let ends = 0; let abilities = 0;
+    Input.on('start', () => starts++); Input.on('end', () => ends++); Input.on('ability', () => abilities++);
+    Input._pollGamepads();
+    buttons = [{ pressed: false }, { pressed: false }, { pressed: false }, { pressed: false }, { pressed: false }, { pressed: false }];
+    Input._pollGamepads();
+    expect([starts, ends, abilities]).toEqual([1, 1, 1]);
+    Object.defineProperty(navigator, 'getGamepads', { value: original, configurable: true });
+  });
 });

@@ -229,7 +229,21 @@ describe('Storage — progresso do jogador', () => {
     expect(saved.settings.sound).toBe(true);
     expect(saved.cosmetics).toMatchObject({ trail: 'ion', explosion: 'nova', title: 'cadet' });
     expect(saved.settings.haptics).toBe(false);
+    expect(saved.settings).toMatchObject({ colorblind: 'none', controlMode: 'hold', thrustKey: 'Space', abilityKey: 'ShiftLeft', oneHanded: false });
     expect(saved.ghosts).toEqual([]);
+  });
+
+  it('persiste apenas preferências F8B válidas', () => {
+    expect(Storage.setSetting('colorblind', 'tritanopia')).toBe(true);
+    expect(Storage.setSetting('controlMode', 'toggle')).toBe(true);
+    expect(Storage.setSetting('thrustKey', 'KeyW')).toBe(true);
+    expect(Storage.setSetting('abilityKey', 'KeyE')).toBe(true);
+    expect(Storage.setSetting('oneHanded', true)).toBe(true);
+    expect(Storage.getSettings()).toMatchObject({ colorblind: 'tritanopia', controlMode: 'toggle', thrustKey: 'KeyW', abilityKey: 'KeyE', oneHanded: true });
+    Storage.importSave(JSON.stringify({ schemaVersion: 2, settings: { colorblind: 'unknown', controlMode: 'bad', thrustKey: '<script>', abilityKey: '???', oneHanded: 'yes' } }));
+    expect(Storage.getSettings()).toMatchObject({ colorblind: 'none', controlMode: 'hold', thrustKey: 'Space', abilityKey: 'ShiftLeft', oneHanded: false });
+    Storage.importSave(JSON.stringify({ schemaVersion: 2, settings: { thrustKey: 'KeyW', abilityKey: 'KeyW' } }));
+    expect(Storage.getSettings()).toMatchObject({ thrustKey: 'KeyW', abilityKey: 'ShiftLeft' });
   });
 
   it('rejeita importações inválidas sem substituir o snapshot atual', () => {

@@ -18,6 +18,8 @@ const Storage = (() => {
   const DAILY_REWARDS = [50, 75, 125, 200, 300, 400, 500];
   const SHIP_IDS = ['scout', 'falcon', 'tank', 'phantom', 'nova', 'vortex', 'quasar', 'pulsar', 'nebula', 'singularity', 'comet', 'aurora', 'raptor', 'helix', 'titan', 'spectre', 'ember', 'zephyr', 'cosmos', 'eclipse'];
   const THEMES = ['neon', 'retro', 'aurora'];
+  const COLORBLIND_MODES = ['none', 'protanopia', 'deuteranopia', 'tritanopia'];
+  const CONTROL_MODES = ['hold', 'toggle'];
   const MODES = ['classic', 'daily', 'zen', 'sprint', 'hardcore', 'marathon', 'timeattack', 'bossrush'];
   const MODE_RULESETS = { classic: 'classic-v2', daily: 'daily-v2', zen: 'zen-v1', sprint: 'sprint-v1', hardcore: 'hardcore-v1', marathon: 'marathon-v1', timeattack: 'timeattack-v1', bossrush: 'bossrush-v1' };
   // Desbloqueios são derivados do progresso já persistido, sem criar um
@@ -60,7 +62,8 @@ const Storage = (() => {
       cosmetics: { trail: 'ion', explosion: 'nova', title: 'cadet', unlocked: ['trail:ion', 'explosion:nova', 'title:cadet'] },
       retention: { lastClaimDate: '', loginStreak: 0, xp: 0, daily: { date: '', progress: {} }, weekly: { week: '', progress: {} } },
       settings: { sound: true, music: true, particles: true, lang: null,
-        reduceMotion: false, highContrast: false, theme: 'neon', performanceMode: false, haptics: false }
+        reduceMotion: false, highContrast: false, theme: 'neon', performanceMode: false, haptics: false,
+        colorblind: 'none', controlMode: 'hold', thrustKey: 'Space', abilityKey: 'ShiftLeft', oneHanded: false }
     };
   }
   function object(v) { return v && typeof v === 'object' && !Array.isArray(v); }
@@ -79,6 +82,10 @@ const Storage = (() => {
     return Array.from(v.trim()).slice(0, 16).join('');
   }
   function id(v, allowed, fallback) { return typeof v === 'string' && allowed.includes(v) ? v : fallback; }
+  function keyCode(v, fallback) {
+    return typeof v === 'string' && /^(Space|Enter|Escape|Tab|Backspace|Delete|Arrow(?:Up|Down|Left|Right)|Shift(?:Left|Right)?|Control(?:Left|Right)?|Alt(?:Left|Right)?|Key[A-Z]|Digit[0-9]|Numpad[0-9]|F(?:[1-9]|1[0-2]))$/.test(v)
+      ? v : fallback;
+  }
   function uniqueIds(v, allowed, fallback, max) {
     if (!Array.isArray(v)) return fallback.slice();
     const out = [];
@@ -223,6 +230,9 @@ const Storage = (() => {
       if (SHIP_IDS.includes(shipId) && body && accent) skins[shipId] = { color: body, accent };
     });
     const settings = object(v.settings) ? v.settings : {};
+    const thrustKey = keyCode(settings.thrustKey, base.settings.thrustKey);
+    let abilityKey = keyCode(settings.abilityKey, base.settings.abilityKey);
+    if (abilityKey === thrustKey) abilityKey = base.settings.abilityKey === thrustKey ? 'ShiftRight' : base.settings.abilityKey;
     const history = Array.isArray(v.history) ? v.history.slice(-MAX_HISTORY).map(x => normalizeRun(x, legacy)) : [];
     const leaderboard = limitLeaderboard(Array.isArray(v.leaderboard) ? v.leaderboard.map(x => normalizeScore(x, legacy)) : []);
     const ghosts = limitGhosts(v.ghosts);
@@ -244,7 +254,12 @@ const Storage = (() => {
         highContrast: typeof settings.highContrast === 'boolean' ? settings.highContrast : base.settings.highContrast,
         theme: id(settings.theme, THEMES, base.settings.theme),
         performanceMode: typeof settings.performanceMode === 'boolean' ? settings.performanceMode : base.settings.performanceMode,
-        haptics: typeof settings.haptics === 'boolean' ? settings.haptics : base.settings.haptics
+        haptics: typeof settings.haptics === 'boolean' ? settings.haptics : base.settings.haptics,
+        colorblind: id(settings.colorblind, COLORBLIND_MODES, base.settings.colorblind),
+        controlMode: id(settings.controlMode, CONTROL_MODES, base.settings.controlMode),
+        thrustKey,
+        abilityKey,
+        oneHanded: typeof settings.oneHanded === 'boolean' ? settings.oneHanded : base.settings.oneHanded
       }
     };
   }

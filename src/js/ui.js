@@ -77,6 +77,8 @@ const UI = (() => {
     const s = Storage.getSettings();
     document.body.classList.toggle('reduce-motion', !!s.reduceMotion);
     document.body.classList.toggle('high-contrast', !!s.highContrast);
+    document.body.classList.toggle('one-handed', !!s.oneHanded);
+    ['protanopia', 'deuteranopia', 'tritanopia'].forEach(mode => document.body.classList.toggle('colorblind-' + mode, s.colorblind === mode));
   }
 
   /* Ícones de compartilhamento social no footer da Home */
@@ -613,6 +615,17 @@ const UI = (() => {
     document.getElementById('set-high-contrast').checked = s.highContrast;
     const haptics = document.getElementById('set-haptics'); if (haptics) haptics.checked = s.haptics;
     const perf = document.getElementById('set-performance-mode'); if (perf) perf.checked = s.performanceMode;
+    const colorblind = document.getElementById('set-colorblind'); if (colorblind) colorblind.value = s.colorblind;
+    const controlMode = document.getElementById('set-control-mode'); if (controlMode) controlMode.value = s.controlMode;
+    const oneHanded = document.getElementById('set-one-handed'); if (oneHanded) oneHanded.checked = s.oneHanded;
+    const thrustKey = document.getElementById('set-thrust-key');
+    const abilityKey = document.getElementById('set-ability-key');
+    const keyName = code => {
+      const translated = I18n.t('settings.key.' + code);
+      return translated === 'settings.key.' + code ? code.replace(/^Key/, '').replace(/^Digit/, '') : translated;
+    };
+    if (thrustKey) thrustKey.textContent = keyName(s.thrustKey);
+    if (abilityKey) abilityKey.textContent = keyName(s.abilityKey);
     document.getElementById('set-lang').value = I18n.lang;
     const themeSel = document.getElementById('set-theme');
     if (themeSel) themeSel.value = Themes.currentId();
@@ -644,6 +657,29 @@ const UI = (() => {
     };
     if (perf) perf.onchange = e => { Audio2.uiClick(); Storage.setSetting('performanceMode', e.target.checked); };
     if (haptics) haptics.onchange = e => { Audio2.uiClick(); Storage.setSetting('haptics', e.target.checked); };
+    if (colorblind) colorblind.onchange = e => { Audio2.uiClick(); Storage.setSetting('colorblind', e.target.value); applyAccessibility(); };
+    if (controlMode) controlMode.onchange = e => { Audio2.uiClick(); Storage.setSetting('controlMode', e.target.value); Input.setControls(Storage.getSettings()); };
+    if (oneHanded) oneHanded.onchange = e => { Audio2.uiClick(); Storage.setSetting('oneHanded', e.target.checked); applyAccessibility(); };
+    const bindKey = (kind, button) => {
+      if (!button) return;
+      button.onclick = () => {
+        const status = document.getElementById('keybind-status');
+        if (status) status.textContent = I18n.t('settings.keyListening');
+        button.classList.add('listening'); button.textContent = '…';
+        const capture = e => {
+          e.preventDefault(); e.stopPropagation();
+          if (e.code === 'Escape') { renderSettings(); return; }
+          const next = Storage.getSettings(); next[kind] = e.code;
+          const other = kind === 'thrustKey' ? 'abilityKey' : 'thrustKey';
+          if (next[other] === e.code) { if (status) status.textContent = I18n.t('settings.keyConflict'); renderSettings(); return; }
+          Storage.setSetting(kind, e.code); Input.setControls(Storage.getSettings());
+          if (status) status.textContent = I18n.t('settings.keySaved', { key: keyName(e.code) });
+          renderSettings();
+        };
+        window.addEventListener('keydown', capture, { once: true, capture: true });
+      };
+    };
+    bindKey('thrustKey', thrustKey); bindKey('abilityKey', abilityKey);
     const themeSelEl = document.getElementById('set-theme');
     if (themeSelEl) themeSelEl.onchange = e => {
       Themes.set(e.target.value);

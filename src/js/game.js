@@ -175,7 +175,17 @@ const Game = (() => {
     biomeIdx = idx;
     starColor = b.star;
     accentColor = b.accent;
+    if (settings.colorblind === 'protanopia') accentColor = '#32d8ff';
+    else if (settings.colorblind === 'deuteranopia') accentColor = '#47b8ff';
+    else if (settings.colorblind === 'tritanopia') accentColor = '#ff6b52';
     for (const n of nebulae) n.c = b.nebula;
+  }
+
+  function visionColors() {
+    if (settings.colorblind === 'protanopia') return { terrainA: '#10294b', terrainB: '#174a72', terrainC: '#0b1d38', crystal: '#ffd23f', crystalGlow: '#ffd23f' };
+    if (settings.colorblind === 'deuteranopia') return { terrainA: '#11254b', terrainB: '#1c4675', terrainC: '#0c1934', crystal: '#ffcf40', crystalGlow: '#ffcf40' };
+    if (settings.colorblind === 'tritanopia') return { terrainA: '#321446', terrainB: '#66315a', terrainC: '#240d37', crystal: '#36e2b3', crystalGlow: '#36e2b3' };
+    return { terrainA: '#1a0b3a', terrainB: '#2a1466', terrainC: '#14082f', crystal: '#ffe27a', crystalGlow: '#ffd84a' };
   }
 
   function buildWorld(seed, mode, options) {
@@ -951,6 +961,7 @@ const Game = (() => {
 
   function drawTerrain() {
     const step = 8;
+    const colors = visionColors();
     // parede superior
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -961,8 +972,8 @@ const Game = (() => {
     ctx.lineTo(W, 0);
     ctx.closePath();
     const gt = ctx.createLinearGradient(0, 0, 0, H * 0.5);
-    gt.addColorStop(0, '#1a0b3a');
-    gt.addColorStop(1, '#2a1466');
+    gt.addColorStop(0, colors.terrainA);
+    gt.addColorStop(1, colors.terrainB);
     ctx.fillStyle = gt;
     ctx.fill();
     // parede inferior
@@ -975,8 +986,8 @@ const Game = (() => {
     ctx.lineTo(W, H);
     ctx.closePath();
     const gb = ctx.createLinearGradient(0, H * 0.5, 0, H);
-    gb.addColorStop(0, '#2a1466');
-    gb.addColorStop(1, '#14082f');
+    gb.addColorStop(0, colors.terrainB);
+    gb.addColorStop(1, colors.terrainC);
     ctx.fillStyle = gb;
     ctx.fill();
 
@@ -1093,6 +1104,7 @@ const Game = (() => {
   }
 
   function drawPickups() {
+    const colors = visionColors();
     for (const p of pickups) {
       if (p.kind === 'powerup') {
         const def = PowerUps.get(p.powerup);
@@ -1119,9 +1131,9 @@ const Game = (() => {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.spin);
-      ctx.shadowColor = '#ffd84a';
+      ctx.shadowColor = colors.crystalGlow;
       ctx.shadowBlur = 12;
-      ctx.fillStyle = '#ffe27a';
+      ctx.fillStyle = colors.crystal;
       ctx.beginPath();
       ctx.moveTo(0, -p.r);
       ctx.lineTo(p.r * 0.7, 0);

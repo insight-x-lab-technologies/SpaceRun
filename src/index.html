@@ -110,7 +110,7 @@
         </div>
         <div id="update-notice" class="update-notice hidden" role="status" aria-live="polite"><span></span><button class="btn small" data-action="applyUpdate"></button></div>
         <div class="footer">
-          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.8.2</div>
+          <div class="footer-copy" data-i18n="home.footer">© 2025 Insight X Lab Technologies · v0.9.0</div>
           <div class="share-row" id="share-row">
             <a class="share-ic" data-share="whatsapp" href="#" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.7L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5z"/><path d="M9 9c0 4 3 7 7 7M9 9l2 1 1-1M16 16l-1-2-1 1"/></svg>
@@ -316,6 +316,39 @@
         <div class="setting-row">
           <label for="set-haptics" data-i18n="settings.haptics">Vibração tátil</label>
           <input type="checkbox" id="set-haptics">
+        </div>
+        <div class="setting-row setting-row-stack">
+          <label for="set-colorblind" data-i18n="settings.colorblind">Paleta de cores</label>
+          <select id="set-colorblind">
+            <option value="none" data-i18n="settings.colorblind.none">Padrão</option>
+            <option value="protanopia" data-i18n="settings.colorblind.protanopia">Protanopia</option>
+            <option value="deuteranopia" data-i18n="settings.colorblind.deuteranopia">Deuteranopia</option>
+            <option value="tritanopia" data-i18n="settings.colorblind.tritanopia">Tritanopia</option>
+          </select>
+        </div>
+        <div class="control-deck" aria-labelledby="controls-title">
+          <h3 id="controls-title" data-i18n="settings.controls">Controles</h3>
+          <p class="setting-help" data-i18n="settings.gamepadHint">Gamepad: A para empuxo · RB para habilidade</p>
+          <div class="setting-row setting-row-stack">
+            <label for="set-control-mode" data-i18n="settings.controlMode">Modo de empuxo</label>
+            <select id="set-control-mode">
+              <option value="hold" data-i18n="settings.controlMode.hold">Segurar para subir</option>
+              <option value="toggle" data-i18n="settings.controlMode.toggle">Toque para alternar</option>
+            </select>
+          </div>
+          <div class="setting-row keybind-row">
+            <span data-i18n="settings.thrustKey">Tecla de empuxo</span>
+            <button class="keybind" type="button" id="set-thrust-key"></button>
+          </div>
+          <div class="setting-row keybind-row">
+            <span data-i18n="settings.abilityKey">Tecla de habilidade</span>
+            <button class="keybind" type="button" id="set-ability-key"></button>
+          </div>
+          <p id="keybind-status" class="setting-help" role="status" aria-live="polite"></p>
+          <div class="setting-row">
+            <label for="set-one-handed" data-i18n="settings.oneHanded">Modo uma mão</label>
+            <input type="checkbox" id="set-one-handed">
+          </div>
         </div>
         <button class="btn danger" data-action="reset" data-i18n="settings.reset">Apagar progresso</button>
         <button class="btn back" data-action="home" data-i18n="hangar.back">Voltar</button>

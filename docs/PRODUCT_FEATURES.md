@@ -1,6 +1,6 @@
 # SpaceRun — Product Features
 
-Version **0.8.2**. Gameplay art and audio are procedural; the app is a vanilla
+Version **0.9.0**. Gameplay art and audio are procedural; the app is a vanilla
 PWA (vanilla HTML/JS, no frameworks) with optional Supabase synchronization. Generated PNG PWA icons are
 the only committed binary assets. Fase 2
 (habilidades, skins e upgrades de naves) e Fase 3 (conquistas, estatísticas,
@@ -150,6 +150,19 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
   devices for crystal pickups, near-misses, abilities, shields and collisions.
   It remains off by default and is suppressed when Reduce motion is enabled.
 
+## Advanced accessibility & quality of life (F8B)
+
+- **Color-vision palettes:** Settings provides Protanopia, Deuteranopia and
+  Tritanopia palettes. They preserve a clear distinction between terrain,
+  crystals and HUD accents without changing physics, RNG or scores.
+- **Flexible controls:** keyboard thrust and ability keys are remappable, and
+  thrust supports either hold-to-climb or tap-to-toggle. The Gamepad API maps A
+  to thrust and right bumper to ability; absence or disconnection safely falls
+  back to keyboard/touch.
+- **One-handed mode:** moves the floating ability and pause controls to the
+  right-side mobile reach zone. All choices are local, validated and persisted
+  through `Storage`.
+
 ## Meta & Social (Fase 3)
 
 - **Achievements:** 23 challenges (distance milestones — 10k/25k/50k/100k/250k/
@@ -240,7 +253,9 @@ Polish that makes the core loop satisfying (Fase 0 of the roadmap):
   (TikTok/Instagram use the native Web Share sheet; copy-link copies to clipboard).
 - **Hangar:** ship grid with locked/unlocked/selected states.
 - **Settings:** **Theme** (Neon / Retro / Aurora), Sound, Music, Particles,
-  **Reduce motion**, **High contrast**, Language (pt/en/es), Erase progress.
+  **Reduce motion**, **High contrast**, color-vision palette, remappable
+  controls, hold/toggle thrust, one-handed mode, Language (pt/en/es), Erase
+  progress.
 - **Donate:** a localized, accessible support screen explains that donations are
   optional and never unlock gameplay advantages, ships or progress. It offers
   safe external links to Ko-Fi and Buy Me a Coffee and states that cosmetics

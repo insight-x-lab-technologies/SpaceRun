@@ -74,7 +74,7 @@ const Protocol = (() => {
   function encode(kind, payload) {
     const clean = validate(kind, payload);
     if (!clean) return null;
-    const body = { protocolVersion: VERSION, kind, createdAt: Date.now(), gameVersion: '0.8.2', rulesetId: clean.rulesetId, payload: clean };
+    const body = { protocolVersion: VERSION, kind, createdAt: Date.now(), gameVersion: '0.9.0', rulesetId: clean.rulesetId, payload: clean };
     body.checksum = hash(JSON.stringify(body));
     const encoded = toBase64(JSON.stringify(body));
     return encoded.length <= MAX_ENCODED ? encoded : null;

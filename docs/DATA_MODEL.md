@@ -84,7 +84,12 @@ migração. Novas grandes reorganizações exigem v3.
     highContrast: false,
     theme: "neon",
     performanceMode: false,
-    haptics: false
+    haptics: false,
+    colorblind: "none", // none | protanopia | deuteranopia | tritanopia
+    controlMode: "hold", // hold | toggle
+    thrustKey: "Space",
+    abilityKey: "ShiftLeft",
+    oneHanded: false
   }
 }
 ```
@@ -238,6 +243,12 @@ um save v2 existente ganha os acessos correspondentes sem migração.
   salva pelo jogador tem precedência.
 - `haptics` é booleano e começa em `false`; a vibração é opcional e não deve
   ocorrer quando `reduceMotion` estiver ativo.
+- `colorblind` aceita apenas `none`, `protanopia`, `deuteranopia` ou
+  `tritanopia`; é uma transformação visual e não entra em física, RNG ou score.
+- `controlMode` aceita `hold` ou `toggle`; `thrustKey` e `abilityKey` aceitam
+  somente códigos de teclado conhecidos e distintos. Valores inválidos voltam a
+  `Space` e `ShiftLeft`.
+- `oneHanded` é booleano, começa em `false` e só reposiciona controles de UI.
 
 ## Limites e normalização
 

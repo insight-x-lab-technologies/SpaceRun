@@ -4,7 +4,7 @@
 > Mantém sempre as premissas de `ARCHITECTURE.md`: **serverless, vanilla
 > (sem frameworks/bundler), asset-free (procedural), i18n pt/en/es**.
 
-> Versão atual: **v0.8.2**.
+> Versão atual: **v0.9.0**.
 
 ## Filosofia
 
@@ -41,12 +41,12 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
 | 4A | Power-ups em run | P1 | ✅ entregue na v0.5.2 | Mais decisões e variedade no loop principal |
 | 8A | Acessibilidade e performance essenciais | P0 | incluída em v0.5 | Base inclusiva e estável em mobile |
 | 7 | Customização & Expressão | P2 | ✅ entregue na v0.5.3 | Identidade visual sem alterar competição |
-| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.8.2 | Rejogabilidade por objetivos |
+| 9 | Modos de Jogo | P2 | ✅ entregue na v0.7.0; versão atual v0.9.0 | Rejogabilidade por objetivos |
 | 4B | Retenção e perfil | P2 | ✅ entregue na v0.5.4; validação de produto final ainda pendente | Motivo saudável para retornar |
 | 5 | Social & Ghost P2P | P3 | ✅ entregue na v0.8.0; fallback cross-browser corrigido na v0.8.1 | Competição compartilhável não autoritativa |
 | 5B | Experiência de Ghost & Desafios | P2 | ✅ entregue na v0.8.2; depende da base F5 | Transformar links e replays em uma experiência imediata e persistente |
 | 6 | Doação & cosméticos | P4 | ✅ entregue na v0.7.2 | Sustento sem interromper o jogo |
-| 8B | Qualidade de vida avançada | P3 | após 8A | Novos controles e conforto |
+| 8B | Qualidade de vida avançada | P3 | ✅ entregue na v0.9.0 | Novos controles e conforto |
 | 10 | Eventos & Comunidade | P4 | depende da fronteira serverless | Conteúdo temporário sem alegações globais falsas |
 | 11 | Ultra Ambicioso | P4 | reavaliar após validação do produto | Expansão de longo prazo |
 
@@ -56,7 +56,7 @@ obrigatória de implementação. A ordem recomendada está explícita abaixo.
    contraste manual e o playtest humano restantes da **v0.5 — Fundação estrutural**.
 2. Avaliar a **F9** completa — especialmente a curva de desbloqueio e os modos
    Marathon, Time Attack e Boss Rush — antes de ajustar metas ou criar outro modo.
-3. Reavaliar F8B, F10/F11. Qualquer ranking global, entitlement pago ou meta global
+3. Reavaliar F10/F11. Qualquer ranking global, entitlement pago ou meta global
    exige mudança explícita da premissa serverless.
 
 ---
@@ -751,22 +751,25 @@ sente vibração tátil no mobile.
 
 ---
 
-## Fase 8 — Acessibilidade & Qualidade de Vida avançada  ·  P2/P3  ·  complexidade variada
+## Fase 8 — Acessibilidade & Qualidade de Vida avançada  ·  P2/P3  ·  ✅ F8B entregue na v0.9.0
 
 Polimento que torna o jogo mais inclusivo, confortável e profissional.
 
 Os fundamentos de zoom, foco, texto assistivo, contraste, reduzir movimento e
-Performance Mode pertencem à **F8A**, antecipada para a v0.5. Esta seção contém
-o trabalho avançado restante (**F8B**).
+Performance Mode pertencem à **F8A**, antecipada para a v0.5. A F8B entrega os
+controles e perfis visuais avançados que compõem seu critério de saída.
 
-- **Modo daltônico (colorblind):** 3 modos (protanopia, deuteranopia, tritanopia)
-  que ajustam as cores do jogo (terreno, cristais, HUD). Toggle em Settings.
-- **Suporte a controles (Gamepad API):** mapear botão A/Space para thrust, bumper
-  direito para habilidade. `Input.js` ganha listener de `gamepadconnected`.
-- **Mapeamento de controle customizável:** reatribuir teclas (desktop) e escolher
-  entre hold-to-thrust ou toggle-to-thrust.
-- **Modo uma mão (one-handed):** em mobile, todos os elementos de UI (ability
-  button, pause) ficam no lado direito para operação com uma mão.
+- **Modo daltônico (colorblind):** três perfis (protanopia, deuteranopia,
+  tritanopia) ajustam as cores de terreno, cristais e acentos do HUD sem tocar
+  na simulação.
+- **Suporte a controles (Gamepad API):** botão A controla empuxo e bumper
+  direito ativa habilidade; conexão, desconexão e ausência da API degradam com
+  segurança para teclado/toque.
+- **Mapeamento de controle customizável:** captura validada de teclas de empuxo
+  e habilidade, com conflito recusado, e escolha entre hold-to-thrust e
+  toggle-to-thrust.
+- **Modo uma mão (one-handed):** em mobile, os controles de pausa e habilidade
+  ocupam a zona direita de alcance.
 - **Splash screen / tela de boot:** tela procedural de carregamento enquanto o
   Service Worker e o AudioContext são iniciados. Logo do jogo gerado em canvas.
 - **Auto-play / Ghost tutorial:** na primeira vez, uma run "fantasma"
@@ -777,9 +780,11 @@ o trabalho avançado restante (**F8B**).
   `Audio2`) selecionáveis para tocar durante o jogo. Cada faixa é desbloqueada
   por distância ou cristais.
 
-**Pronto quando:** modo daltônico, gamepad e remapeamento têm fallback seguro,
-testes de input e instruções localizadas. Gráficos/jukebox não bloqueiam esse
-marco e podem ser entregues separadamente.
+**Entregue:** modo daltônico, gamepad, remapeamento, thrust hold/toggle e modo
+uma mão têm fallback seguro, testes de input, persistência validada e instruções
+localizadas. Splash/tutorial, gráficos de tendências e jukebox continuam ideias
+independentes para uma futura fatia de polimento; gráficos e jukebox nunca foram
+bloqueadores deste marco.
 
 ---
 

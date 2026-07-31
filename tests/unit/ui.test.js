@@ -112,6 +112,22 @@ describe('UI — telas, hangar, conquistas, game over', () => {
     expect(Storage.getSettings().sound).toBe(true);
   });
 
+  it('aplica e persiste a cabine acessível F8B', () => {
+    document.querySelector('[data-action="settings"]').click();
+    const palette = document.getElementById('set-colorblind');
+    palette.value = 'deuteranopia'; palette.dispatchEvent(new Event('change'));
+    const controlMode = document.getElementById('set-control-mode');
+    controlMode.value = 'toggle'; controlMode.dispatchEvent(new Event('change'));
+    const oneHanded = document.getElementById('set-one-handed');
+    oneHanded.checked = true; oneHanded.dispatchEvent(new Event('change'));
+    expect(Storage.getSettings()).toMatchObject({ colorblind: 'deuteranopia', controlMode: 'toggle', oneHanded: true });
+    expect(document.body.classList.contains('colorblind-deuteranopia')).toBe(true);
+    expect(document.body.classList.contains('one-handed')).toBe(true);
+    document.getElementById('set-thrust-key').click();
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' }));
+    expect(Storage.getSettings().thrustKey).toBe('KeyW');
+  });
+
   it('selecionar e pintar uma nave persiste a skin', () => {
     document.querySelector('[data-action="hangar"]').click();
     Storage.unlock('falcon');
